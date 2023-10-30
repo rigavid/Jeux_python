@@ -29,14 +29,11 @@ class layout:
         for frm in except_frames:
             ind = [i.name for i in frames].index(frm.name)
             if ind != -1: frames.pop(ind)
-        s = []
         for frame in frames:
-            s.append(frame.name)
             img.img = fusionImages(frame.img.img, img.img, frame.pos)
             if debug:
                 img.rectangle(frame.pos, [frame.pos[0]+len(frame.img.img[0]), frame.pos[1]+len(frame.img.img)], col.red, 3)
         self.img = img
-        print(s, end='\r')
         return img.montre(1, fullscreen=True)
 
 class toucheException(Exception):
@@ -45,6 +42,11 @@ class toucheException(Exception):
         super().__init__(self.message)
 
 class gameOverException(Exception):
+    def __init__(self, score=""):
+        self.message = f'Your score was: {score} points'
+        super().__init__(self.message)
+
+class stopGameException(Exception):
     def __init__(self, score=""):
         self.message = f'Your score was: {score} points'
         super().__init__(self.message)
@@ -277,13 +279,13 @@ try:
             nex.img = img
         sco.img = image(img=image(img=copy.deepcopy(imgScore.img)).ecris(str(score), [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]]))
         wk = ly.montre(debug=True, except_frames=[pause])
-        if wk == 27: raise gameOverException(score)
+        if wk == 27: raise stopGameException
         elif wk == ord('z'): playing.rotate(-1, matrice)
         elif wk == ord('x'): playing.rotate(1, matrice)
         elif wk == ord('p'):
             while True:
                 wk = ly.montre(debug=True)
-                if wk == 27: raise gameOverException
+                if wk == 27: raise stopGameException
                 elif wk == ord('p'): break
         elif wk == fl_g:
             try: playing.move(matrice, [-1,0])
@@ -368,5 +370,15 @@ except gameOverException as e:
     s = round(temps%60)
     temps = f'{h:0>2}:{m:0>2}:{s:0>2}'
     print(f'Game Over!\nPoints : {score:0>8}\nTemps  : {temps}')
+    img = ly.img
+    img.rectangle(offset_jeu, [offset_jeu[0]+n_c_X*d_x, haut], col.red, 0)
+    img.ecris('Game over', ct_sg(offset_jeu, [offset_jeu[0]+n_c_X*d_x, haut]), col.vert, 3, 2)
+    img.montre(1, fullscreen=True)
+    t = time.time()
+    while diff(t, time.time()) < 2:
+        if img.montre(1, fullscreen=True) == 27: t=None; break
+    if t != None:
+        img.montre(0, fullscreen=True)
     # fusee(score)
-#except Exception as e: print(e)
+except stopGameException: print('Game ended.')
+except Exception as e: print(e)
