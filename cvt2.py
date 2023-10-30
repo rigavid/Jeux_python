@@ -53,6 +53,7 @@ class image:
             print(f'{len(self.img)}, {len(self.img[0])} - {n/cmb*100:4f}%', end='\r')
             img_str += '\n'
         img_str += fg.custom+fg.rs
+        print(' '*20, end='\r')
         return(img_str)
     def montre(self, attente=0, destroy=False, fullscreen=False) -> int:
         '''
