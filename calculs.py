@@ -12,9 +12,9 @@ def ct_sg(pt1, pt2):
     ``ct``: ``tuple (x, y)``
     '''
     ct = (int((pt1[0] + pt2[0]) / 2), int((pt1[1] + pt2[1]) / 2))
-    return(ct)
+    return ct
 def ct_cr(p1, p2, p3, p4):
-    return(ct_sg(ct_sg(p1, p2), ct_sg(p3, p4)))
+    return ct_sg(ct_sg(p1, p2), ct_sg(p3, p4))
 def pt_sg(p1, p2, m1=1, m2=1):
     '''
     Prend:
@@ -50,7 +50,7 @@ def decoupe(string):
             break
         else:
             out += i
-    return(float(out))
+    return float(out)
 def coosCercle(ct, rayon, angle):
     '''
     Prend:
@@ -65,7 +65,7 @@ def coosCercle(ct, rayon, angle):
     angle = math.radians(angle)
     cos = float(decoupe(str(math.cos(angle))))
     sin = float(decoupe(str(math.sin(angle))))
-    return([int(ct[0] + cos * rayon), int(ct[1] + sin * rayon)])
+    return [int(ct[0] + cos * rayon), int(ct[1] + sin * rayon)]
 def dist(p1, p2):
     a, b = p1
     c, d = p2
@@ -73,7 +73,7 @@ def dist(p1, p2):
     diffY = abs(b - d)
     dist = math.sqrt((diffX * diffX) + (diffY * diffY))
     dist = float(decoupe(dist))
-    return(dist)
+    return dist
 def angleEntrePoints(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
@@ -84,7 +84,7 @@ def angleEntrePoints(p1, p2):
 def diff(n1, n2):
     return abs(n1-n2)
 def racine_carree(n):
-    return(float(decoupe(math.sqrt(n))))
+    return float(decoupe(math.sqrt(n)))
 def equation_2eme_degre(a, b, c):
     try:
         y1 = (-b + racine_carree(b**2 - 4*a*c)) / (2*a)
@@ -101,7 +101,7 @@ def equation_2eme_degre(a, b, c):
     elif y2 == 'r':
         return(y1)
     else:
-        return(y1, y2)
+        return y1, y2
 def oppose(n):
     return(0 - n)
 def points_segment(p1, p2):
@@ -137,4 +137,17 @@ def points_segment(p1, p2):
         for i in xc:
             out.append([int(xc[pos]), int(yc[pos])])
             pos += 1
-    return(out)
+    return out
+def float_range(start, stop, number=1):
+    if stop==start: return [start for _ in range(number)]
+    else:
+        d = diff(start, stop)
+        s = d/number
+        o = [start]
+        if start>stop:
+            for n in range(number)[::-1]:
+                o.append(stop+abs(s*n))
+        else:
+            for n in range(number):
+                o.append(start+abs(s*n))
+        return o

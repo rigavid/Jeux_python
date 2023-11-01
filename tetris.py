@@ -83,10 +83,9 @@ class piece:
         for x in range(5):
             for y in range(5):
                 if self.forme[y,x] != 0:
-                    try:
-                        iy, ix = y+self.pos[1],x+self.pos[0]
-                        if arr[iy, ix] != 0 or iy<0 or ix<0: raise toucheException
-                    except IndexError: raise toucheException
+                    iy, ix = y+self.pos[1],x+self.pos[0]
+                    if iy>=n_c_Y or ix>=n_c_X or iy<0 or ix<0: raise toucheException
+                    elif arr[iy, ix] != 0: raise toucheException
         for x in range(5):
             for y in range(5):
                 if self.forme[y,x] != 0:
@@ -103,8 +102,10 @@ class piece:
     def remove(self, arr) -> None:
         for x in range(5):
             for y in range(5):
-                if self.forme[y,x] != 0:
-                    arr[y+self.pos[1],x+self.pos[0]] = 0
+                try:
+                    if self.forme[y,x] != 0:
+                        arr[y+self.pos[1],x+self.pos[0]] = 0
+                except IndexError: pass
         self.deployed = False
         return None
     def dessine(self, img, offset=[0,0]) -> None:
@@ -137,9 +138,11 @@ class piece:
         if self.deployed: return False
         for x in range(5):
             for y in range(5):
-                if arr[self.pos[1]+y, self.pos[0]+x] != 0:
-                    if self.forme[y,x] != 0:
-                        return True
+                try:
+                    if arr[self.pos[1]+y, self.pos[0]+x] != 0:
+                        if self.forme[y,x] != 0:
+                            return True
+                except IndexError: pass
         return False
     def move(self, arr, w=[0,1]) -> None:
         game_over = self.is_over(arr)
@@ -182,7 +185,9 @@ def updateImg(jeu):
 
 ### GAME VARS ###
 n_c_X, n_c_Y = [10, 22]
-gameType = 4
+gameType = 0
+n_of_levels = 30
+level = 0
 #################
 couleurs = [col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0')]
 rd.shuffle(couleurs) ## TO REMOVE ##
@@ -190,13 +195,10 @@ rd.shuffle(couleurs) ## TO REMOVE ##
 if True: ## Vars ##
     n_c_X, n_c_Y = n_entre(n_c_X, 10, 20), n_entre(n_c_Y, 12, 30)
     sep_d = 20
+    x, y = diff(p1[0], p4[0]), diff(p1[1], p4[1])
+    r_x, r_y = x/n_c_X, y/n_c_Y
+    d_x=d_y=r_y if r_x>r_y else r_x
     if True: ## Image de fond du jeu ##
-        x, y = diff(p1[0], p4[0]), diff(p1[1], p4[1])
-        r_x, r_y = x/n_c_X, y/n_c_Y
-        if r_x>r_y: # X a place en plus que Y n'a pas ##
-            d_x=d_y=r_y
-        else: # Y a place en plus que X n'a pas | Y'a pas de place en plus ##
-            d_x=d_y=r_x
         imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
         offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
         for line_n in range(n_c_Y):
@@ -225,8 +227,9 @@ if True: ## Vars ##
     if True: ## Img pause ##
         imgPause = image(img=image.new_img(dimensions=[d_x*(n_c_X-1), d_y*(n_c_Y-1)], fond=col.cyan))
         offset_pause = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
-    offset_score = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
-    imgScore = image('scores', image.new_img(dimensions=[round(d_x*5), round(d_y*5)], fond=col.white))
+    if True: ## Img scores ##
+        offset_score = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
+        imgScore = image('scores', image.new_img(dimensions=[round(d_x*5), round(d_y*5)], fond=col.white))
     match gameType:
         case 0: pieces = tetraminos
         case 1: pieces = miniminos  + tetraminos
@@ -236,18 +239,17 @@ if True: ## Vars ##
         case 5: pieces = miniminos  + tetraminos + pentaminos
     pieces = np.array(pieces)
     ly = layout()
-    jeu = ly.frame(copy.deepcopy(imgJeu.img), offset_jeu)
-    nex = ly.frame(copy.deepcopy(imgNext.img), offset_next)
-    hol = ly.frame(copy.deepcopy(imgHold.img), offset_hold)
-    sco = ly.frame(copy.deepcopy(imgScore.img), offset_score)
-    pause = ly.frame(copy.deepcopy(imgPause.img), offset_pause)
+    jeu = ly.frame(copy.deepcopy(imgJeu.img), offset_jeu, 'Matrix_frame')
+    nex = ly.frame(copy.deepcopy(imgNext.img), offset_next, 'Nexts_frame')
+    hol = ly.frame(copy.deepcopy(imgHold.img), offset_hold, 'Hold_frame')
+    sco = ly.frame(copy.deepcopy(imgScore.img), offset_score, 'Score_frame')
+    pause = ly.frame(copy.deepcopy(imgPause.img), offset_pause, 'Pause_frame')
+
     ht = len(jeu.img.img)+2
     lg = len(jeu.img.img[0])+2
     cols = [x for x in np.arange(0,lg,d_x)]
     rows = [y for y in np.arange(0,ht,d_y)]
     matrice = np.array([[0 for _ in range(n_c_X)] for _ in range(n_c_Y)])
-    speed = 1
-
     playing = piece(tipe=rd.randint(0, len(pieces)-1))
     playing.set(matrice)
     playing.dessine(jeu.img)
@@ -256,15 +258,24 @@ if True: ## Vars ##
     temps = time.time()
     t = time.time()
     scoring = [0, 100, 300, 600, 1000, 1500]
-    score = 0
+    score = 9000
     last_score = 0
-
+    ofst = 2
+    vitesse = float_range(1, 0.13, n_of_levels)
+if True: ## Controls ##
     fl_g = 2424832
     fl_d = 2555904
     fl_h = 2490368
     fl_b = 2621440
-    ofst = 2
+    keys_hold = [ord('c')]
+    keys_soft_drop = [fl_b]
+    keys_rotate = [fl_h]
+    keys_left = [fl_g]
+    keys_right = [fl_d]
+
 try:
+    time_to_advance = vitesse[level]
+    soft_drop = False
     while True:
         end_p = False
         if holding != None:
@@ -277,41 +288,95 @@ try:
             p.pos = [0, 0]
             p.dessine(img, start)
             nex.img = img
-        sco.img = image(img=image(img=copy.deepcopy(imgScore.img)).ecris(str(score), [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]]))
+        sco.img = image(img=copy.deepcopy(imgScore.img))
+        sco.img.ecris(str(score)+f'\n{level}/{n_of_levels}\n{time_to_advance:.2f}', [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]])
         wk = ly.montre(debug=True, except_frames=[pause])
-        if wk == 27: raise stopGameException
-        elif wk == ord('z'): playing.rotate(-1, matrice)
-        elif wk == ord('x'): playing.rotate(1, matrice)
-        elif wk == ord('p'):
-            while True:
-                wk = ly.montre(debug=True)
-                if wk == 27: raise stopGameException
-                elif wk == ord('p'): break
-        elif wk == fl_g:
-            try: playing.move(matrice, [-1,0])
-            except toucheException:
-                playing.pos = playing.save_pos
+        if True: ## Inputs ##
+            if wk == 27: raise stopGameException
+            elif wk == ord('z'): playing.rotate(-1, matrice)
+            elif wk == ord('x'): playing.rotate(1, matrice)
+            elif wk == ord('p'): ## Pause ##
+                temps2 = time.time()
+                while True:
+                    wk = ly.montre(debug=True)
+                    if wk == 27: raise stopGameException
+                    elif wk == ord('p'): break
+                temps -= diff(temps2, time.time())
+            elif wk in keys_left:
+                try:
+                    playing.move(matrice)
+                    playing.move(matrice, [0, -1])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+                    time_to_advance = 0.5
+                try: playing.move(matrice, [-1,0])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+            elif wk in keys_right:
+                try:
+                    playing.move(matrice)
+                    playing.move(matrice, [0, -1])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+                    time_to_advance = 0.5
+                try: playing.move(matrice, [1,0])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+            elif wk in keys_rotate:
+                try:
+                    playing.move(matrice)
+                    playing.move(matrice, [0, -1])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+                    time_to_advance = 0.5
+                playing.rotate(1, matrice)
+            elif wk in keys_hold:
+                playing.remove(matrice)
+                holding, playing = playing, holding
+                if playing == None:
+                    playing = next_ps.pop(0)
+                    next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
+                playing.pos = [round(n_c_X/2-2), 0]
                 playing.set(matrice)
-        elif wk == fl_d:
-            try: playing.move(matrice, [1,0])
-            except toucheException:
-                playing.pos = playing.save_pos
-                playing.set(matrice)
-        elif wk == fl_h:
-            playing.rotate(1, matrice)
-        elif wk == fl_b:
-            try:
-                playing.move(matrice)
-                t=time.time()
-                score += speed
-            except toucheException:
-                playing.pos = playing.save_pos
-                playing.set(matrice)
-                playing = next_ps.pop(0)
-                playing.pos = [3, 0]
-                next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
-                end_p = True
-        if diff(t,time.time()) > 1/speed:
+                
+                
+                holding.pos = [0, 0]
+                time.sleep(0.3)
+            if wk in keys_soft_drop:
+                time_to_advance = vitesse[level]/20
+                soft_drop = True
+                soft_drop_t = time.time()
+            elif soft_drop:
+                if diff(soft_drop_t, time.time()) >= 0.1:
+                    time_to_advance = vitesse[level]
+                    soft_drop = False
+            if keyboard.is_pressed('+'):
+                print('+++')
+            if keyboard.is_pressed('space'):
+                cases_parcourues = 0
+                try:
+                    while True:
+                        playing.move(matrice)
+                        cases_parcourues += 1
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+
+                    playing = next_ps.pop(0)
+                    next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
+
+                    playing.pos = [round(n_c_X/2-2), 0]
+                    t = time.time()
+                    end_p = True
+                score += cases_parcourues*2*level
+                time.sleep(0.2)
+        if diff(t,time.time()) > time_to_advance and not end_p:
+            if time_to_advance == 0.5: time_to_advance = vitesse[level]
             t = time.time()
             try: playing.move(matrice)
             except toucheException:
@@ -321,31 +386,6 @@ try:
                 playing.pos = [round(n_c_X/2-2), 0]
                 next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
                 end_p = True
-        if True in [keyboard.is_pressed(k) for k in ['h', 'c']]:
-            playing.remove(matrice)
-            holding, playing = playing, holding
-            if playing == None:
-                playing = next_ps.pop(0)
-                next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
-            playing.set(matrice)
-            playing.pos = [round(n_c_X/2-2), 0]
-            holding.pos = [0, 0]
-            time.sleep(0.3)
-        if keyboard.is_pressed('space'):
-            ct = 0
-            try:
-                while True:
-                    playing.move(matrice)
-                    ct += 1
-            except toucheException:
-                playing.pos = playing.save_pos
-                playing.set(matrice)
-                playing = next_ps.pop(0)
-                playing.pos = [round(n_c_X/2-2), 0]
-                next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
-                end_p = True
-            score += ct*2*speed
-            time.sleep(0.2)
         updateImg(jeu)
         if end_p:
             m = [list(l) for l in matrice]
@@ -361,7 +401,8 @@ try:
             matrice = np.array(m[::-1])
             score += scoring[lns]*round(n_c_X/10)
             for _ in range(diff(score//10000,last_score//10000)):
-                speed += 1
+                level += 1
+                time_to_advance = vitesse[level]
             last_score = score
 except gameOverException as e:
     temps = diff(temps, time.time())
@@ -371,7 +412,7 @@ except gameOverException as e:
     temps = f'{h:0>2}:{m:0>2}:{s:0>2}'
     print(f'Game Over!\nPoints : {score:0>8}\nTemps  : {temps}')
     img = ly.img
-    img.rectangle(offset_jeu, [offset_jeu[0]+n_c_X*d_x, haut], col.red, 0)
+    #img.rectangle(offset_jeu, [offset_jeu[0]+n_c_X*d_x, haut], col.red, 0)
     img.ecris('Game over', ct_sg(offset_jeu, [offset_jeu[0]+n_c_X*d_x, haut]), col.vert, 3, 2)
     img.montre(1, fullscreen=True)
     t = time.time()
@@ -381,4 +422,4 @@ except gameOverException as e:
         img.montre(0, fullscreen=True)
     # fusee(score)
 except stopGameException: print('Game ended.')
-except Exception as e: print(e)
+#except Exception as e: print(e)

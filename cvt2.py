@@ -3,7 +3,7 @@
 # >>> numpy
 # >>> sty
 
-import numpy as np, cv2, random as rd, copy, time
+import numpy as np, cv2, random as rd, copy, time, os
 from couleurs import *
 from sty import Style, RgbFg, fg
 from calculs import *
@@ -18,15 +18,14 @@ def fusionImages(petite_img, grande_img, pos=[0, 0]):
     --------
     ``np.array``\nImage.
     '''
-    s_img = petite_img
-    img = grande_img
     x_offset, y_offset = [round(v) for v in pos]
-    img[y_offset:y_offset + s_img.shape[0], x_offset:x_offset + s_img.shape[1]] = s_img
-    return(img)
+    grande_img[y_offset:y_offset + petite_img.shape[0], x_offset:x_offset + petite_img.shape[1]] = petite_img
+    return(grande_img)
 class image:
     class boutton:
-        def __init__(self, nom='-', coos=[[0, 0], []]):
+        def __init__(self, nom='-', coos=[[0, 0], []]) -> None:
             self.nom = nom
+            return None
     def new_img(self=None, dimensions=screen, fond=[256 for _ in range(3)]) -> np.array:
         return(np.full([round(v) for v in dimensions[::-1]]+[3], fond[::-1], np.uint8))
     def __init__(self, nom='image_python', img=None) -> None:
@@ -34,6 +33,14 @@ class image:
         if type(img) == type(None):
             img = self.new_img()
         self.img = img
+        return None
+    def agrandis_img(self, cmb=2):
+        img = np.array([[[0,0,0] for x in range(len(self.img[0])*cmb)] for y in range(len(self.img)*cmb)])
+        for y in range(len(img)):
+            for x in range(len(img[0])):
+                img[y,x] = self.img[y//cmb,x//cmb]
+        self.img = img
+        return(None)
     def __str__(self, ordre=True) -> str:
         img_str = ''
         n = 0
@@ -60,7 +67,7 @@ class image:
         In:
         ---
         :attente: ``int`` miliseconds\n
-        :destroy: ``bool`` the canvas\n
+        :destroy: ``bool``\n
         :relocalisage_de_l_img: ``list | tuple `` of ``int`` [x, y]\n
         Out:
         ----
@@ -75,13 +82,17 @@ class image:
         return(wk)
     def imprime(self, ordre=True) -> None:
         print(self.__str__(ordre), end='')
-    def ligne(self, p1, p2, col=col.noir, ep=1) -> None:
+        return None
+    def ligne(self, p1, p2, col=col.noir, ep=1, lineType=0) -> None:
         p1, p2 = [round(p) for p in p1], [round(p) for p in p2]
-        cv2.line(self.img, p1, p2, col[::-1], ep)
-    def rectangle(self, p1, p2, col=col.noir, ep=1) -> None:
+        cv2.line(self.img, p1, p2, col[::-1], ep, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+        return None
+    def rectangle(self, p1, p2, col=col.noir, ep=1, lineType=0) -> None:
         p1, p2 = [round(p) for p in p1], [round(p) for p in p2]
-        cv2.rectangle(self.img, p1, p2, col[::-1], ep if ep != 0 else -1)
-    def triangle(self, p1=ct_sg(p3, ct), p2=ct_sg(p4, ct), p3=ct_sg(ct, ch), couleur=col.noir, epaisseur=1):
+        cv2.rectangle(self.img, p1, p2, col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+        return None
+    def triangle(self, p1=ct_sg(p3, ct), p2=ct_sg(p4, ct), p3=ct_sg(ct, ch), couleur=col.noir, epaisseur=1, lineType=0):
+        lineType = [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3]
         couleur = couleur[::-1]
         img = self.img
         p1 = [round(i) for i in p1]
@@ -96,17 +107,34 @@ class image:
             points = points_segment(p2, p3)
             for i in points:
                 cv2.line(img, p1, i, couleur, epaisseur)
-        cv2.line(img, p1, p2, couleur, epaisseur)
-        cv2.line(img, p2, p3, couleur, epaisseur)
-        cv2.line(img, p3, p1, couleur, epaisseur)
+        cv2.line(img, p1, p2, couleur, epaisseur, lineType)
+        cv2.line(img, p2, p3, couleur, epaisseur, lineType)
+        cv2.line(img, p3, p1, couleur, epaisseur, lineType)
         self.img = img
-    def cercle(self, ct, rayon=10, col=col.noir, ep=1) -> None:
+        return None
+    def cercle(self, ct, rayon=10, col=col.noir, ep=1, lineType=0) -> None:
         ct = [round(p) for p in ct]; ep = round(ep)
-        cv2.circle(self.img, ct, rayon, col[::-1], ep if ep != 0 else -1)
-    def ellipse(self, ct, rayons=[10, 10], col=col.noir, ep=1) -> None:
+        cv2.circle(self.img, ct, rayon, col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+        return None
+    def ellipse(self, ct, rayons=[10, 10], col=col.noir, ep=1, lineType=0) -> None:
         ct = [round(p) for p in ct]; ep = round(ep)
-        cv2.ellipse(self.img, ct, rayons, 0, 360, 0, col[::-1], ep if ep != 0 else -1)
-    def ecris(self, texte, ct, couleur=col.red, epaisseur=1, taille=1, police=cv2.FONT_HERSHEY_SCRIPT_COMPLEX):
+        cv2.ellipse(self.img, ct, rayons, 0, 360, 0, col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+        return None
+    def sauve_image(self, path='', nom_fichier=None) -> None:
+        if nom_fichier == None: nom_fichier = self.nom
+        if path != '':
+            r = os.getcwd()
+            os.chdir(path)
+        cv2.imwrite(nom_fichier, self.img)
+        if path != '': os.chdir(r)
+        return None
+    def ouvre_image(self, chemin) -> None:
+        stream = open(f'{chemin}', "rb")
+        bytes = bytearray(stream.read())
+        numpyarray = np.asarray(bytes, dtype=np.uint8)
+        self.img = cv2.imdecode(numpyarray, cv2.IMREAD_UNCHANGED)
+        return None
+    def ecris(self, texte, ct, couleur=col.red, epaisseur=1, taille=1, police=cv2.FONT_HERSHEY_SCRIPT_COMPLEX, lineType=0) -> None:
         if True: ## Vars ##
             x1, y1 = ct
             x2, y2 = ct
@@ -121,8 +149,8 @@ class image:
             x = round(xxx-tailles[0][0]/2)
             y = round(yyy+tailles[1]/2)
             yy = y + i*tailles[0][1]*2
-            cv2.putText(self.img, line, (x, yy), police, taille, couleur, epaisseur)
-        return self.img
+            cv2.putText(self.img, line, (x, yy), police, taille, couleur, epaisseur, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+        return None
 if __name__ == '__main__':
     img = image('Test')
     pt = pt_sg([0, 0], screen); print(pt)
