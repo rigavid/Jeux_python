@@ -1,6 +1,6 @@
 from cvt2 import *
 
-pixelisation = 10
+pixelisation = 8
 
 dim_ecran = [i/pixelisation for i in screen]
 

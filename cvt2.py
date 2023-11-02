@@ -8,19 +8,30 @@ from couleurs import *
 from sty import Style, RgbFg, fg
 from calculs import *
 from _vars_ import *
-def fusionImages(petite_img, grande_img, pos=[0, 0]):
+def fusionImages(img, img_base, pos=[0, 0]):
     '''
     Prend:
     ------
-    :petite_img: ``np.array``\n
-    :grande_img: ``np.array``\n
+    :img: ``np.array``\n
+    :img_base: ``np.array``\n
     Renvoie:
     --------
     ``np.array``\nImage.
     '''
     x_offset, y_offset = [round(v) for v in pos]
-    grande_img[y_offset:y_offset + petite_img.shape[0], x_offset:x_offset + petite_img.shape[1]] = petite_img
-    return(grande_img)
+    try:
+        img_base[y_offset:y_offset + img.shape[0], x_offset:x_offset + img.shape[1]] = img
+        return img_base
+    except:
+        sz_x, sz_y = len(img[0]), len(img)
+        for x_ in range(sz_x):
+            x = pos[0]+x_
+            if x<0 or x>len(img_base[0]): continue
+            for y_ in range(sz_y):
+                y = pos[1]+y_
+                if y<0 or y>len(img_base): continue
+                img_base[y,x] = img[y_,x_]
+        return img_base
 class image:
     class boutton:
         def __init__(self, nom='-', coos=[[0, 0], []]) -> None:
@@ -151,11 +162,43 @@ class image:
             yy = y + i*tailles[0][1]*2
             cv2.putText(self.img, line, (x, yy), police, taille, couleur, epaisseur, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
         return None
+
+class layout:
+    class frame_:
+        def __init__(self, img=image.new_img(fond=col.white), pos=[0,0], name='frame0') -> None:
+            self.name = name
+            self.img = image(img=copy.deepcopy(img))
+            self.pos = pos
+        def __str__(self) -> str:
+            return self.name
+    def __init__(self, img=image.new_img(), frames=[]) -> None:
+        self.img = image(img=copy.deepcopy(img))
+        self.frames = frames
+    def frame(self, img=image.new_img(fond=col.white, dimensions=[100, 100]), pos=[0,0], name=None):
+        if name == None:
+            name = 'frame' + str(len(self.frames))
+        fenetre = self.frame_(img=img, pos=pos, name=name)
+        self.frames.append(fenetre)
+        return fenetre
+    def montre(self, debug=False, frames=None, except_frames=[]):
+        img = image(img=copy.deepcopy(self.img.img))
+        if frames == None: frames = copy.deepcopy(self.frames)
+        for frm in except_frames:
+            ind = [i.name for i in frames].index(frm.name)
+            if ind != -1: frames.pop(ind)
+        for frame in frames:
+            img.img = fusionImages(frame.img.img, img.img, frame.pos)
+            if debug:
+                img.rectangle(frame.pos, [frame.pos[0]+len(frame.img.img[0]), frame.pos[1]+len(frame.img.img)], col.red, 3)
+        self.img = img
+        return img.montre(1, fullscreen=True)
+    
+
 if __name__ == '__main__':
     img = image('Test')
-    pt = pt_sg([0, 0], screen); print(pt)
+    pt = pt_sg([0, 0], screen)
     img.ellipse(pt, [500, 100], col.magenta, 10)
     img.ligne([0, 0], screen, col.white, 10)
     img.cercle([0, 0], 100, col.red, 0)
     img.cercle(screen, 1000, col.red, 0)
-    img.montre()
+    img.montre(fullscreen=True)
