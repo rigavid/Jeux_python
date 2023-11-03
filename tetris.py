@@ -97,7 +97,7 @@ class piece:
                     cg , cd  = ct_sg(p1, p3), ct_sg(p2, p4)
                     cgh, cgb = ct_sg(cg, p1), ct_sg(cg, p3)
                     cdh, cdb = ct_sg(cd, p2), ct_sg(cd, p4)
-                    couls = [[n_entre(v-20*i, 0, 255) for v in couleurs[self.forme[y,x]-1]] for i in range(5)]
+                    couls = [[n_entre(v-20*i, 0, 255) for v in couleurs[(self.forme[y,x]-1)%len(couleurs)]] for i in range(5)]
                     img.rectangle(c1, c4, couls[0],0)
                     img.rectangle(p1, cdh, couls[1], 0)
                     img.rectangle(c2, cdb, couls[2], 0)
@@ -143,7 +143,7 @@ def updateImg(jeu):
                 cg , cd  = ct_sg(p1, p3), ct_sg(p2, p4)
                 cgh, cgb = ct_sg(cg, p1), ct_sg(cg, p3)
                 cdh, cdb = ct_sg(cd, p2), ct_sg(cd, p4)
-                couls = [[n_entre(v-20*i, 0, 255) for v in couleurs[matrice[y,x]-1]] for i in range(5)]
+                couls = [[n_entre(v-20*i, 0, 255) for v in couleurs[(matrice[y,x]-1)%len(couleurs)]] for i in range(5)]
                 jeu.img.rectangle(c1, c4, couls[0],0)
                 jeu.img.rectangle(p1, cdh, couls[1], 0)
                 jeu.img.rectangle(c2, cdb, couls[2], 0)
@@ -169,11 +169,11 @@ n_c_X, n_c_Y = [10, 22] ## Width and Height of the matrix ##
 gameType = 0 ## N between 0 to 6 (choses the polyminos to play with) ##
 level = 1
 #################
-couleurs = [col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0')]
+couleurs = [col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow]
 #rd.shuffle(couleurs) ## TO REMOVE ##
 #################
 if True: ## Vars ##
-    VARS = vars()
+    VARS = vars(n_c_X, n_c_Y)
     n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
     n_of_levels = 31
     level = n_entre(level, 1, n_of_levels)
