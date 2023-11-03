@@ -170,12 +170,12 @@ gameType = 0 ## N between 0 to 6 (choses the polyminos to play with) ##
 level = 1
 #################
 couleurs = [col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0'), col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow, col.new('535353'), col.new('808080'), col.new('d0d0d0')]
-rd.shuffle(couleurs) ## TO REMOVE ##
+#rd.shuffle(couleurs) ## TO REMOVE ##
 #################
 if True: ## Vars ##
     VARS = vars()
     n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-    n_of_levels = 30
+    n_of_levels = 31
     level = n_entre(level, 1, n_of_levels)
     sep_d = 20
     
@@ -240,7 +240,7 @@ if True: ## Vars ##
     temps = time.time()
     t = time.time()
     scoring = [0, 100, 300, 600, 1000, 1500]
-    score = 9000
+    score = 0
     last_score = 0
     ofst = 2
     vitesse = float_range(1, 0.13, n_of_levels-1)
@@ -261,7 +261,9 @@ try:
             p.dessine(img, start)
             nex.img = img
         sco.img = image(img=copy.deepcopy(imgScore.img))
-        sco.img.ecris(f'{diff(time.time(), temps):.0f}\n'+str(score)+f'\n{level}/{n_of_levels}\n{time_to_advance:.2f}', [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]])
+        '''temps = 
+        f'{h:0>2}:{m:0>2}:{s:0>2}' ''' ## Format this ! 
+        sco.img.ecris(f'{diff(time.time(), temps):.0f}\n'+str(score)+f'\n{level}/{n_of_levels-1}\n{time_to_advance:.2f}', [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]])
         wk = ly.montre(debug=True, except_frames=[pause])
         if True: ## Inputs ##
             if wk == 27: raise stopGameException
@@ -376,7 +378,7 @@ try:
             score += scoring[lns]*round(n_c_X/10)
             for _ in range(diff(score//10000,last_score//10000)):
                 level += 1
-                level = n_entre(n_of_levels, 1, n_of_levels-1)
+                level = n_entre(level, 1, n_of_levels-1)
                 time_to_advance = vitesse[level]
             last_score = score
 except gameOverException as e:
