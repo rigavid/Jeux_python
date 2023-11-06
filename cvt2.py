@@ -18,18 +18,19 @@ def fusionImages(img, img_base, pos=[0, 0]):
     --------
     ``np.array``\nImage.
     '''
-    x_offset, y_offset = [round(v) for v in pos]
+    pos = [round(v) for v in pos]
+    x_offset, y_offset = pos
     try:
         img_base[y_offset:y_offset + img.shape[0], x_offset:x_offset + img.shape[1]] = img
         return img_base
-    except:
+    except (IndexError, ValueError):
         sz_x, sz_y = len(img[0]), len(img)
         for x_ in range(sz_x):
             x = pos[0]+x_
-            if x<0 or x>len(img_base[0]): continue
+            if x<0 or x>=len(img_base[0]): continue
             for y_ in range(sz_y):
                 y = pos[1]+y_
-                if y<0 or y>len(img_base): continue
+                if y<0 or y>=len(img_base): continue
                 img_base[y,x] = img[y_,x_]
         return img_base
 class image:
