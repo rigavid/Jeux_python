@@ -1,4 +1,4 @@
-from cvt2 import *
+from Outils.cvt2 import *
 
 pixelisation = 7
 

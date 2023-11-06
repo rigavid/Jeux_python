@@ -4,8 +4,9 @@
 # >>> sty
 
 import numpy as np, cv2, random as rd, copy, time, os
-from couleurs import *
 from sty import Style, RgbFg, fg
+from path_functs import *
+from couleurs import *
 from calculs import *
 from _vars_ import *
 def fusionImages(img, img_base, pos=[0, 0]):
@@ -88,7 +89,7 @@ class image:
         if fullscreen:
             cv2.namedWindow(self.nom, cv2.WND_PROP_FULLSCREEN)
             cv2.setWindowProperty(self.nom, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-        cv2.imshow(self.nom, self.img)
+        cv2.imshow(self.nom, np.array(self.img, np.uint8))
         wk = cv2.waitKeyEx(attente)
         if destroy == True: cv2.destroyWindow(self.nom)
         return(wk)
@@ -137,6 +138,7 @@ class image:
         if path != '':
             r = os.getcwd()
             os.chdir(path)
+        print(nom_fichier)
         cv2.imwrite(nom_fichier, self.img)
         if path != '': os.chdir(r)
         return None
@@ -145,6 +147,9 @@ class image:
         bytes = bytearray(stream.read())
         numpyarray = np.asarray(bytes, dtype=np.uint8)
         self.img = cv2.imdecode(numpyarray, cv2.IMREAD_UNCHANGED)
+        return None
+    def set_img(self, img) -> None:
+        self.img = np.array(img, np.uint8)
         return None
     def ecris(self, texte, ct, couleur=col.red, epaisseur=1, taille=1, police=cv2.FONT_HERSHEY_SCRIPT_COMPLEX, lineType=0) -> None:
         if True: ## Vars ##
