@@ -17,9 +17,9 @@ def remove_dir(name, path='./'):
     ------
     :bool: of if it was removed or not
     '''
-    v_dir = os.listdir(path)
+    v_dir = os.listdir(f"{path}/{name}")
     for file in v_dir:
-        os.remove(f"{path}/{file}")
+        os.remove(f"{path}/{name}/{file}")
     os.rmdir(f"{path}/{name}")
 def is_file(name, path='./') -> bool:
     '''
