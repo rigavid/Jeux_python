@@ -1,7 +1,13 @@
 from cvt2 import *
 
+if is_file('cvt2.py'):
+    rel_path = './'
+elif is_file('cvt2.py', 'Outils'):
+    rel_path = './Outils'
+
+
 img = image()
-img.ouvre_image('imgs_tetris/Amstrad_CPC_Full_AMSDOS_Character_Set.png')
+img.ouvre_image(rel_path+'/Amstrad_CPC_Full_AMSDOS_Character_Set.png')
 
 img.montre(fullscreen=True)
 
@@ -11,10 +17,6 @@ xc, yc = 8*pw, 8*pw
 
 coul = col.black
 c = 0
-if is_file('cvt2.py'):
-    rel_path = './'
-elif is_file('cvt2.py', 'Outils'):
-    rel_path = './Outils'
 remove_dir('imgs_cpc_font', rel_path)
 if create_dir_if_unexisting('imgs_cpc_font', rel_path):
     print('\nExecuting\n')
