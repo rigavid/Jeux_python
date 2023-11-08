@@ -5,10 +5,14 @@
 
 import numpy as np, cv2, random as rd, copy, time, os
 from sty import Style, RgbFg, fg
-from path_functs import *
-from couleurs import *
-from calculs import *
-from _vars_ import *
+try: from path_functs import *
+except: from Outils.path_functs import *
+try: from couleurs import *
+except: from Outils.couleurs import *
+try: from calculs import *
+except: from Outils.calculs import *
+try: from _vars_ import *
+except: from Outils._vars_ import *
 def fusionImages(img, img_base, pos=[0, 0]):
     '''
     Prend:

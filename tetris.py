@@ -178,7 +178,6 @@ if True: ## Vars ##
     n_of_levels = 31
     level = n_entre(level, 1, n_of_levels)
     sep_d = 20
-    
     if True: ## Image de fond du jeu ##
         imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
         offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
@@ -220,36 +219,37 @@ if True: ## Vars ##
         case 5: pieces = miniminos  + tetraminos + pentaminos
         case 6: pieces = tetraminos + specialminos
     pieces = np.array(pieces)
-    ly = layout()
-    jeu = ly.frame(copy.deepcopy(imgJeu.img), offset_jeu, 'Matrix_frame')
-    nex = ly.frame(copy.deepcopy(imgNext.img), offset_next, 'Nexts_frame')
-    hol = ly.frame(copy.deepcopy(imgHold.img), offset_hold, 'Hold_frame')
-    sco = ly.frame(copy.deepcopy(imgScore.img), offset_score, 'Score_frame')
-    pause = ly.frame(copy.deepcopy(imgPause.img), offset_pause, 'Pause_frame')
-
-    ht = len(jeu.img.img)+2
-    lg = len(jeu.img.img[0])+2
-    cols = [x for x in np.arange(0,lg,d_x)]
-    rows = [y for y in np.arange(0,ht,d_y)]
-    matrice = np.array([[0 for _ in range(n_c_X)] for _ in range(n_c_Y)])
-    playing = piece(tipe=rd.randint(0, len(pieces)-1))
-    playing.set(matrice)
-    playing.dessine(jeu.img)
-    next_ps = [piece(rd.randint(0,len(pieces)-1)) for _ in range(3)]
-    holding = None
-    temps = time.time()
-    t = time.time()
-    scoring = [0, 100, 300, 600, 1000, 1500]
-    score = 0
-    last_score = 0
-    ofst = 2
-    vitesse = float_range(1, 0.13, n_of_levels-1)
+    if True: ## Imaging ##
+        ly = layout()
+        jeu = ly.frame(copy.deepcopy(imgJeu.img), offset_jeu, 'Matrix_frame')
+        nex = ly.frame(copy.deepcopy(imgNext.img), offset_next, 'Nexts_frame')
+        hol = ly.frame(copy.deepcopy(imgHold.img), offset_hold, 'Hold_frame')
+        sco = ly.frame(copy.deepcopy(imgScore.img), offset_score, 'Score_frame')
+        pause = ly.frame(copy.deepcopy(imgPause.img), offset_pause, 'Pause_frame')
+    if True: ## __Vars__ ##
+        ht = len(jeu.img.img)+2
+        lg = len(jeu.img.img[0])+2
+        cols = [x for x in np.arange(0,lg,d_x)]
+        rows = [y for y in np.arange(0,ht,d_y)]
+        matrice = np.array([[0 for _ in range(n_c_X)] for _ in range(n_c_Y)])
+        playing = piece(tipe=rd.randint(0, len(pieces)-1))
+        playing.set(matrice)
+        playing.dessine(jeu.img)
+        next_ps = [piece(rd.randint(0,len(pieces)-1)) for _ in range(3)]
+        holding = None
+        temps = time.time()
+        t = time.time()
+        scoring = [0, 100, 300, 600, 1000, 1500]
+        score = 0
+        last_score = 0
+        ofst = 2
+        vitesse = float_range(1, 0.13, n_of_levels-1)
 
 try:
     time_to_advance = vitesse[level]
     soft_drop = False
     while True:
-        end_p = False
+        end_p = False ## To know what
         if holding != None:
             img = image(img=copy.deepcopy(imgHold.img))
             holding.dessine(img)
@@ -261,13 +261,12 @@ try:
             p.dessine(img, start)
             nex.img = img
         sco.img = image(img=copy.deepcopy(imgScore.img))
-        '''temps = 
-        f'{h:0>2}:{m:0>2}:{s:0>2}' ''' ## Format this ! 
-        sco.img.ecris(f'{diff(time.time(), temps):.0f}\n'+str(score)+f'\n{level}/{n_of_levels-1}\n{time_to_advance:.2f}', [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]])
+        h,m,s = diff(time.time(), temps)//3600, diff(time.time(), temps)%3600//60, int(diff(time.time(), temps)%60)
+        sco.img.ecris(f'{int(h):0>2}:{int(m):0>2}:{int(s):0>2}\n'+str(score)+f'\n{level}/{n_of_levels-1}\n{time_to_advance:.2f}', [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]])
         wk = ly.montre(debug=True, except_frames=[pause])
         if True: ## Inputs ##
             if wk == 27: raise stopGameException
-            elif wk in keys_rot_CCW: ## Rotate CW #####
+            if wk in keys_rot_CCW: ## Rotate CW #####
                 playing.rotate(-1, matrice)
             elif wk in keys_rot_CW : ## Rotate CCW ####
                 playing.rotate(1, matrice)
@@ -277,7 +276,7 @@ try:
                     wk = ly.montre(debug=True)
                     if wk == 27: raise stopGameException
                     elif wk == ord('p'): break
-                temps -= diff(temps2, time.time())
+                temps -= diff(temps2, time.time()) ### NOT WORKING TODO BUG ###
             elif wk in keys_left   : ## Move left #####
                 try:
                     playing.move(matrice)
