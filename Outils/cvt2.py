@@ -200,7 +200,6 @@ class layout:
             img.img = fusionImages(frame.img.img, img.img, frame.pos)
             if debug:
                 img.rectangle(frame.pos, [frame.pos[0]+len(frame.img.img[0]), frame.pos[1]+len(frame.img.img)], col.red, 3)
-        self.img = img
         return img.montre(1, fullscreen=True)
     
 

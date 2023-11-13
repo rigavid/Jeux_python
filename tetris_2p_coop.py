@@ -130,7 +130,7 @@ class piece:
             self.pos = [self.pos[n]+w[n] for n in range(2)]
             self.set(arr)
         return None
-def updateImg(jeu, cols, rows):
+def updateImg(jeu):
     jeu.img = image(img=copy.deepcopy(imgJeu.img))
     for x in range(n_c_X):
         for y in range(n_c_Y):
@@ -227,8 +227,8 @@ if True: ## Vars ##
         sco = ly.frame(copy.deepcopy(imgScore.img), offset_score, 'Score_frame')
         pause = ly.frame(copy.deepcopy(imgPause.img), offset_pause, 'Pause_frame')
     if True: ## __Vars__ ##
-        ht = len(jeu.img.img)+d_y*n_c_Y
-        lg = len(jeu.img.img[0])+d_x*n_c_X
+        ht = len(jeu.img.img)+2
+        lg = len(jeu.img.img[0])+2
         cols = [x for x in np.arange(0,lg,d_x)]
         rows = [y for y in np.arange(0,ht,d_y)]
         matrice = np.array([[0 for _ in range(n_c_X)] for _ in range(n_c_Y)])
@@ -266,168 +266,90 @@ try:
         wk = ly.montre(debug=True, except_frames=[pause])
         if True: ## Inputs ##
             if wk == 27: raise stopGameException
-            elif wk in keys_soft_drop:
+            if wk in keys_rot_CCW: ## Rotate CW #####
+                playing.rotate(-1, matrice)
+            elif wk in keys_rot_CW : ## Rotate CCW ####
+                playing.rotate(1, matrice)
+            elif wk in keys_pause  : ## Pause #########
+                temps2 = time.time()
+                while True:
+                    wk = ly.montre(debug=True)
+                    if wk == 27: raise stopGameException
+                    elif wk == ord('p'): break
+                temps -= diff(temps2, time.time()) ### NOT WORKING TODO BUG ###
+            elif wk in keys_left   : ## Move left #####
+                try:
+                    playing.move(matrice)
+                    playing.move(matrice, [0, -1])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+                    time_to_advance = 0.5
+                try: playing.move(matrice, [-1,0])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+            elif wk in keys_right  : ## Move right ####
+                try:
+                    playing.move(matrice)
+                    playing.move(matrice, [0, -1])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+                    time_to_advance = 0.5
+                try: playing.move(matrice, [1,0])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+            elif wk in keys_rotate : ## Rotate (C)CW ##
+                try:
+                    playing.move(matrice)
+                    playing.move(matrice, [0, -1 if rotate_clocwise == True else 1])
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
+                    time_to_advance = 0.5
+                playing.rotate(1, matrice)
+            elif wk in keys_hold   : ## Hold ##########
+                playing.remove(matrice)
+                holding, playing = playing, holding
+                if playing == None:
+                    playing = next_ps.pop(0)
+                    next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
+                playing.pos = [round(n_c_X/2-2), 0]
+                playing.set(matrice)
+                
+                
+                holding.pos = [0, 0]
+                time.sleep(0.3)
+            if wk in keys_soft_drop:
                 time_to_advance = vitesse[level]/20
                 soft_drop = True
                 soft_drop_t = time.time()
-            elif soft_drop and diff(soft_drop_t, time.time()) >= 0.1:
-                time_to_advance = vitesse[level]
-                soft_drop = False
-            for key in keys_rot_CCW: ## Rotate CCW ##
-                if keyboard.is_pressed(key):
-                    playing.rotate(-1, matrice);break
-            for key in keys_rot_CW: ## Rotate CW ####
-                if keyboard.is_pressed(key):
-                    playing.rotate(1, matrice);break
-            for key in keys_pause  : ## Pause #######
-                if keyboard.is_pressed(key):
-                    temps2 = time.time()
-                    a = False
-                    while True:
-                        wk = ly.montre(debug=True)
-                        if wk == 27: raise stopGameException
-                        for key in keys_pause:
-                            if ord(key) == wk: a=True;break
-                        if a: break
-                    temps -= diff(temps2, time.time()) ### NOT WORKING TODO ###
-            for key in keys_left   : ## Move left #####
-                if keyboard.is_pressed(key):
-                    try:
-                        playing.move(matrice)
-                        playing.move(matrice, [0, -1])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                        time_to_advance = 0.5
-                    try: playing.move(matrice, [-1,0])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                    break
-            for key in keys_right  : ## Move right ####
-                if keyboard.is_pressed(key):
-                    try:
-                        playing.move(matrice)
-                        playing.move(matrice, [0, -1])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                        time_to_advance = 0.5
-                    try: playing.move(matrice, [1,0])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                    break
-            for key in keys_rotate : ## Rotate (C)CW ##
-                if keyboard.is_pressed(key):
-                    try:
-                        playing.move(matrice)
-                        playing.move(matrice, [0, -1 if rotate_clocwise == True else 1])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                        time_to_advance = 0.5
-                    playing.rotate(1, matrice)
-                    break
-            for key in keys_hold   : ## Hold ##########
-                if keyboard.is_pressed(key):
-                    playing.remove(matrice)
-                    holding, playing = playing, holding
-                    if playing == None:
-                        playing = next_ps.pop(0)
-                        next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
-                    playing.pos = [round(n_c_X/2-2), 0]
-                    playing.set(matrice)
-                    holding.pos = [0, 0]
-                    time.sleep(0.3)
-                    break
+            elif soft_drop:
+                if diff(soft_drop_t, time.time()) >= 0.1:
+                    time_to_advance = vitesse[level]
+                    soft_drop = False
             if keyboard.is_pressed('+'):
-                VARS = vars(n_c_X+1, n_c_Y)
-                n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-                imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
-                offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                for line_n in range(n_c_Y):
-                    imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
-                for col_n in range(n_c_X):
-                    imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
-                ht = len(jeu.img.img)+d_y*n_c_Y
-                lg = len(jeu.img.img[0])+d_x*n_c_X
-                cols = [x for x in np.arange(0,lg,d_x)]
-                rows = [y for y in np.arange(0,ht,d_y)]
-                matrice = [list(l) for l in matrice]
-                jeu.pos = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                nex.pos = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
-                hol.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
-                sco.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
-                pause.pos = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
-                for i in range(len(matrice)): matrice[i].append(0)
-                matrice = np.array(matrice)
-            if keyboard.is_pressed('-'):
-                s = n_c_X
-                VARS = vars(n_c_X-1, n_c_Y)
-                n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-                imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
-                offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                for line_n in range(n_c_Y):
-                    imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
-                for col_n in range(n_c_X):
-                    imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
-                ht = len(jeu.img.img)+d_y*n_c_Y
-                lg = len(jeu.img.img[0])+d_x*n_c_X
-                cols = [x for x in np.arange(0,lg,d_x)]
-                rows = [y for y in np.arange(0,ht,d_y)]
-                if s!=n_c_X:
-                    matrice2 = copy.deepcopy([list(l) for l in matrice])
-                    jeu.pos = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                    nex.pos = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
-                    hol.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
-                    sco.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
-                    pause.pos = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
-                    change = True
-                    for i in range(len(matrice2)):
-                        a = matrice2[i].pop(-1)
-                        if a != 0:
-                            change = False
-                    if change:
-                        matrice = np.array(matrice2)
-                    if not a:
-                        VARS = vars(s, n_c_Y)
-                        n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-                        imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
-                        offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                        for line_n in range(n_c_Y):
-                            imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
-                        for col_n in range(n_c_X):
-                            imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
-                        ht = len(jeu.img.img)+d_y*n_c_Y
-                        lg = len(jeu.img.img[0])+d_x*n_c_X
-                        cols = [x for x in np.arange(0,lg,d_x)]
-                        rows = [y for y in np.arange(0,ht,d_y)]
-                        jeu.pos = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                        nex.pos = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
-                        hol.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
-                        sco.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
-                        pause.pos = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
-            for key in keys_hard_drop:
-                if keyboard.is_pressed(key):
-                    cases_parcourues = 0
-                    try:
-                        while True:
-                            playing.move(matrice)
-                            cases_parcourues += 1
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
+                print('+++')
+            if keyboard.is_pressed('space'):
+                cases_parcourues = 0
+                try:
+                    while True:
+                        playing.move(matrice)
+                        cases_parcourues += 1
+                except toucheException:
+                    playing.pos = playing.save_pos
+                    playing.set(matrice)
 
-                        playing = next_ps.pop(0)
-                        next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
+                    playing = next_ps.pop(0)
+                    next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
 
-                        playing.pos = [round(n_c_X/2-2), 0]
-                        t = time.time()
-                        end_p = True
-                    score += cases_parcourues*2*level
-                    time.sleep(0.2)
-                    break
+                    playing.pos = [round(n_c_X/2-2), 0]
+                    t = time.time()
+                    end_p = True
+                score += cases_parcourues*2*level
+                time.sleep(0.2)
         if diff(t,time.time()) > time_to_advance and not end_p:
             if time_to_advance == 0.5: time_to_advance = vitesse[level]
             t = time.time()
@@ -439,7 +361,7 @@ try:
                 playing.pos = [round(n_c_X/2-2), 0]
                 next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
                 end_p = True
-        updateImg(jeu, cols, rows)
+        updateImg(jeu)
         if end_p:
             m = [list(l) for l in matrice]
             lgs = []
@@ -467,7 +389,7 @@ except gameOverException as e:
     print(f'Game Over!\nPoints : {score:0>8}\nTemps  : {temps}')
     playing.remove(matrice)
     playing.set(matrice)
-    jeu = updateImg(jeu, cols, rows)
+    jeu = updateImg(jeu)
     ly.montre(except_frames=[pause])
     img = ly.img
     time.sleep(1)
