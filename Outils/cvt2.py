@@ -7,6 +7,8 @@ import numpy as np, cv2, random as rd, copy, time, os
 from sty import Style, RgbFg, fg
 try: from path_functs import *
 except: from Outils.path_functs import *
+try: from terminal import *
+except: from Outils.terminal import *
 try: from couleurs import *
 except: from Outils.couleurs import *
 try: from calculs import *
