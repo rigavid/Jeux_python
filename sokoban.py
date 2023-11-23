@@ -1,10 +1,8 @@
 from Outils.cvt2 import *
 import keyboard as kb
-
 class invalidLevel(Exception):
     def __init__(self) -> None:
         super().__init__('Le niveau est invalide')
-
 class tableau:
     def __init__(self, level=0) -> None:
         level_names = os.listdir('./Sokoban_levels')
@@ -48,8 +46,8 @@ class tableau:
                 for x in range(len(self.level[y])):
                     if self.level[y,x].lower() == 's':
                         return [x, y]
-    def move(self, v=[0,0]) -> None:
-        if abs(sum(v)) != 1 : return
+    def move(self, v=[0,0]) -> int:
+        if abs(sum(v)) != 1 : return 0
         else:
             pos = self.pos
             a = [pos[i]+v[i] for i in [0,1]]
@@ -57,32 +55,36 @@ class tableau:
                 self.level[a[1], a[0]] = 's' if self.level[a[1], a[0]] != '+' else 'S'
                 self.level[pos[1], pos[0]] = '+' if self.level[pos[1], pos[0]].isupper() else '_'
                 self.pos = a
+                return 1
             elif self.level[a[1], a[0]].lower() == 'k':
                 if self.level[a[1]+v[1], a[0]+v[0]].lower() in '+_':
                     self.level[a[1]+v[1], a[0]+v[0]] = 'k' if self.level[a[1]+v[1], a[0]+v[0]] != '+' else 'K'
                     self.level[a[1], a[0]] = 'S' if self.level[a[1], a[0]].isupper() else 's'
                     self.level[pos[1], pos[0]] = '+' if self.level[pos[1], pos[0]].isupper() else '_'
                     self.pos = a
+                    return 1
+        return 0
     def is_fini(self) -> bool:
         for c in self.__str__():
             if c in 'k+': return False
         return True
-
-'''
-ly = layout()
-jeu = ly.frame()
-'''
-
-arr = tableau(2)
 moves =  [[ 0, 0],[ 0,-1],[ 0, 0]][::-1]+[[-1, 0],[ 0, 0],[ 1, 0]][::-1]+[[ 0, 0],[ 0,1],[ 0, 0]][::-1]+[[ 0, 0]]
-clear_terminal()
-r = False;arr.imprimme()
+minimum, maximum = 0, len(os.listdir('./Sokoban_levels'))
 try:
-    while True:
-        if kb.is_pressed('a'): r=True;val=[-1, 0]
-        if kb.is_pressed('d'): r=True;val=[ 1, 0]
-        if kb.is_pressed('w'): r=True;val=[ 0,-1]
-        if kb.is_pressed('s'): r=True;val=[ 0, 1]
-        if r: arr.move(val);r = False;clear_terminal();arr.imprimme();time.sleep(0.2)
-        if arr.is_fini(): print('Well done!');break
+    n_lev = 0
+    while n_lev < maximum:
+        arr=tableau(n_lev);r=False;moves=0
+        clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme()
+        while True:
+            if kb.is_pressed('a') or kb.is_pressed('left'): r=True;val=[-1, 0]
+            if kb.is_pressed('d') or kb.is_pressed('right'): r=True;val=[ 1, 0]
+            if kb.is_pressed('w') or kb.is_pressed('up'): r=True;val=[ 0,-1]
+            if kb.is_pressed('s') or kb.is_pressed('down'): r=True;val=[ 0, 1]
+            if kb.is_pressed('r'): arr=tableau(n_lev);r=True;val=[0,0];moves=0
+            if kb.is_pressed('p'): n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0
+            if kb.is_pressed('n'): n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0
+            if r: moves+=arr.move(val);r=False;clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme();time.sleep(0.2)
+            if arr.is_fini(): break
+        n_lev+=1
+    print('Well done!')
 except KeyboardInterrupt: pass

@@ -1,0 +1,13 @@
+        XXXXX
+        X___XXXXX
+        X_XkXX__X
+        X_____k_X
+XXXXXXXXX_XXX___X
+X++++__XX_k__kXXX
+X++++____k_kk_XX
+X++++__XXk__k_sX
+XXXXXXXXX__k__XX
+        X_k_k__X
+        XXX_XX_X
+          X____X
+          XXXXXX
