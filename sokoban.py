@@ -7,11 +7,21 @@ class tableau:
     def __init__(self, level=0) -> None:
         level_names = os.listdir('./Sokoban_levels')
         if level > 0 and level < len(level_names):
-            with open(f'./Sokoban_levels/{level_names[level]}') as file:
+            nom = level_names[level]
+            with open(f'./Sokoban_levels/{nom}') as file:
                 lev = file.read()
         else:
-            with open(f'./Sokoban_levels/{level_names[0]}') as file:
+            nom = level_names[level]
+            with open(f'./Sokoban_levels/{nom}') as file:
                 lev = file.read()
+        if nom[len(nom)-4::] == '.xsb':
+            lev=lev.replace('-', ' ')
+            lev=lev.replace('@', 's')
+            lev=lev.replace('+', 'S')
+            lev=lev.replace('$', 'k')
+            lev=lev.replace('*', 'K')
+            lev=lev.replace('#', 'X')
+            lev=lev.replace('.', '+')
         r_l = [[c for c in l] for l in lev.split('\n')]
         lns = [len(l) for l in r_l]
         for ind in range(len(lns)):
@@ -23,7 +33,9 @@ class tableau:
         for c in str(self):
             if c in 'SK+': nb[0] += 1
             if c in  'Kk': nb[1] += 1
-        if nb[0] != nb[1]: raise invalidLevel()
+        if nb[0] != nb[1]:
+            print(lev)
+            raise invalidLevel()
     def replaces(self, s='') -> str:
         s=s.replace(' ', '  ')
         s=s.replace('_', '  ')
@@ -87,4 +99,7 @@ try:
             if arr.is_fini(): break
         n_lev+=1
     print('Well done!')
+except invalidLevel as e:
+    arr.imprimme()
+    print(e)
 except KeyboardInterrupt: pass
