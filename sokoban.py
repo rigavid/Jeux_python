@@ -97,7 +97,9 @@ try:
             if True in [kb.is_pressed(k) for k in keys_j1.keys_reset]: arr=tableau(n_lev);r=True;val=[0,0];moves=0
             if True in [kb.is_pressed(k) for k in keys_j1.keys_prev ]: n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
             if True in [kb.is_pressed(k) for k in keys_j1.keys_next ]: n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
-            if r: moves+=arr.move(val);r=False;clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme();print(arr.help);time.sleep(0.3)
+            if r:
+                moves+=arr.move(val);r=False;clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme();time.sleep(0.3)
+                if h: print(arr.help)
             if arr.is_fini(): break
         n_lev+=1
     print('Well done!')
