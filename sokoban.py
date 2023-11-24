@@ -63,13 +63,13 @@ class tableau:
         else:
             pos = self.pos
             a = [pos[i]+v[i] for i in [0,1]]
-            if self.level[a[1], a[0]] in '+_':
+            if self.level[a[1], a[0]] in '+_ ':
                 self.level[a[1], a[0]] = 's' if self.level[a[1], a[0]] != '+' else 'S'
                 self.level[pos[1], pos[0]] = '+' if self.level[pos[1], pos[0]].isupper() else '_'
                 self.pos = a
                 return 1
             elif self.level[a[1], a[0]].lower() == 'k':
-                if self.level[a[1]+v[1], a[0]+v[0]].lower() in '+_':
+                if self.level[a[1]+v[1], a[0]+v[0]].lower() in '+_ ':
                     self.level[a[1]+v[1], a[0]+v[0]] = 'k' if self.level[a[1]+v[1], a[0]+v[0]] != '+' else 'K'
                     self.level[a[1], a[0]] = 'S' if self.level[a[1], a[0]].isupper() else 's'
                     self.level[pos[1], pos[0]] = '+' if self.level[pos[1], pos[0]].isupper() else '_'
