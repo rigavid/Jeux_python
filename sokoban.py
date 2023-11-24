@@ -1,4 +1,5 @@
 from Outils.cvt2 import *
+from touches_sokoban import keys_j1
 import keyboard as kb
 class invalidLevel(Exception):
     def __init__(self) -> None:
@@ -87,15 +88,16 @@ try:
     while n_lev < maximum:
         arr=tableau(n_lev);r=False;moves=0
         clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme()
+        h=False
         while True:
-            if kb.is_pressed('a') or kb.is_pressed('left'): r=True;val=[-1, 0]
-            if kb.is_pressed('d') or kb.is_pressed('right'): r=True;val=[ 1, 0]
-            if kb.is_pressed('w') or kb.is_pressed('up'): r=True;val=[ 0,-1]
-            if kb.is_pressed('s') or kb.is_pressed('down'): r=True;val=[ 0, 1]
-            if kb.is_pressed('r'): arr=tableau(n_lev);r=True;val=[0,0];moves=0
-            if kb.is_pressed('p'): n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0
-            if kb.is_pressed('n'): n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0
-            if r: moves+=arr.move(val);r=False;clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme();time.sleep(0.2)
+            if True in [kb.is_pressed(k) for k in keys_j1.keys_left ]: r=True;val=[-1, 0]
+            if True in [kb.is_pressed(k) for k in keys_j1.keys_right]: r=True;val=[ 1, 0]
+            if True in [kb.is_pressed(k) for k in keys_j1.keys_up   ]: r=True;val=[ 0,-1]
+            if True in [kb.is_pressed(k) for k in keys_j1.keys_down ]: r=True;val=[ 0, 1]
+            if True in [kb.is_pressed(k) for k in keys_j1.keys_reset]: arr=tableau(n_lev);r=True;val=[0,0];moves=0
+            if True in [kb.is_pressed(k) for k in keys_j1.keys_prev ]: n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
+            if True in [kb.is_pressed(k) for k in keys_j1.keys_next ]: n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
+            if r: moves+=arr.move(val);r=False;clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme();print(arr.help);time.sleep(0.3)
             if arr.is_fini(): break
         n_lev+=1
     print('Well done!')
