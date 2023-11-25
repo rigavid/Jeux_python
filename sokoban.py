@@ -37,6 +37,21 @@ class tableau:
         if nb[0] != nb[1]:
             print(lev)
             raise invalidLevel()
+        self.size = [len(self.level[0]), len(self.level)]
+        print(self.level, self.size)
+        x, y = [[1920, 1080][n]//self.size[n] for n in (0,1)]
+        self.s = s = min(x, y)
+        lignes = []
+        colonnes = []
+        for x in range(0,1920,s)[0:self.size[0]:]: colonnes.append(x)
+        for y in range(0,1080,s)[0:self.size[1]:]: lignes.append(y)
+        cases = []
+        for y, l in enumerate(lignes):
+            cases.append([])
+            for c in colonnes:
+                cases[y].append([c,l])
+        self.cases = np.array(cases)
+        self.moves = 0
     def replaces(self, s='') -> str:
         s=s.replace(' ', '  ')
         s=s.replace('_', '  ')
@@ -81,29 +96,46 @@ class tableau:
         for c in self.__str__():
             if c in 'k+': return False
         return True
-moves =  [[ 0, 0],[ 0,-1],[ 0, 0]][::-1]+[[-1, 0],[ 0, 0],[ 1, 0]][::-1]+[[ 0, 0],[ 0,1],[ 0, 0]][::-1]+[[ 0, 0]]
-minimum, maximum = 0, len(os.listdir('./Sokoban_levels'))
-try:
-    n_lev = 0
-    while n_lev < maximum:
-        arr=tableau(n_lev);r=False;moves=0
-        clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme()
-        h=False
-        while True:
-            if True in [kb.is_pressed(k) for k in keys_j1.keys_left ]: r=True;val=[-1, 0]
-            if True in [kb.is_pressed(k) for k in keys_j1.keys_right]: r=True;val=[ 1, 0]
-            if True in [kb.is_pressed(k) for k in keys_j1.keys_up   ]: r=True;val=[ 0,-1]
-            if True in [kb.is_pressed(k) for k in keys_j1.keys_down ]: r=True;val=[ 0, 1]
-            if True in [kb.is_pressed(k) for k in keys_j1.keys_reset]: arr=tableau(n_lev);r=True;val=[0,0];moves=0
-            if True in [kb.is_pressed(k) for k in keys_j1.keys_prev ]: n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
-            if True in [kb.is_pressed(k) for k in keys_j1.keys_next ]: n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
-            if r:
-                moves+=arr.move(val);r=False;clear_terminal();print(f'Level {n_lev:0>2}\nMoves {moves:0>4}');arr.imprimme();time.sleep(0.3)
-                if h: print(arr.help)
-            if arr.is_fini(): break
-        n_lev+=1
-    print('Well done!')
-except invalidLevel as e:
-    arr.imprimme()
-    print(e)
-except KeyboardInterrupt: pass
+    def montre(self):
+        img = image()
+        for x in range(len(self.cases)):
+            for y in range(len(self.cases[0])):
+                a,b=self.cases[x,y],[v+self.s for v in self.cases[x,y]]
+                img.rectangle(a, b, col.red, 5)
+                img.ecris(self.level[x,y], ct_sg(a,b))
+        img.ecris(f'{self.moves}', cg)
+        return img.montre(fullscreen=True, attente=1)
+
+def main() -> None:
+    moves =  [[ 0, 0],[ 0,-1],[ 0, 0]][::-1]+[[-1, 0],[ 0, 0],[ 1, 0]][::-1]+[[ 0, 0],[ 0,1],[ 0, 0]][::-1]+[[ 0, 0]]
+    minimum, maximum = 0, len(os.listdir('./Sokoban_levels'))
+    try:
+        n_lev = 0
+        while n_lev < maximum:
+            arr=tableau(n_lev);r=False
+            clear_terminal();print(f'Level {n_lev:0>2}\nMoves {arr.moves:0>4}');arr.imprimme()
+            h=False;arr.montre()
+            while True:
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_left ]: r=True;val=[-1, 0]
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_right]: r=True;val=[ 1, 0]
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_up   ]: r=True;val=[ 0,-1]
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_down ]: r=True;val=[ 0, 1]
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_reset]: arr=tableau(n_lev);r=True;val=[0,0];moves=0
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_prev ]: n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_next ]: n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
+                if r:
+                    moves+=arr.move(val);clear_terminal();print(f'Level {n_lev:0>2}\nMoves {arr.moves:0>4}');arr.imprimme()
+                    r=False
+                    if h: print(arr.help)
+                    arr.montre()
+                    time.sleep(0.3)
+                if arr.is_fini(): break
+                if kb.is_pressed('esc'): return
+            n_lev+=1
+        print('Well done!')
+    except invalidLevel as e:
+        arr.imprimme()
+        print(e)
+    except KeyboardInterrupt: pass
+
+if __name__ == '__main__': main()
