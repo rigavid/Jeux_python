@@ -4,9 +4,16 @@ import keyboard as kb
 class invalidLevel(Exception):
     def __init__(self) -> None:
         super().__init__('Le niveau est invalide')
+num_v = 30
+num_v2 = 10
 class tableau:
     champs_infos = ['Nom du niveau', 'Niveau par', 'Date de création']
     def __init__(self, level=0, ly=layout()) -> None:
+        self.ly = layout()
+        self.img_jeu = image.new_img(dimensions=[1920,980], fond=col.cyan)
+        self.img_inf = image.new_img(dimensions=[1920, 100], fond=col.new('808080'))
+        self.fr_jeu = self.ly.frame(img=copy.deepcopy(self.img_jeu))
+        self.fr_inf = self.ly.frame(img=copy.deepcopy(self.img_inf), pos=[0,980])
         self.infos = {}
         level_names = os.listdir('./Sokoban_levels')
         if level > 0 and level < len(level_names):
@@ -52,13 +59,12 @@ class tableau:
             print(lev)
             raise invalidLevel()
         self.size = [len(self.level[0]), len(self.level)]
-        print(self.level, self.size)
-        x, y = [[1920, 1080][n]//self.size[n] for n in (0,1)]
+        x, y = [[diff(num_v+20,1900-num_v), diff(num_v+20,960-num_v)][n]//self.size[n] for n in (0,1)]
         self.s = s = min(x, y)
         lignes = []
         colonnes = []
-        for x in range(0,1920,s)[0:self.size[0]:]: colonnes.append(x)
-        for y in range(0,1080,s)[0:self.size[1]:]: lignes.append(y)
+        for x in range(num_v+20,1870,s)[0:self.size[0]:]: colonnes.append(x)
+        for y in range(num_v+20,930,s)[0:self.size[1]:]: lignes.append(y)
         cases = []
         for y, l in enumerate(lignes):
             cases.append([])
@@ -69,7 +75,9 @@ class tableau:
         self.pushes = 0
     def replaces(self, s='') -> str:
         s=s.replace(' ', '  ')
+        s=s.replace('!', '  ')
         s=s.replace('_', '  ')
+        s=s.replace('-', '  ')
         s=s.replace('X', '██')
         s=s.replace('s', '--')
         s=s.replace('S', '==')
@@ -112,31 +120,55 @@ class tableau:
             if c in 'k+': return False
         return True
     def montre(self):
-        img = img=image(img=image.new_img(fond=col.white))
+        img = self.fr_jeu.img
+        img.img = copy.deepcopy(self.img_jeu)
         for x in range(len(self.cases)):
             for y in range(len(self.cases[0])):
-                a,b=self.cases[x,y],[v+self.s for v in self.cases[x,y]]
+                a,d=self.cases[x,y],[v+self.s for v in self.cases[x,y]]
+                b,c=[d[0],a[1]],[a[0],d[1]]
+                p1,p2,p3,p4=[[v1-num_v+num_v2,v2-num_v] for v1,v2 in [a,b,c,d]]
                 kase = self.level[x,y]
                 match kase:
-                    case 'k' | 'K':
-                        img.rectangle(a,b,col.new('808080'), 0)
-                    case 's' | 'S':
-                        img.rectangle(a,b,col.green, 0)
-                    case 'X':
-                        img.rectangle(a,b,col.new('101010'), 0)
-                    case '-':
-                        img.rectangle(a,b,col.cyan, 0)
-                    case '+':
-                        img.ligne(a,b,col.red, 2)
-                if kase != ' ':
-                    img.rectangle(a, b, col.black, 2)
-                #img.ecris(self.level[x,y], ct_sg(a,b))
+                    case 'k' | 'K': ## Caisse en fausse 3D
+                        if kase.isupper():
+                            img.ligne(a,d,col.red, 2)
+                            img.ligne(b,c,col.red, 2)
+                        coul = col.new('808080')
+                        img.rectangle(p1,p4,coul, 0)
+                        img.rectangle(p1,p4,col.black, 2)
+                        img.rectangle(a,d,coul, 2)
+                        for pt1,pt2 in [[p2,b],[p3,c],[p4,d]]:
+                            img.ligne(pt1,pt2,coul,2)
+                    case 's' | 'S': ## Perso
+                        if kase.isupper():
+                            img.ligne(a,d,col.red, 2)
+                            img.ligne(b,c,col.red, 2)
+                        coul = col.green
+                        img.rectangle(p1,p4,coul, 0)
+                        img.rectangle(p1,p4,col.black, 2)
+                        img.rectangle(a,d,coul, 2)
+                        for pt1,pt2 in [[p2,b],[p3,c],[p4,d]]:
+                            img.ligne(pt1,pt2,coul,2)
+                    case 'X': ## Mur en briques en fausse 3D
+                        coul = col.magenta
+                        img.rectangle(p1,p4,coul, 0)
+                        img.rectangle(p1,p4,col.black, 2)
+                        img.rectangle(a,d,coul, 2)
+                        for pt1,pt2 in [[p2,b],[p3,c],[p4,d]]:
+                            img.ligne(pt1,pt2,coul,2)
+                    case '-' | '_': ## Espace pour marcher
+                        pass
+                    case '+': ## Espace pour marcher plus ZA
+                        img.ligne(a,d,col.red, 2)
+                        img.ligne(b,c,col.red, 2)
         if type(self.infos) == str:
-            img.ecris(f'{self.infos}', cd)
+            txt = f'{self.infos}'
         else:
-            txt = '\n'.join(f'{s}: {self.infos[s]}' for s in tableau.champs_infos)
-            img.ecris(txt, cd)
-        return img.montre(fullscreen=True, attente=1)
+            txt = '  '.join(f'{s}: {self.infos[s]}' for s in list(self.infos.keys()))
+        txt += f'\t\tMoves: {self.moves:0>4}\tPushes: {self.pushes:0>4}'
+        self.fr_inf.img.img = copy.deepcopy(self.img_inf)
+        self.fr_inf.img.ecris(txt, [1920/2, 50])
+        return self.ly.montre(True)
 
 def main() -> None:
     minimum, maximum = 0, len(os.listdir('./Sokoban_levels'))
@@ -160,7 +192,7 @@ def main() -> None:
                     r=False
                     if h: print(arr.help)
                     arr.montre()
-                    time.sleep(0.3)
+                    time.sleep(0.2)
                 arr.montre()
                 if arr.is_fini(): break
                 if kb.is_pressed('esc'): return
