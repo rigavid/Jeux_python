@@ -134,28 +134,28 @@ class tableau:
                             img.ligne(a,d,col.red, 2)
                             img.ligne(b,c,col.red, 2)
                         coul = col.new('808080')
+                        img.rectangle(a,d,col.black, 2)
                         img.rectangle(p1,p4,coul, 0)
                         img.rectangle(p1,p4,col.black, 2)
-                        img.rectangle(a,d,coul, 2)
                         for pt1,pt2 in [[p2,b],[p3,c],[p4,d]]:
-                            img.ligne(pt1,pt2,coul,2)
+                            img.ligne(pt1,pt2,col.black,2)
                     case 's' | 'S': ## Perso
                         if kase.isupper():
                             img.ligne(a,d,col.red, 2)
                             img.ligne(b,c,col.red, 2)
                         coul = col.green
+                        img.rectangle(a,d,col.black, 2)
                         img.rectangle(p1,p4,coul, 0)
                         img.rectangle(p1,p4,col.black, 2)
-                        img.rectangle(a,d,coul, 2)
                         for pt1,pt2 in [[p2,b],[p3,c],[p4,d]]:
-                            img.ligne(pt1,pt2,coul,2)
+                            img.ligne(pt1,pt2,col.black,2)
                     case 'X': ## Mur en briques en fausse 3D
                         coul = col.magenta
+                        img.rectangle(a,d,col.black, 2)
                         img.rectangle(p1,p4,coul, 0)
                         img.rectangle(p1,p4,col.black, 2)
-                        img.rectangle(a,d,coul, 2)
                         for pt1,pt2 in [[p2,b],[p3,c],[p4,d]]:
-                            img.ligne(pt1,pt2,coul,2)
+                            img.ligne(pt1,pt2,col.black,2)
                     case '-' | '_': ## Espace pour marcher
                         pass
                     case '+': ## Espace pour marcher plus ZA
