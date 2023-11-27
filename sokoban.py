@@ -6,27 +6,28 @@ class invalidLevel(Exception):
         super().__init__('Le niveau est invalide')
 class tableau:
     champs_infos = ['Nom du niveau', 'Niveau par', 'Date de création']
-    def __init__(self, level=0) -> None:
+    def __init__(self, level=0, ly=layout()) -> None:
         self.infos = {}
         level_names = os.listdir('./Sokoban_levels')
         if level > 0 and level < len(level_names):
             nom = level_names[level]
-            with open(f'./Sokoban_levels/{nom}') as file:
+            with open(f'./Sokoban_levels/{nom}', 'r', encoding='utf8') as file:
                 lev = file.read()
         else:
             nom = level_names[level]
-            with open(f'./Sokoban_levels/{nom}') as file:
+            with open(f'./Sokoban_levels/{nom}', 'r', encoding='utf8') as file:
                 lev = file.read()
         format = nom[len(nom)-nom[::-1].index('.')::]
         print(f'Format "{format}"')
         if format == 'xsb':
-            lev=lev.replace('-', ' ')
+            lev=lev.replace('-', '_')
             lev=lev.replace('@', 's')
             lev=lev.replace('+', 'S')
             lev=lev.replace('$', 'k')
             lev=lev.replace('*', 'K')
             lev=lev.replace('#', 'X')
             lev=lev.replace('.', '+')
+            self.infos = nom[::-1].split('.',1)[1][::-1]
         if format == 'txt':
             lev2 = '';i=0
             for l in lev.splitlines():
@@ -36,7 +37,6 @@ class tableau:
                     self.infos[tableau.champs_infos[i]] = l.replace('#','')
                     i += 1
             lev = lev2
-            input(self.infos)
         r_l = [[c for c in l] for l in lev.split('\n')]
         lns = [len(l) for l in r_l]
         for ind in range(len(lns)):
@@ -66,6 +66,7 @@ class tableau:
                 cases[y].append([c,l])
         self.cases = np.array(cases)
         self.moves = 0
+        self.pushes = 0
     def replaces(self, s='') -> str:
         s=s.replace(' ', '  ')
         s=s.replace('_', '  ')
@@ -105,18 +106,36 @@ class tableau:
                     self.level[pos[1], pos[0]] = '+' if self.level[pos[1], pos[0]].isupper() else '_'
                     self.pos = a
                     self.moves += 1
+                    self.pushes += 1
     def is_fini(self) -> bool:
         for c in self.__str__():
             if c in 'k+': return False
         return True
     def montre(self):
-        img = image()
+        img = img=image(img=image.new_img(fond=col.white))
         for x in range(len(self.cases)):
             for y in range(len(self.cases[0])):
                 a,b=self.cases[x,y],[v+self.s for v in self.cases[x,y]]
-                img.rectangle(a, b, col.red, 5)
-                img.ecris(self.level[x,y], ct_sg(a,b))
-        img.ecris(f'{self.moves}', cd)
+                kase = self.level[x,y]
+                match kase:
+                    case 'k' | 'K':
+                        img.rectangle(a,b,col.new('808080'), 0)
+                    case 's' | 'S':
+                        img.rectangle(a,b,col.green, 0)
+                    case 'X':
+                        img.rectangle(a,b,col.new('101010'), 0)
+                    case '-':
+                        img.rectangle(a,b,col.cyan, 0)
+                    case '+':
+                        img.ligne(a,b,col.red, 2)
+                if kase != ' ':
+                    img.rectangle(a, b, col.black, 2)
+                #img.ecris(self.level[x,y], ct_sg(a,b))
+        if type(self.infos) == str:
+            img.ecris(f'{self.infos}', cd)
+        else:
+            txt = '\n'.join(f'{s}: {self.infos[s]}' for s in tableau.champs_infos)
+            img.ecris(txt, cd)
         return img.montre(fullscreen=True, attente=1)
 
 def main() -> None:
@@ -133,11 +152,11 @@ def main() -> None:
                 if True in [kb.is_pressed(k) for k in keys_j1.keys_up   ]: r=True;val=[ 0,-1]
                 if True in [kb.is_pressed(k) for k in keys_j1.keys_down ]: r=True;val=[ 0, 1]
                 if True in [kb.is_pressed(k) for k in keys_j1.keys_reset]: arr=tableau(n_lev);r=True
-                if True in [kb.is_pressed(k) for k in keys_j1.keys_prev ]: n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
-                if True in [kb.is_pressed(k) for k in keys_j1.keys_next ]: n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];moves=0;h=False
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_prev ]: n_lev=n_entre(n_lev-1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];h=False
+                if True in [kb.is_pressed(k) for k in keys_j1.keys_next ]: n_lev=n_entre(n_lev+1,minimum,maximum-1);arr=tableau(n_lev);r=True;val=[0,0];h=False
                 if True in [kb.is_pressed(k) for k in keys_j1.keys_endg ]: clear_terminal(); return
                 if r:
-                    arr.move(val);clear_terminal();print(f'Level {n_lev:0>2}\nMoves {arr.moves:0>4}');arr.imprimme()
+                    arr.move(val);clear_terminal();print(f'Level {n_lev:0>2}\nMoves {arr.moves:0>4}\nPushes: {arr.pushes:0>4}');arr.imprimme()
                     r=False
                     if h: print(arr.help)
                     arr.montre()

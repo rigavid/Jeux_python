@@ -51,7 +51,9 @@ class image:
         self.nom = nom
         if type(img) == type(None):
             img = self.new_img()
-        self.img = img
+        elif type(img) == image:
+            img = img.img
+        self.img = np.array(img)
         return None
     def agrandis_img(self, cmb=2):
         img = np.array([[[0,0,0] for x in range(len(self.img[0])*cmb)] for y in range(len(self.img)*cmb)])
@@ -189,6 +191,7 @@ class layout:
     def frame(self, img=image.new_img(fond=col.white, dimensions=[100, 100]), pos=[0,0], name=None):
         if name == None:
             name = 'frame' + str(len(self.frames))
+        while name in self.frames: name += '_2'
         fenetre = self.frame_(img=img, pos=pos, name=name)
         self.frames.append(fenetre)
         return fenetre

@@ -21,5 +21,5 @@ if True:
     keys_prev = ['p']
     keys_next     = ['n']
     keys_reset    = ['r']
-    keys_endg     = ['esc', 'backspace']
+    keys_endg     = ['esc']
     keys_j1 = keys(keys_up, keys_down, keys_left, keys_right, keys_prev, keys_next, keys_reset, keys_endg)
