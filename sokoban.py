@@ -126,7 +126,7 @@ class tableau:
             for y in range(len(self.cases[0])):
                 a,d=self.cases[x,y],[v+self.s for v in self.cases[x,y]]
                 b,c=[d[0],a[1]],[a[0],d[1]]
-                p1,p2,p3,p4=[[v1-num_v+num_v2,v2-num_v] for v1,v2 in [a,b,c,d]]
+                p1,p2,p3,p4=[[v1-(self.s/100)*(num_v+num_v2),v2-(self.s/100)*num_v] for v1,v2 in [a,b,c,d]]
                 kase = self.level[x,y]
                 match kase:
                     case 'k' | 'K': ## Caisse en fausse 3D
