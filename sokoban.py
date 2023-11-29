@@ -173,7 +173,10 @@ class tableau:
 def main() -> None:
     minimum, maximum = 0, len(os.listdir('./Sokoban_levels'))
     try:
-        n_lev = 0
+        try:
+            n_lev = int(input('Level: '))
+        except:
+            n_lev = 0
         while n_lev < maximum:
             arr=tableau(n_lev);r=False
             clear_terminal();print(f'Level {n_lev:0>2}\nMoves {arr.moves:0>4}');arr.imprimme()
