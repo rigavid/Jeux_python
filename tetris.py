@@ -248,6 +248,7 @@ if True: ## Vars ##
 try:
     time_to_advance = vitesse[level]
     soft_drop = False
+    key_press = time.time()
     while True:
         end_p = False ## To know what
         if holding != None:
@@ -273,141 +274,152 @@ try:
             elif soft_drop and diff(soft_drop_t, time.time()) >= 0.1:
                 time_to_advance = vitesse[level]
                 soft_drop = False
-            for key in keys_rot_CCW: ## Rotate CCW ##
-                if keyboard.is_pressed(key):
-                    playing.rotate(-1, matrice);break
-            for key in keys_rot_CW: ## Rotate CW ####
-                if keyboard.is_pressed(key):
-                    playing.rotate(1, matrice);break
-            for key in keys_pause  : ## Pause #######
-                if keyboard.is_pressed(key):
-                    temps2 = time.time()
-                    a = False
-                    while True:
-                        wk = ly.montre(debug=True)
-                        if wk == 27: raise stopGameException
-                        for key in keys_pause:
-                            if ord(key) == wk: a=True;break
-                        if a: break
-                    temps -= diff(temps2, time.time()) ### NOT WORKING TODO ###
-            for key in keys_left   : ## Move left #####
-                if keyboard.is_pressed(key):
-                    try:
-                        playing.move(matrice)
-                        playing.move(matrice, [0, -1])
-                    except toucheException:
-                        playing.pos = playing.save_pos
+            if diff(time.time(), key_press) >= 0.1:
+                for key in keys_rot_CCW: ## Rotate CCW ##
+                    if keyboard.is_pressed(key):
+                        playing.rotate(-1, matrice)
+                        key_press = time.time()
+                        break
+                for key in keys_rot_CW: ## Rotate CW ####
+                    if keyboard.is_pressed(key):
+                        playing.rotate(1, matrice)
+                        key_press = time.time()
+                        break
+                for key in keys_pause  : ## Pause #######
+                    if keyboard.is_pressed(key):
+                        temps2 = time.time()
+                        a = False
+                        while True:
+                            wk = ly.montre(debug=True)
+                            if wk == 27: raise stopGameException
+                            for key in keys_pause:
+                                if ord(key) == wk: a=True;break
+                            if a: break
+                        temps -= diff(temps2, time.time()) ### NOT WORKING TODO ###
+                for key in keys_left   : ## Move left #####
+                    if keyboard.is_pressed(key):
+                        try:
+                            playing.move(matrice)
+                            playing.move(matrice, [0, -1])
+                        except toucheException:
+                            playing.pos = playing.save_pos
+                            playing.set(matrice)
+                            time_to_advance = 0.5
+                        try:
+                            playing.move(matrice, [-1,0])
+                            key_press = time.time()
+                        except toucheException:
+                            playing.pos = playing.save_pos
+                            playing.set(matrice)
+                        break
+                for key in keys_right  : ## Move right ####
+                    if keyboard.is_pressed(key):
+                        try:
+                            playing.move(matrice)
+                            playing.move(matrice, [0, -1])
+                        except toucheException:
+                            playing.pos = playing.save_pos
+                            playing.set(matrice)
+                            time_to_advance = 0.5
+                        try:
+                            playing.move(matrice, [1,0])
+                            key_press = time.time()
+                        except toucheException:
+                            playing.pos = playing.save_pos
+                            playing.set(matrice)
+                        break
+                for key in keys_rotate : ## Rotate (C)CW ##
+                    if keyboard.is_pressed(key):
+                        try:
+                            playing.move(matrice)
+                            playing.move(matrice, [0, -1 if rotate_clocwise == True else 1])
+                        except toucheException:
+                            playing.pos = playing.save_pos
+                            playing.set(matrice)
+                            time_to_advance = 0.5
+                        playing.rotate(1, matrice)
+                        key_press = time.time()
+                        break
+                for key in keys_hold   : ## Hold ##########
+                    if keyboard.is_pressed(key):
+                        playing.remove(matrice)
+                        holding, playing = playing, holding
+                        if playing == None:
+                            playing = next_ps.pop(0)
+                            next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
+                        playing.pos = [round(n_c_X/2-2), 0]
                         playing.set(matrice)
-                        time_to_advance = 0.5
-                    try: playing.move(matrice, [-1,0])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                    break
-            for key in keys_right  : ## Move right ####
-                if keyboard.is_pressed(key):
-                    try:
-                        playing.move(matrice)
-                        playing.move(matrice, [0, -1])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                        time_to_advance = 0.5
-                    try: playing.move(matrice, [1,0])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                    break
-            for key in keys_rotate : ## Rotate (C)CW ##
-                if keyboard.is_pressed(key):
-                    try:
-                        playing.move(matrice)
-                        playing.move(matrice, [0, -1 if rotate_clocwise == True else 1])
-                    except toucheException:
-                        playing.pos = playing.save_pos
-                        playing.set(matrice)
-                        time_to_advance = 0.5
-                    playing.rotate(1, matrice)
-                    break
-            for key in keys_hold   : ## Hold ##########
-                if keyboard.is_pressed(key):
-                    playing.remove(matrice)
-                    holding, playing = playing, holding
-                    if playing == None:
-                        playing = next_ps.pop(0)
-                        next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)))
-                    playing.pos = [round(n_c_X/2-2), 0]
-                    playing.set(matrice)
-                    holding.pos = [0, 0]
-                    time.sleep(0.3)
-                    break
-            if keyboard.is_pressed('+'):
-                VARS = vars(n_c_X+1, n_c_Y)
-                n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-                imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
-                offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                for line_n in range(n_c_Y):
-                    imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
-                for col_n in range(n_c_X):
-                    imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
-                ht = len(jeu.img.img)+d_y*n_c_Y
-                lg = len(jeu.img.img[0])+d_x*n_c_X
-                cols = [x for x in np.arange(0,lg,d_x)]
-                rows = [y for y in np.arange(0,ht,d_y)]
-                matrice = [list(l) for l in matrice]
-                jeu.pos = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                nex.pos = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
-                hol.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
-                sco.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
-                pause.pos = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
-                for i in range(len(matrice)): matrice[i].append(0)
-                matrice = np.array(matrice)
-            if keyboard.is_pressed('-'):
-                s = n_c_X
-                VARS = vars(n_c_X-1, n_c_Y)
-                n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-                imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
-                offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                for line_n in range(n_c_Y):
-                    imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
-                for col_n in range(n_c_X):
-                    imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
-                ht = len(jeu.img.img)+d_y*n_c_Y
-                lg = len(jeu.img.img[0])+d_x*n_c_X
-                cols = [x for x in np.arange(0,lg,d_x)]
-                rows = [y for y in np.arange(0,ht,d_y)]
-                if s!=n_c_X:
-                    matrice2 = copy.deepcopy([list(l) for l in matrice])
+                        holding.pos = [0, 0]
+                        time.sleep(0.3)
+                        break
+                if keyboard.is_pressed('+'):
+                    VARS = vars(n_c_X+1, n_c_Y)
+                    n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
+                    imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
+                    offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
+                    for line_n in range(n_c_Y):
+                        imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
+                    for col_n in range(n_c_X):
+                        imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
+                    ht = len(jeu.img.img)+d_y*n_c_Y
+                    lg = len(jeu.img.img[0])+d_x*n_c_X
+                    cols = [x for x in np.arange(0,lg,d_x)]
+                    rows = [y for y in np.arange(0,ht,d_y)]
+                    matrice = [list(l) for l in matrice]
                     jeu.pos = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
                     nex.pos = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
                     hol.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
                     sco.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
                     pause.pos = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
-                    change = True
-                    for i in range(len(matrice2)):
-                        a = matrice2[i].pop(-1)
-                        if a != 0:
-                            change = False
-                    if change:
-                        matrice = np.array(matrice2)
-                    if not a:
-                        VARS = vars(s, n_c_Y)
-                        n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-                        imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
-                        offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
-                        for line_n in range(n_c_Y):
-                            imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
-                        for col_n in range(n_c_X):
-                            imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
-                        ht = len(jeu.img.img)+d_y*n_c_Y
-                        lg = len(jeu.img.img[0])+d_x*n_c_X
-                        cols = [x for x in np.arange(0,lg,d_x)]
-                        rows = [y for y in np.arange(0,ht,d_y)]
+                    for i in range(len(matrice)): matrice[i].append(0)
+                    matrice = np.array(matrice)
+                    key_press = time.time()
+                if keyboard.is_pressed('-'):
+                    s = n_c_X
+                    VARS = vars(n_c_X-1, n_c_Y)
+                    n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
+                    imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
+                    offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
+                    for line_n in range(n_c_Y):
+                        imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
+                    for col_n in range(n_c_X):
+                        imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
+                    ht = len(jeu.img.img)+d_y*n_c_Y
+                    lg = len(jeu.img.img[0])+d_x*n_c_X
+                    cols = [x for x in np.arange(0,lg,d_x)]
+                    rows = [y for y in np.arange(0,ht,d_y)]
+                    if s!=n_c_X:
+                        matrice2 = copy.deepcopy([list(l) for l in matrice])
                         jeu.pos = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
                         nex.pos = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
                         hol.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
                         sco.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
                         pause.pos = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
+                        change = True
+                        for i in range(len(matrice2)):
+                            if matrice2[i].pop(-1) != 0:
+                                change = False
+                        if change:
+                            matrice = np.array(matrice2)
+                            key_press = time.time()
+                        else:
+                            VARS = vars(s, n_c_Y)
+                            n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
+                            imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
+                            offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
+                            for line_n in range(n_c_Y):
+                                imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
+                            for col_n in range(n_c_X):
+                                imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
+                            ht = len(jeu.img.img)+d_y*n_c_Y
+                            lg = len(jeu.img.img[0])+d_x*n_c_X
+                            cols = [x for x in np.arange(0,lg,d_x)]
+                            rows = [y for y in np.arange(0,ht,d_y)]
+                            jeu.pos = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
+                            nex.pos = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
+                            hol.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
+                            sco.pos = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
+                            pause.pos = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
             for key in keys_hard_drop:
                 if keyboard.is_pressed(key):
                     cases_parcourues = 0
