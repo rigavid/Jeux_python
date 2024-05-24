@@ -17,5 +17,6 @@ def dessine_cathedrale(img, ct=[i/2 for i in dim_ecran], taille=5):
     return img
 
 img = dessine_cathedrale(image(img=image.new_img(dimensions=dim_ecran, fond=col.black)), pt, sz)
-#img.ecris('* 1 player game\n* Options       ', ct_sg(ct_sg([0,0],[0,len(img.img)]), ct_sg([0,0], [len(img.img[0]),len(img.img)])), col.white, 1, 0.75)
+img.ecris('* 1 player game\n* Options       ', ct_sg(ct_sg([20,0],[0,len(img.img)]), ct_sg([20,0], [len(img.img[0]),len(img.img)])), col.white, 1, 0.5, cv2.FONT_HERSHEY_COMPLEX)
+img.boutton()
 if __name__ == '__main__': img.montre(fullscreen=True)

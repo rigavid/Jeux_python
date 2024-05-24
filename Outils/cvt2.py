@@ -44,6 +44,7 @@ class image:
     class boutton:
         def __init__(self, nom='-', coos=[[0, 0], []]) -> None:
             self.nom = nom
+            self.coos = coos
             return None
     def new_img(self=None, dimensions=screen, fond=[256 for _ in range(3)]) -> np.array:
         return(np.full([round(v) for v in dimensions[::-1]]+[3], fond[::-1], np.uint8))
@@ -92,7 +93,7 @@ class image:
         :relocalisage_de_l_img: ``list | tuple `` of ``int`` [x, y]\n
         Out:
         ----
-        ``None``
+        ``int`` the waitkey (``ord(key)``)
         '''
         if fullscreen:
             cv2.namedWindow(self.nom, cv2.WND_PROP_FULLSCREEN)

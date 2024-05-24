@@ -2,6 +2,7 @@ from touches_tetris import *
 from pieces_tetris import *
 from Outils.cvt2 import *
 import keyboard
+from titlescreen_tetris import img as TITLESCREEN
 
 ##########
 ## TODO ##########
@@ -155,7 +156,6 @@ def updateImg(jeu, cols, rows):
                 jeu.img.triangle(p3, c3, cgb, couls[3], 0)
                 jeu.img.ligne(p2, p4, couls[2], 1)
     return jeu
-
 def vars(n_c_X=10, n_c_Y=22):
     n_c_X, n_c_Y = n_entre(n_c_X, 10, 20), n_entre(n_c_Y, 12, 30)
     x, y = diff(p1[0], p4[0]), diff(p1[1], p4[1])
@@ -163,6 +163,8 @@ def vars(n_c_X=10, n_c_Y=22):
     d_x=d_y=r_y if r_x>r_y else r_x
     VARS = {'n_c_X':n_c_X, 'n_c_Y':n_c_Y, 'd_x':d_x, 'd_y':d_y, 'x':x, 'y':y}
     return VARS
+
+#TITLESCREEN.montre(fullscreen=True)
 
 ### GAME VARS ###
 n_c_X, n_c_Y = [10, 22] ## Width and Height of the matrix ##
@@ -244,8 +246,8 @@ if True: ## Vars ##
         last_score = 0
         ofst = 2
         vitesse = float_range(1, 0.13, n_of_levels-1)
-
 try:
+
     time_to_advance = vitesse[level]
     soft_drop = False
     key_press = time.time()
