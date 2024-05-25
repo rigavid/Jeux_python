@@ -106,11 +106,11 @@ class image:
         print(self.__str__(ordre), end='')
         return None
     def ligne(self, p1, p2, col=col.noir, ep=1, lineType=0) -> None:
-        p1, p2 = [round(p) for p in p1], [round(p) for p in p2]
+        p1, p2 = [round(p) for p in p1], [round(p) for p in p2]; ep=round(ep)
         cv2.line(self.img, p1, p2, col[::-1], ep, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
         return None
     def rectangle(self, p1, p2, col=col.noir, ep=1, lineType=0) -> None:
-        p1, p2 = [round(p) for p in p1], [round(p) for p in p2]
+        p1, p2 = [round(p) for p in p1], [round(p) for p in p2]; ep=round(ep)
         cv2.rectangle(self.img, p1, p2, col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
         return None
     def triangle(self, p1=ct_sg(p3, ct), p2=ct_sg(p4, ct), p3=ct_sg(ct, ch), couleur=col.noir, epaisseur=1, lineType=0):

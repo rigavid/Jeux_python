@@ -162,3 +162,22 @@ def range2(start, stop, step):
         elif a <= stop and step < 0:
             return(out)
         out.append(a)
+def moyenne(elementA, elementB, mult_elementA=1, mult_elementB=1, return_type='float') -> float | int:
+    '''
+    Fait la moyennes entre les elements
+    Prend:
+    ------
+    :elementA: ``float | int``
+    :elementB: ``float | int``
+    :mult_elementA: ``float | int``
+    :mult_elementB: ``float | int``
+    :return_type: ``str`` (``"float" | "int"``)\n
+    Renvoie:
+    --------
+    ``float``
+    '''
+    total_elements = mult_elementA + mult_elementB
+    moyenne = ((elementA * mult_elementA) + (elementB * mult_elementB)) / total_elements
+    if return_type != 'float':
+        moyenne = int(moyenne)
+    return(moyenne)
