@@ -26,12 +26,11 @@ def defTab() -> list:
         [' ', 'F', ' ', ' ', ' ', ' ', ' ', 'T', ' '],
         ['L', 'C', 'A', 'O', 'R', 'O', 'A', 'C', 'L']
     ]; return l
-
+eq = {
+    'R':'王', 'J':'玉', 'T':'飛', 'T+':'龍', 'F':'角', 'F+':'馬', 'O':'金',
+    'A':'銀', 'A+':'全', 'C':'桂', 'C+':'圭', 'L':'香', 'L+':'杏', 'P':'歩', 'P+':'と'
+}
 def shoginame(p) -> str:
-    eq = {
-        'R':'王', 'J':'玉', 'T':'飛', 'T+':'龍', 'F':'角', 'F+':'馬', 'O':'金',
-        'A':'銀', 'A+':'全', 'C':'桂', 'C+':'圭', 'L':'香', 'L+':'杏', 'P':'歩', 'P+':'と'
-    }
     if not p in list(eq.keys())+[k.lower() for k in eq.keys()]: return '  '
     return eq[p.upper()]
 
@@ -44,13 +43,13 @@ for km in tailles_koma: tailles_koma[km] = [27.22222222222222*(v/10) for v in ta
 def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc, c2=col.bleu) -> image:
     ori = 0 if koma.isupper() else 180
     ct = ct_sg(p1, p2)
-    ch = coosCercle(ct, tailles_koma[koma.upper()][0]/2, 270+ori)
-    cb = coosCercle(ct, tailles_koma[koma.upper()][0]/2, 90+ori)
-    cbd, cbg = (coosCercle(cb, tailles_koma[koma.upper()][1]/2, i+ori) for i in [0, 180])
-    chbg = coosCercle(cbg, tailles_koma[koma.upper()][0], ori-angles_koma[0])
-    chhg = coosCercle(ch, tailles_koma[koma.upper()][1], angles_koma[3]+90+ori)
-    chbd = coosCercle(cbd, tailles_koma[koma.upper()][0], ori+angles_koma[0]+180)
-    chhd = coosCercle(ch, tailles_koma[koma.upper()][1], 90-angles_koma[3]+ori)
+    ch = coosCercle(ct, tailles_koma[koma[0].upper()][0]/2, 270+ori)
+    cb = coosCercle(ct, tailles_koma[koma[0].upper()][0]/2, 90+ori)
+    cbd, cbg = (coosCercle(cb, tailles_koma[koma[0].upper()][1]/2, i+ori) for i in [0, 180])
+    chbg = coosCercle(cbg, tailles_koma[koma[0].upper()][0], ori-angles_koma[0])
+    chhg = coosCercle(ch, tailles_koma[koma[0].upper()][1], angles_koma[3]+90+ori)
+    chbd = coosCercle(cbd, tailles_koma[koma[0].upper()][0], ori+angles_koma[0]+180)
+    chhd = coosCercle(ch, tailles_koma[koma[0].upper()][1], 90-angles_koma[3]+ori)
     breyk = False
     for pt1 in points_segment(pt_sg(chbg, cbg, 4), chbg):
         for pt2 in points_segment(pt_sg(chhg, ch, 4), ch):
@@ -77,7 +76,7 @@ def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc
     match koma.upper():
         case a if a in 'RJ':
             pass
-    char = koma[0]#.upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
+    char = koma[0].upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
     img.ecris(char, [ct[0], ct[1]+5], col.blue[::-1] if koma.isupper() else col.red[::-1], 3, 2, cv2.FONT_HERSHEY_SIMPLEX)
     if GUIDES: ### Guides ## TODO -> TO REMOVE ###
         for p in [p1, p2, p3, p4, ct, ch, cb, cg, cd]:
@@ -140,12 +139,12 @@ class Shogi:
         img.ligne(pkda[0], pkda[3], col.green, 1);img.ligne(pkda[1], pkda[2], col.green, 1) ## Komadai A
         img.ligne(pkdb[0], pkdb[3], col.green, 1);img.ligne(pkdb[1], pkdb[2], col.green, 1) ## Komadai B
     def reset(self):
-        self.matrix = np.array(defTab())
+        self.matrix = np.array(defTab(), dtype=object)
         self.trait = True
     def __str__(self) -> str:
         cl1, cl2, cl3 = 200, 150, 120
-        t = self.matrix; s = f' {STY_BG(cl1, cl2, cl3)},--------------------------------------------¬{STY_BG.rs}'
-        for i, l in enumerate(t):
+        matrix = self.matrix; s = f' {STY_BG(cl1, cl2, cl3)},--------------------------------------------¬{STY_BG.rs}'
+        for i, l in enumerate(matrix):
             s += f'{STY_BG.rs}\n {STY_BG(cl1, cl2, cl3)}|'
             for c in l:
                 t = (fg.blue if c.isupper() else fg.red) + shoginame(c) + fg.rs 
@@ -166,7 +165,7 @@ class Shogi:
         ]
         self.plateau = np.array(plateau)
         self.trait = True
-        self.matrix = np.array(tableau)
+        self.matrix = np.array(tableau, dtype=object)
     def image(self) -> image:
         img = image(self.name, img=copy.deepcopy(Shogi.img))
         for x in range(9):
@@ -175,7 +174,8 @@ class Shogi:
                 if t in ["", " ", ".", "·"]: continue
                 dessine_koma(img, self.plateau[x, y, 0], self.plateau[x, y, 1], t, col.blanc, col.black)
         return img
-    def legal(self) -> bool:
+    def legal(self, xo, yo, xa, ya) -> bool:
+        if xo==xa and yo==ya: return False ## Suicide de pièce ##
         return True
     def get_case(self, img):
         while True:
@@ -198,6 +198,9 @@ class Shogi:
         img.rectangle(self.plateau[xo, yo, 0], self.plateau[xo, yo, 1], col.green, 3) ## Cadre de selection
         xa, ya = self.get_case(img)
         if self.legal(xa, ya, xo, yo):
+            if len(self.matrix[xo, yo]) == 1:
+                self.matrix[xo, yo] = f'{self.matrix[xo, yo]}+'
+                print(self.matrix)
             self.matrix[xa, ya] = self.matrix[xo, yo]
             self.matrix[xo, yo] = ' '
             self.trait = not self.trait
