@@ -1,3 +1,15 @@
+#############################
+## Author: T-Sana ###########
+## 24/5/2024 -> XX/XX/202X ##
+#############################
+## TODO #################################
+## Dessin des pièces en mode graphique ##
+## Déplacement des pièces ###############
+## Légalité des mouvements des pièces ###
+## Promotion des pièces #################
+## Parachutage des pièces ###############
+#########################################
+
 from Outils.cvt2 import *
 
 def defTab() -> list:
