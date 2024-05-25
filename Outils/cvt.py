@@ -2216,7 +2216,7 @@ if oui: ## Tout ##
                 elif char == 'b5': ## Ecrit : ) ## ## Parentesis2 ##
                     ellipse(img, ct, (dist(ct, ch), dist(ct, cg) / 3 * 2), couleur, epaisseur, 0, 180, rotation - 90)
                 elif char == 'c5': ## Ecrit : p ## ## P min ##
-######
+
                     a, b = 15, 4
                     ligne(img, pt_sg(cg, cd, a, b), pt_sg(cg, cd, b, a), couleur, ep)
                     g, d = ct_sg(pt_sg(p3, p4, a, b), pt_sg(cg, cd, a, b)), ct_sg(pt_sg(p3, p4, b, a), pt_sg(cg, cd, b, a))
