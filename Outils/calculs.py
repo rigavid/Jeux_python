@@ -51,7 +51,7 @@ def decoupe(string):
         else:
             out += i
     return float(out)
-def coosCercle(ct, rayon, angle):
+def coosCercle(ct, rayon:int | float, angle, tipe="int"):
     '''
     Prend:
     ------
@@ -65,6 +65,8 @@ def coosCercle(ct, rayon, angle):
     angle = math.radians(angle)
     cos = float(decoupe(str(math.cos(angle))))
     sin = float(decoupe(str(math.sin(angle))))
+    if tipe=='float':
+        return [ct[0] + cos * rayon, ct[1] + sin * rayon]
     return [int(ct[0] + cos * rayon), int(ct[1] + sin * rayon)]
 def dist(p1, p2):
     a, b = p1

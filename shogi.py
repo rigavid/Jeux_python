@@ -9,6 +9,10 @@
 ## Parachutage des pièces ##
 ############################
 
+### INFO-HERE ###
+### https://gist.github.com/greduan/3763b7d9d5c1d6a4916f?permalink_comment_id=4292174#gistcomment-4292174
+### https://fr.wikipedia.org/wiki/Sh%C5%8Dgi#Pi%C3%A8ces
+
 GUIDES = False ## TODO -> TO REMOVE ##
 from Outils.cvt2 import *
 from sty import bg as STY_BG
@@ -39,73 +43,147 @@ tailles_koma = {'R': [32, 28.7, 9.7], 'T': [31, 27.7, 9.3], 'O': [30, 26.7, 8.8]
                 'C': [29, 25.5, 8.3], 'L': [28, 23.5, 8.0], 'P': [27, 22.5, 7.75]}
 for s in 'JR FT AO'.split(): tailles_koma[s[0]]=tailles_koma[s[1]]
 for km in tailles_koma: tailles_koma[km] = [27.22222222222222*(v/10) for v in tailles_koma[km]]
-def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=2) -> image:
-    ori = 0 if koma.isupper() else 180
-    if True: ## Coos ##
-        ct = ct_sg(p1, p2)
-        ch = coosCercle(ct, tailles_koma[koma[0].upper()][0]/2, 270+ori)
-        cb = coosCercle(ct, tailles_koma[koma[0].upper()][0]/2, 90+ori)
-        cbd, cbg = (coosCercle(cb, tailles_koma[koma[0].upper()][1]/2, i+ori) for i in [0, 180])
-        chbg = coosCercle(cbg, tailles_koma[koma[0].upper()][0], ori-angles_koma[0])
-        chhg = coosCercle(ch, tailles_koma[koma[0].upper()][1], angles_koma[3]+90+ori)
-        chbd = coosCercle(cbd, tailles_koma[koma[0].upper()][0], ori+angles_koma[0]+180)
-        chhd = coosCercle(ch, tailles_koma[koma[0].upper()][1], 90-angles_koma[3]+ori)
-        breyk = False
-        for pt1 in points_segment(pt_sg(chbg, cbg, 4), chbg):
-            for pt2 in points_segment(pt_sg(chhg, ch, 4), ch):
-                if dist(pt1, pt2) <= 1:
-                    phg = pt1
-                    breyk = True
-                    break
-            if breyk: break
-        breyk = False
-        for pt1 in points_segment(pt_sg(chbd, cbd, 4), chbd):
-            for pt2 in points_segment(pt_sg(chhd, ch, 4), ch):
-                if dist(pt1, pt2) <= 1:
-                    phd = pt1
-                    breyk = True
-                    break
-            if breyk: break
-        pts = np.array([ch, phd, cbd, cbg, phg], np.int32)
-    cv2.fillPoly(img.img, [pts], c1) ## Dessin pièce ##
-    cv2.polylines(img.img, [pts], True, c2, 2) ## Dessin bord de la pièce ##
-    if True: ## Coos du texte ##
-        a, b = 5, 2
-        p1, p2 = pt_sg(phg, ct, a, b), pt_sg(phd, ct, a, b)
-        ch_y = p1[1] - phg[1]
-        p3, p4 = pt_sg([p1[0], cb[1]-ch_y], p1, 12), pt_sg([p2[0], cb[1]-ch_y], p2, 12)
-        ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4)
-        ct = ct_cr(p1, p2, p3, p4)
+def dessine_kanji_or(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
+    ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
+    cg, cd = ct_sg(p1, p3), ct_sg(p2, p4)
+    a = 20
+    pcg = coosCercle(ch, dist(ch, p1), ori+180-a)
+    pcd = coosCercle(ch, dist(ch, p1), ori+a)
+    img.ligne(ch, pcg, c, ep, l_t)
+    img.ligne(ch, pcd, c, ep, l_t)
+    clh, clb = coosCercle(ch, tailles_koma['O'][1]/2/5, 90+ori), cb
+    ctl = ct_sg(clh, clb)
+    pts = [clh, ctl, clb]
+    dts = [dist(p1, ch)*i for i in [0.8, 0.7, 1]]
+    for i in range(3):
+        img.ligne(coosCercle(pts[i], dts[i], ori), coosCercle(pts[i], dts[i], ori+180), c, ep, l_t)
+    img.ligne(clh, clb, c, ep, l_t)
+    pt1 = coosCercle(pts[1], dts[1], ori)
+    pt2 = coosCercle(pts[1], dts[1], ori+180)
+    a, b = 5, 3
+    img.ligne(pt_sg(pt1, clb, a, b), pt_sg(pt1, clb, b, a), c, ep, l_t)
+    img.ligne(pt_sg(pt2, clb, a, b), pt_sg(pt2, clb, b, a), c, ep, l_t)
+    return img
+def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+    ch = ct_sg(p1, p2)
+    ct = ct_cr(p1, p2, p3, p4)
+    d = dist(p1, p2)/6
+    a, b = 5, 4
+    plgh, plgb = coosCercle(p1, d, ori), coosCercle(p3, d, ori)
+    plgch, plgcb = (pt_sg(plgh, plgb, [a,b][i], [b,a][i]) for i in range(2))
+    img.ligne(plgh, plgb, c, ep, l_t)
+    img.ligne(plgch, coosCercle(plgch, d*1.5, 245+ori), c, ep, l_t)
+    img.ligne(plgch, coosCercle(plgcb, d, 170+ori), c, ep, l_t)
+    
+    img.ligne(p2, pt_sg(p1, pt_sg(ch, ct, 2), 2, 3), c, ep, l_t)
+    if GUIDES: ### Guides ## TODO -> TO REMOVE ###
+        for p in [plgch, plgcb]:
+            img.cercle(p, 2, col.green, 0)
+    return image
+def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=2, l_t=2) -> image:
+    if True: ## VARS ##
+        ori = 0 if koma.isupper() else 180
+        if True: ## Coos ##
+            ct = ct_sg(p1, p2)
+            ch = coosCercle(ct, tailles_koma[koma[0].upper()][0]/2, 270+ori)
+            cb = coosCercle(ct, tailles_koma[koma[0].upper()][0]/2, 90+ori)
+            cbd, cbg = (coosCercle(cb, tailles_koma[koma[0].upper()][1]/2, i+ori) for i in [0, 180])
+            chbg = coosCercle(cbg, tailles_koma[koma[0].upper()][0], ori-angles_koma[0])
+            chhg = coosCercle(ch, tailles_koma[koma[0].upper()][1], angles_koma[3]+90+ori)
+            chbd = coosCercle(cbd, tailles_koma[koma[0].upper()][0], ori+angles_koma[0]+180)
+            chhd = coosCercle(ch, tailles_koma[koma[0].upper()][1], 90-angles_koma[3]+ori)
+            breyk = False
+            for pt1 in points_segment(pt_sg(chbg, cbg, 4), chbg):
+                for pt2 in points_segment(pt_sg(chhg, ch, 4), ch):
+                    if dist(pt1, pt2) <= 1:
+                        phg = pt1
+                        breyk = True
+                        break
+                if breyk: break
+            breyk = False
+            for pt1 in points_segment(pt_sg(chbd, cbd, 4), chbd):
+                for pt2 in points_segment(pt_sg(chhd, ch, 4), ch):
+                    if dist(pt1, pt2) <= 1:
+                        phd = pt1
+                        breyk = True
+                        break
+                if breyk: break
+            pts = np.array([ch, phd, cbd, cbg, phg], np.int32)
+        cv2.fillPoly(img.img, [pts], c1) ## Dessin pièce ##
+        cv2.polylines(img.img, [pts], True, c2, 2) ## Dessin bord de la pièce ##
+        if True: ## Coos du texte ##
+            a, b = 5, 1
+            dtp = tailles_koma[koma[0].upper()][1]/11
+            p1, p2 = coosCercle(phg, dtp, ori), coosCercle(phd, dtp, 180+ori)
+            ch_y = p1[1] - phg[1]
+            p3, p4 = pt_sg([p1[0], cb[1]-ch_y], p1, 12), pt_sg([p2[0], cb[1]-ch_y], p2, 12)
+            ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4)
+            ct = ct_cr(p1, p2, p3, p4)
+            ph1, ph2, ph3, ph4 = (pt_sg(i, ct_sg(p1, cd), a, b) for i in [p1, p2, cg, cd])
+            pb1, pb2, pb3, pb4 = (pt_sg(i, ct_sg(cg, p4), a, b) for i in [cg, cd, p3, p4])
+            cth = ct_cr(ph1, ph2, ph3, ph4)
+            ctb = ct_cr(pb1, pb2, pb3, pb4)
+            chh, chb = ct_sg(ph1, ph2), ct_sg(ph3, ph4)
+            chg, chd = ct_sg(ph1, ph3), ct_sg(ph2, ph4)
+            cbh, cbb = ct_sg(pb1, pb2), ct_sg(pb3, pb4)
+            cbg, cbd = ct_sg(pb1, pb3), ct_sg(pb2, pb4)
     match koma.upper():
-        case a if a in 'RJ':
-            img.ligne(pt_sg(p1, ch, 7), pt_sg(p2, ch, 7), c2, ep_l)
-            img.ligne(pt_sg(cg, ct, 3), pt_sg(cd, ct, 3), c2, ep_l)
-            img.ligne(ch, cb, c2, ep_l)
-            img.ligne(p3, p4, c2, ep_l)
+        case a if a in 'RJ': ## DONE ##
+            img.ligne(pt_sg(ph1, chh, 7), pt_sg(ph2, chh, 7), c2, ep_l, l_t)
+            img.ligne(pt_sg(chg, cth, 3), pt_sg(chd, cth, 3), c2, ep_l, l_t)
+            img.ligne(chh, chb, c2, ep_l, l_t)
+            img.ligne(ph3, ph4, c2, ep_l, l_t)
             if koma.upper() == 'J':
-                img.ligne(pt_sg(ct, p4, 5, 2), pt_sg(p4, ct, 5, 4), c2, 2)
-        case 'P':
-            img.ligne(cg, cd, c2, ep_l)
-            pthg = pt_sg(p1, ch)
-            ptcg = pt_sg(cg, ct)
-            pthd = pt_sg(p2, ch, 5)
-            ptcd = pt_sg(cd, ct, 5)
-            img.ligne(ptcg, pt_sg(ptcg, pthg, 5, 4), c2, ep_l)
-            img.ligne(pt_sg(ct, ch), pt_sg(ptcd, pthd), c2, ep_l)
-            img.ligne(ch, pt_sg(ct, cb), c2, ep_l)
-            img.ligne(pt_sg(ct, p3, 5, 2), pt_sg(p3, ct, 5, 2), c2, 2)
-            plbdh, plbdb = pt_sg(ct_sg(ct, cd), p4, 5, 2), pt_sg(pt_sg(p4, cd, 3), ct_sg(ct, cd), 5)
-            img.ligne(plbdh, plbdb, c2, ep_l)
-            length = dist(p1, ct_sg(plbdh, plbdb))
-            img.ellipse(p1, (length, length), c2, ep_l, anD=58, anF=78, ang=ori)
-        case _:
+                img.ligne(pt_sg(cth, ph4, 5, 2), pt_sg(ph4, cth, 5, 4), c2, ep_l, l_t)
+            dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+        case 'P': ## 歩兵 ## DONE ##
+            if True: ## 歩 ## DONE ##
+                img.ligne(chg, chd, c2, ep_l)
+                pthg = pt_sg(ph1, chh)
+                ptcg = pt_sg(chg, cth)
+                pthd = pt_sg(ph2, chh, 5)
+                ptcd = pt_sg(chd, cth, 5)
+                img.ligne(ptcg, pt_sg(ptcg, pthg, 5, 4), c2, ep_l, l_t)
+                img.ligne(pt_sg(cth, chh), pt_sg(ptcd, pthd), c2, ep_l, l_t)
+                img.ligne(chh, cth, c2, ep_l, l_t)
+                img.ligne(pt_sg(cth, ph3, 5, 2), pt_sg(ph3, cth, 5, 2), c2, ep_l, l_t)
+                plbdh, plbdb = pt_sg(ct_sg(cth, chd), ph4, 5, 2), pt_sg(pt_sg(ph4, chd, 3), ct_sg(cth, chd), 5)
+                img.ligne(plbdh, plbdb, c2, ep_l, l_t)
+                length = dist(ct_sg(phg, ph1), ct_sg(plbdh, plbdb))
+                a, b = 4, 1; c, d = 15, 3
+                pthc, pthb = pt_sg(cth, chd, c, d), pt_sg(chb, ph4, c, d)
+                img.ligne(pt_sg(pthc, pthb, a, b), pt_sg(pthb, pthc, a, b), c2, ep_l, l_t)
+                img.ellipse(ph1, (length, length), c2, ep_l, anD=55, anF=75, ang=ori, lineType=l_t)
+            if True: ## 兵 ## DONE ##
+                a, b = 5, 3
+                plg, pld = pt_sg(cbg, pb3, a, b), pt_sg(cbd, pb4, a, b)
+                img.ligne(plg, pld, c2, ep_l, l_t)
+                a, b = 3, 1
+                pthlg = pt_sg(pt_sg(pb1, pb2, a, b), pt_sg(cbg, cbd, a, b))
+                pthld = pt_sg(pt_sg(pb1, pb2, b, a), pt_sg(cbg, cbd, b, a), 3)
+                img.ligne(pthlg, pt_sg(plg, pld, a, b), c2, ep_l, l_t)
+                img.ligne(pthlg, pthld, c2, ep_l, l_t)
+                c, d = 1, 3
+                img.ligne(pt_sg(pt_sg(pb1, pb2, a, b), pt_sg(cbg, cbd, a, b), c, d), pt_sg(pt_sg(pb1, pb2, b, a), pt_sg(cbg, cbd, b, a), c, d), c2, ep_l, l_t)
+                img.ligne(pt_sg(pt_sg(pb1, pb2, b, a), pt_sg(cbg, cbd, b, a), c, d), pt_sg(plg, pld, b, a), c2, ep_l, l_t)
+                ptctb = ct_sg(ctb, cbb)
+                img.ligne(pt_sg(ptctb, pb3, a, b), pt_sg(ptctb, pb3, b, a), c2, ep_l, l_t)
+                img.ligne(pt_sg(ptctb, pb4, a, b), pt_sg(ptctb, pb4, b, a), c2, ep_l, l_t)
+        case 'O': ## Général d'or ## DONE ## TODO -> dessine_kanji_general() ##
+            dessine_kanji_or(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
+            dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+        case 'A': ## Général d'argent ##
+            dessine_kanji_or(img, ph1, chh, ph3, chb, c2, ep_l, ori, l_t)
+            dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+        case _: ## Unmapped piece ##
             char = koma[0].upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
-            img.ecris(char, [ct[0], ct[1]+5], col.blue[::-1] if koma.isupper() else col.red[::-1], 3, 2, cv2.FONT_HERSHEY_SIMPLEX)
+            img.ecris(char, [ct[0], ct[1]+5], col.blue[::-1] if koma.isupper() else col.red[::-1], 3, 2, cv2.FONT_HERSHEY_SIMPLEX, l_t)
     if GUIDES: ### Guides ## TODO -> TO REMOVE ###
         for p in [p1, p2, p3, p4, ct, ch, cb, cg, cd]:
             img.cercle(p, 3, col.red, 0)
         img.rectangle(p1, p4, col.green, 1)
-        
+        img.rectangle(ph1, ph4, col.green, 1)
+        img.rectangle(pb1, pb4, col.green, 1)
     return img
 class EXIT(Exception):
     def __init__(self, *args):
@@ -162,9 +240,7 @@ class Shogi:
         img.ligne(pkda[0], pkda[3], col.green, 1);img.ligne(pkda[1], pkda[2], col.green, 1) ## Komadai A
         img.ligne(pkdb[0], pkdb[3], col.green, 1);img.ligne(pkdb[1], pkdb[2], col.green, 1) ## Komadai B
     def reset(self):
-        self.matrix = np.array(defTab(), dtype=object)
-        self.captures = [[], []]
-        self.trait = True
+        return Shogi(name=self.name, j1=self.j1, j2=self.j2)
     def __str__(self) -> str:
         cl1, cl2, cl3 = 200, 150, 120
         matrix = self.matrix; s = f' {STY_BG(cl1, cl2, cl3)},--------------------------------------------¬{STY_BG.rs}'
@@ -179,6 +255,8 @@ class Shogi:
         return s
     def __init__(self, tableau=defTab(), name:str='Shogi', j1:str='J1', j2:str='J2') -> None:
         self.name = name
+        self.last_move = None
+        self.j1, self.j2 = j1, j2
         plateau = [ ## Création de l'array qui contient toutes les coos des cases
             [
                 [
@@ -187,7 +265,7 @@ class Shogi:
                 ] for x in range2(self.xa, self.xb, self.dx)
             ] for y in range2(self.ya, self.yb, self.dy)
         ]
-        self.plateau = np.array(plateau)
+        self.plateau = copy.deepcopy(np.array(plateau))
         self.trait = True
         self.matrix = np.array(tableau, dtype=object)
         self.captures = [[], []]
@@ -199,13 +277,19 @@ class Shogi:
                 if t in ["", " ", ".", "·"]: continue
                 dessine_koma(img, self.plateau[x, y, 0], self.plateau[x, y, 1], t, col.blanc, col.black)
         return img
-    def legal(self, xo, yo, xa, ya) -> bool:
+    def vide(self, x, y) -> bool:
+        return shoginame(self.matrix[x, y]) == '  '
+    def legal(self, xo, yo, xa, ya) -> bool: ## TODO ##
         if xo==xa and yo==ya: return False ## Suicide de pièce ##
-        ## Interdit de capturer ses propres pièces ##
+        print(self.matrix[xa, ya])
+        if not self.vide(xa, ya) and self.matrix[xa, ya][0].isupper() == self.trait: ## Autocapture ##
+            return False
+        
         return True
     def get_case(self, img):
         while True:
-            if img.montre(1, fullscreen=True) == 27: raise EXIT
+            match img.montre(1, fullscreen=True):
+                case 27: raise EXIT
             cv2.setMouseCallback(self.name, mouse_get_case)
             if mouse.click:
                 mouse.click = False
@@ -223,24 +307,24 @@ class Shogi:
         elif self.matrix[xo, yo][0].isupper() != self.trait: return ## Bouge que celui qui a le trait
         img.rectangle(self.plateau[xo, yo, 0], self.plateau[xo, yo, 1], col.green, 3) ## Cadre de selection
         xa, ya = self.get_case(img)
-        if self.legal(xa, ya, xo, yo):
-            if self.matrix[xo, yo].lower() in "plcatf" and len(self.matrix[xo, yo]) == 1: ## Promotion
+        if self.legal(xo, yo, xa, ya):
+            if self.matrix[xo, yo].lower() in "plcatf" and len(self.matrix[xo, yo]) == 1: ## Promotion ## TODO ##
                 if (self.trait and xa<3) or (not self.trait and xa>5):
                     self.matrix[xo, yo] = f'{self.matrix[xo, yo]}+'
                 print(self.matrix)
             self.matrix[xa, ya] = self.matrix[xo, yo]
             self.matrix[xo, yo] = ' '
             self.trait = not self.trait
-        
+        else: print('Illegal move')
+    def jouable(self): return True ## TODO ##
+    def start(self, out=False):
+        while self.jouable():
+            if out: print(self)
+            self.move()
+        if out: print(self)
             
 
 
 if __name__ == '__main__' and True:
-    try:
-        pt = Shogi()
-        while True:
-            print(pt)
-            pt.move()
-    except EXIT:
-        print('GAME ENDED!')
-        raise SystemExit
+    try: pt = Shogi(); pt.start()
+    except EXIT: print('GAME ENDED!'); raise SystemExit
