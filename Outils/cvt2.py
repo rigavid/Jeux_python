@@ -136,11 +136,11 @@ class image:
         return None
     def cercle(self, ct, rayon=10, col=col.noir, ep=1, lineType=0) -> None:
         ct = [round(p) for p in ct]; ep = round(ep)
-        cv2.circle(self.img, ct, rayon, col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+        cv2.circle(self.img, ct, round(rayon), col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
         return None
-    def ellipse(self, ct, rayons=[10, 10], col=col.noir, ep=1, lineType=0) -> None:
+    def ellipse(self, ct, rayons=[10, 10], col=col.noir, ep=1, lineType=0, anD=0, anF=360, ang=0) -> None:
         ct = [round(p) for p in ct]; ep = round(ep)
-        cv2.ellipse(self.img, ct, rayons, 0, 360, 0, col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+        cv2.ellipse(self.img, ct, [round(i) for i in rayons], ang, anD, anF, col[::-1], ep if ep != 0 else -1, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
         return None
     def sauve_image(self, path='', nom_fichier=None) -> None:
         if nom_fichier == None: nom_fichier = self.nom
