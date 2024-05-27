@@ -79,17 +79,21 @@ def dessine_kanji_charriot(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, 
     img.ligne(pts[0][1], pts[-1][1], c, ep, l_t)
     img.ligne(ch, cb, c, ep, l_t)
     return img
-def dessine_kanji_cheval(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+def dessine_kanji_cheval(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
     ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
     cg, cd = ct_sg(p1, p3), ct_sg(p2, p4)
     ct = ct_cr(p1, p2, p3, p4)
+    ptbd, pttbd = pt_sg(p4, pt_sg(cb, ct, 2), 2), pt_sg(p4, cd, 4.5)
+    ptcg, ptcd = pt_sg(cg, ct, 2), pt_sg(cd, ct, 2)
+    ptsh = [ptcg, pt_sg(ptcg, ptcd, 2), pt_sg(ptcd, ptcg, 2), ptcd]
+    ptsb = [p3, pt_sg(p3, ptbd, 2), pt_sg(ptbd, p3, 2), ptbd]
     lines = [
-        [p2, p1], [p1, cg], [cg, cd], [cd, p4], [p4, pt_sg(p4, cb, 2)], [ch, ct],
-        [pt_sg(p1, cg, 2), pt_sg(p2, cd, 2)], [pt_sg(cg, p1, 2), pt_sg(cd, p2, 2)]
+        [p2, p1], [p1, cg], [cg, cd], [cd, pttbd], [pttbd, ptbd], [ch, ct],
+        [pt_sg(p1, cg, 2), pt_sg(p2, cd, 2)], [pt_sg(cg, p1, 2), pt_sg(cd, p2, 2)],
     ]
-    for pa, pb in lines:
-        img.ligne(pa, pb, c, ep, l_t)
-
+    a, b = 5, 2
+    lines += [[pt_sg(ptsh[i], ptsb[i], a, b), pt_sg(ptsh[i], ptsb[i], b, a)] for i in range(4)]
+    for pa, pb in lines: img.ligne(pa, pb, c, ep, l_t)
     return img
 def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
     ch, cb, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p2, p4)
@@ -102,7 +106,7 @@ def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l
     lines += [[pt_sg(p3, ct, a, b), pt_sg(p4, cd, a, b)], [pt_sg(cb, p4, a, b), pt_sg(ct, cd, a, b)]]
     for pa, pb in lines: img.ligne(pa, pb, c, ep, l_t) ## Dessin des lignes ##
     return image
-def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=2, l_t=2) -> image:
+def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=1, l_t=2) -> image:
     if True: ## VARS ##
         ori = 0 if koma.isupper() else 180
         if True: ## Coos ##
@@ -193,6 +197,8 @@ def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.
                 ptctb = ct_sg(ctb, cbb)
                 img.ligne(pt_sg(ptctb, pb3, a, b), pt_sg(ptctb, pb3, b, a), c2, ep_l, l_t)
                 img.ligne(pt_sg(ptctb, pb4, a, b), pt_sg(ptctb, pb4, b, a), c2, ep_l, l_t)
+        case 'P+': ## と ## TODO ##
+            img.ellipse(cd, (dist(cd, cb), dist(cd, pb4)), c2, ep_l, l_t, 45, 250, 45+ori)
         case 'L':
             dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'T':
