@@ -64,8 +64,26 @@ def dessine_kanji_or(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2)
     img.ligne(pt_sg(pt1, clb, a, b), pt_sg(pt1, clb, b, a), c, ep, l_t)
     img.ligne(pt_sg(pt2, clb, a, b), pt_sg(pt2, clb, b, a), c, ep, l_t)
     return img
+def dessine_kanji_charriot(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
+    ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
+    pts = []
+    for i, y in enumerate(float_range(p1[1], p3[1], 6)):
+        match i:
+            case b if b in [i for i in range(2, 5)]:
+                pt1, pt2 = [pt_sg(p1, ch, 5, 3)[0], y], [pt_sg(p2, ch, 5, 3)[0], y]
+                img.ligne(pt1, pt2, c, ep, l_t)
+                pts.append([pt1, pt2])
+            case a if a in [i for i in range(1, 6)]:
+                img.ligne([p1[0], y], [p2[0], y], c, ep, l_t)
+    img.ligne(pts[0][0], pts[-1][0], c, ep, l_t)
+    img.ligne(pts[0][1], pts[-1][1], c, ep, l_t)
+    img.ligne(ch, cb, c, ep, l_t)
+    return img
+def dessine_kanji_cheval(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+    return img
 def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
-    ch = ct_sg(p1, p2)
+    ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
+    cg, cd = ct_sg(p1, p3), ct_sg(p2, p4)
     ct = ct_cr(p1, p2, p3, p4)
     d = dist(p1, p2)/6
     a, b = 5, 4
@@ -74,13 +92,16 @@ def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l
     img.ligne(plgh, plgb, c, ep, l_t)
     img.ligne(plgch, coosCercle(plgch, d*1.5, 245+ori), c, ep, l_t)
     img.ligne(plgch, coosCercle(plgcb, d, 170+ori), c, ep, l_t)
-    
     img.ligne(p2, pt_sg(p1, pt_sg(ch, ct, 2), 2, 3), c, ep, l_t)
+
+    a, b = 4, 11
+    img.ligne(pt_sg(p3, ct, a, b), pt_sg(p4, cd, a, b), c, ep, l_t)
+    img.ligne(pt_sg(cb, p4, a, b), pt_sg(ct, cd, a, b), c, ep, l_t)
     if GUIDES: ### Guides ## TODO -> TO REMOVE ###
         for p in [plgch, plgcb]:
             img.cercle(p, 2, col.green, 0)
     return image
-def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=2, l_t=2) -> image:
+def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=1, l_t=2) -> image:
     if True: ## VARS ##
         ori = 0 if koma.isupper() else 180
         if True: ## Coos ##
@@ -169,6 +190,10 @@ def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc
                 ptctb = ct_sg(ctb, cbb)
                 img.ligne(pt_sg(ptctb, pb3, a, b), pt_sg(ptctb, pb3, b, a), c2, ep_l, l_t)
                 img.ligne(pt_sg(ptctb, pb4, a, b), pt_sg(ptctb, pb4, b, a), c2, ep_l, l_t)
+        case 'L':
+            dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+        case 'T':
+            dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'O': ## Général d'or ## DONE ## TODO -> dessine_kanji_general() ##
             dessine_kanji_or(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
             dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)

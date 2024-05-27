@@ -145,7 +145,7 @@ def float_range(start, stop, number=1):
     else:
         d = diff(start, stop)
         s = d/number
-        o = [start]
+        o = []
         if start>stop:
             for n in range(number)[::-1]:
                 o.append(stop+abs(s*n))
