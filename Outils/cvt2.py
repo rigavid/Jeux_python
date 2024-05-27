@@ -102,6 +102,8 @@ class image:
         wk = cv2.waitKeyEx(attente)
         if destroy == True: cv2.destroyWindow(self.nom)
         return(wk)
+    def ferme(self):
+        cv2.destroyWindow(self.nom)
     def imprime(self, ordre=True) -> None:
         print(self.__str__(ordre), end='')
         return None

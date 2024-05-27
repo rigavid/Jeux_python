@@ -2,9 +2,9 @@
 ## Author: T-Sana ###########
 ## 24/5/2024 -> XX/XX/202X ##
 #############################
-## TODO ########################################
-## Dessin des noms japonais en mode graphique ##
-## Légalité des mouvements des pièces ##########
+## TODO ###################################################
+## Dessin des noms japonais en mode graphique - EN COURS ##
+## Légalité des mouvements des pièces #####################
 ## Promotion des pièces ################
 ## Parachutage des pièces ##
 ############################
@@ -80,28 +80,29 @@ def dessine_kanji_charriot(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, 
     img.ligne(ch, cb, c, ep, l_t)
     return img
 def dessine_kanji_cheval(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
-    return img
-def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
     ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
     cg, cd = ct_sg(p1, p3), ct_sg(p2, p4)
     ct = ct_cr(p1, p2, p3, p4)
-    d = dist(p1, p2)/6
-    a, b = 5, 4
+    lines = [
+        [p2, p1], [p1, cg], [cg, cd], [cd, p4], [p4, pt_sg(p4, cb, 2)], [ch, ct],
+        [pt_sg(p1, cg, 2), pt_sg(p2, cd, 2)], [pt_sg(cg, p1, 2), pt_sg(cd, p2, 2)]
+    ]
+    for pa, pb in lines:
+        img.ligne(pa, pb, c, ep, l_t)
+
+    return img
+def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+    ch, cb, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p2, p4)
+    ct = ct_cr(p1, p2, p3, p4)
+    d = dist(p1, p2)/6; a, b = 5, 4
     plgh, plgb = coosCercle(p1, d, ori), coosCercle(p3, d, ori)
     plgch, plgcb = (pt_sg(plgh, plgb, [a,b][i], [b,a][i]) for i in range(2))
-    img.ligne(plgh, plgb, c, ep, l_t)
-    img.ligne(plgch, coosCercle(plgch, d*1.5, 245+ori), c, ep, l_t)
-    img.ligne(plgch, coosCercle(plgcb, d, 170+ori), c, ep, l_t)
-    img.ligne(p2, pt_sg(p1, pt_sg(ch, ct, 2), 2, 3), c, ep, l_t)
-
+    lines = [[plgh,plgb],[plgch,coosCercle(plgch,d*1.5,245+ori)],[plgch,coosCercle(plgcb,d,170+ori)],[p2,pt_sg(p1,pt_sg(ch,ct,2),2,3)]]
     a, b = 4, 11
-    img.ligne(pt_sg(p3, ct, a, b), pt_sg(p4, cd, a, b), c, ep, l_t)
-    img.ligne(pt_sg(cb, p4, a, b), pt_sg(ct, cd, a, b), c, ep, l_t)
-    if GUIDES: ### Guides ## TODO -> TO REMOVE ###
-        for p in [plgch, plgcb]:
-            img.cercle(p, 2, col.green, 0)
+    lines += [[pt_sg(p3, ct, a, b), pt_sg(p4, cd, a, b)], [pt_sg(cb, p4, a, b), pt_sg(ct, cd, a, b)]]
+    for pa, pb in lines: img.ligne(pa, pb, c, ep, l_t) ## Dessin des lignes ##
     return image
-def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=1, l_t=2) -> image:
+def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=2, l_t=2) -> image:
     if True: ## VARS ##
         ori = 0 if koma.isupper() else 180
         if True: ## Coos ##
@@ -150,12 +151,14 @@ def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc
             cbg, cbd = ct_sg(pb1, pb3), ct_sg(pb2, pb4)
     match koma.upper():
         case a if a in 'RJ': ## DONE ##
-            img.ligne(pt_sg(ph1, chh, 7), pt_sg(ph2, chh, 7), c2, ep_l, l_t)
-            img.ligne(pt_sg(chg, cth, 3), pt_sg(chd, cth, 3), c2, ep_l, l_t)
-            img.ligne(chh, chb, c2, ep_l, l_t)
-            img.ligne(ph3, ph4, c2, ep_l, l_t)
+            lines = [
+                [pt_sg(ph1, chh, 7), pt_sg(ph2, chh, 7)],
+                [pt_sg(chg, cth, 3), pt_sg(chd, cth, 3)],
+                [chh, chb], [ph3, ph4]
+            ]
             if koma.upper() == 'J':
-                img.ligne(pt_sg(cth, ph4, 5, 2), pt_sg(ph4, cth, 5, 4), c2, ep_l, l_t)
+                lines.append([pt_sg(cth, ph4, 5, 2), pt_sg(ph4, cth, 5, 4)])
+            for pa, pb in lines: img.ligne(pa, pb, c2, ep_l, l_t) ## Dessin des lignes ##
             dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'P': ## 歩兵 ## DONE ##
             if True: ## 歩 ## DONE ##
@@ -194,13 +197,13 @@ def dessine_koma(img:image, p1:(int, int), p2:(int, int), koma:str, c1=col.blanc
             dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'T':
             dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-        case 'O': ## Général d'or ## DONE ## TODO -> dessine_kanji_general() ##
+        case 'O': ## Général d'or ## DONE ##
             dessine_kanji_or(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
             dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'A': ## Général d'argent ##
             dessine_kanji_or(img, ph1, chh, ph3, chb, c2, ep_l, ori, l_t)
             dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-        case _: ## Unmapped piece ##
+        case _: ## Unmapped piece ## TODO -> TO REMOVE ##
             char = koma[0].upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
             img.ecris(char, [ct[0], ct[1]+5], col.blue[::-1] if koma.isupper() else col.red[::-1], 3, 2, cv2.FONT_HERSHEY_SIMPLEX, l_t)
     if GUIDES: ### Guides ## TODO -> TO REMOVE ###
@@ -249,7 +252,7 @@ class Shogi:
         pkda = [pkda[0], pkda[1], pkda[3], pkda[2]]
         pkdb = [ coosCercle(save['ctkdb'], save['dist'], 90*i+45) for i in range(4) ] ## Points des bords du komadai B
         pkdb = [pkdb[0], pkdb[1], pkdb[3], pkdb[2]]
-    if True: ### Création de l'image
+    if True: ### Création de l'image ###
         img = image('Shogi', image.new_img(fond=col.bg)) ## Création de l'image
         img.rectangle([p1[0]-px, p1[1]-py], [p4[0]+px, p4[1]+py], fond, 0) ## Dessin du shogiban
         for y in range2(ya, yb+1, dy): img.ligne([xa, y], [xb, y], col.li, ep_li) ## Lignes horizontales
@@ -278,7 +281,8 @@ class Shogi:
             elif i == 8: s += f'{STY_BG.rs}\n {STY_BG(cl1, cl2, cl3)}`--------------------------------------------´' + STY_BG.rs
             else: s += f'{STY_BG.rs}\n {STY_BG(cl1, cl2, cl3)}|----+----+----X----+----+----X----+----+----|'
         return s
-    def __init__(self, tableau=defTab(), name:str='Shogi', j1:str='J1', j2:str='J2') -> None:
+    def __init__(self, tableau=defTab(), name:str='Shogi', j1:str='J1', j2:str='J2', fullscreen:bool=True) -> None:
+        self.fullscreen = fullscreen
         self.name = name
         self.last_move = None
         self.j1, self.j2 = j1, j2
@@ -312,10 +316,16 @@ class Shogi:
         
         return True
     def get_case(self, img):
+        img.montre(1, fullscreen=self.fullscreen)
+        cv2.setMouseCallback(self.name, mouse_get_case)
         while True:
-            match img.montre(1, fullscreen=True):
+            match img.montre(1, fullscreen=self.fullscreen):
                 case 27: raise EXIT
-            cv2.setMouseCallback(self.name, mouse_get_case)
+                case 32:
+                    img.ferme()
+                    self.fullscreen = not self.fullscreen
+                    img.montre(1, fullscreen=self.fullscreen)
+                    cv2.setMouseCallback(self.name, mouse_get_case)
             if mouse.click:
                 mouse.click = False
                 pt = mouse.pos
