@@ -25,7 +25,7 @@ def defTab() -> list:
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['P', 'P', 'P', 'P', 'P+', 'P', 'P', 'P', 'P'],
+        ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
         [' ', 'F', ' ', ' ', ' ', ' ', ' ', 'T', ' '],
         ['L', 'C', 'A', 'O', 'R', 'O', 'A', 'C', 'L']
     ]; return l
@@ -37,75 +37,8 @@ def shoginame(p) -> str:
     if not p in list(eq.keys())+[k.lower() for k in eq.keys()]: return '  '
     return eq[p.upper()]
 
-angles_koma = [81, 117, 85]
-angles_koma.append(360-90-angles_koma[0]-angles_koma[1])
-tailles_koma = {'R': [32, 28.7, 9.7], 'T': [31, 27.7, 9.3], 'O': [30, 26.7, 8.8],
-                'C': [29, 25.5, 8.3], 'L': [28, 23.5, 8.0], 'P': [27, 22.5, 7.75]}
-for s in 'JR FT AO'.split(): tailles_koma[s[0]]=tailles_koma[s[1]]
-for km in tailles_koma: tailles_koma[km] = [27.22222222222222*(v/10) for v in tailles_koma[km]]
-def dessine_kanji_or(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
-    ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
-    cg, cd = ct_sg(p1, p3), ct_sg(p2, p4)
-    a = 20
-    pcg = coosCercle(ch, dist(ch, p1), ori+180-a)
-    pcd = coosCercle(ch, dist(ch, p1), ori+a)
-    img.ligne(ch, pcg, c, ep, l_t)
-    img.ligne(ch, pcd, c, ep, l_t)
-    clh, clb = coosCercle(ch, tailles_koma['O'][1]/2/5, 90+ori), cb
-    ctl = ct_sg(clh, clb)
-    pts = [clh, ctl, clb]
-    dts = [dist(p1, ch)*i for i in [0.8, 0.7, 1]]
-    for i in range(3):
-        img.ligne(coosCercle(pts[i], dts[i], ori), coosCercle(pts[i], dts[i], ori+180), c, ep, l_t)
-    img.ligne(clh, clb, c, ep, l_t)
-    pt1 = coosCercle(pts[1], dts[1], ori)
-    pt2 = coosCercle(pts[1], dts[1], ori+180)
-    a, b = 5, 3
-    img.ligne(pt_sg(pt1, clb, a, b), pt_sg(pt1, clb, b, a), c, ep, l_t)
-    img.ligne(pt_sg(pt2, clb, a, b), pt_sg(pt2, clb, b, a), c, ep, l_t)
-    return img
-def dessine_kanji_charriot(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
-    ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
-    pts = []
-    for i, y in enumerate(float_range(p1[1], p3[1], 6)):
-        match i:
-            case b if b in [i for i in range(2, 5)]:
-                pt1, pt2 = [pt_sg(p1, ch, 5, 3)[0], y], [pt_sg(p2, ch, 5, 3)[0], y]
-                img.ligne(pt1, pt2, c, ep, l_t)
-                pts.append([pt1, pt2])
-            case a if a in [i for i in range(1, 6)]:
-                img.ligne([p1[0], y], [p2[0], y], c, ep, l_t)
-    img.ligne(pts[0][0], pts[-1][0], c, ep, l_t)
-    img.ligne(pts[0][1], pts[-1][1], c, ep, l_t)
-    img.ligne(ch, cb, c, ep, l_t)
-    return img
-def dessine_kanji_cheval(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
-    ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
-    cg, cd = ct_sg(p1, p3), ct_sg(p2, p4)
-    ct = ct_cr(p1, p2, p3, p4)
-    ptbd, pttbd = pt_sg(p4, pt_sg(cb, ct, 2), 2), pt_sg(p4, cd, 4.5)
-    ptcg, ptcd = pt_sg(cg, ct, 2), pt_sg(cd, ct, 2)
-    ptsh = [ptcg, pt_sg(ptcg, ptcd, 2), pt_sg(ptcd, ptcg, 2), ptcd]
-    ptsb = [p3, pt_sg(p3, ptbd, 2), pt_sg(ptbd, p3, 2), ptbd]
-    lines = [
-        [p2, p1], [p1, cg], [cg, cd], [cd, pttbd], [pttbd, ptbd], [ch, ct],
-        [pt_sg(p1, cg, 2), pt_sg(p2, cd, 2)], [pt_sg(cg, p1, 2), pt_sg(cd, p2, 2)],
-    ]
-    a, b = 5, 2
-    lines += [[pt_sg(ptsh[i], ptsb[i], a, b), pt_sg(ptsh[i], ptsb[i], b, a)] for i in range(4)]
-    for pa, pb in lines: img.ligne(pa, pb, c, ep, l_t)
-    return img
-def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
-    ch, cb, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p2, p4)
-    ct = ct_cr(p1, p2, p3, p4)
-    d = dist(p1, p2)/6; a, b = 5, 4
-    plgh, plgb = coosCercle(p1, d, ori), coosCercle(p3, d, ori)
-    plgch, plgcb = (pt_sg(plgh, plgb, [a,b][i], [b,a][i]) for i in range(2))
-    lines = [[plgh,plgb],[plgch,coosCercle(plgch,d*1.5,245+ori)],[plgch,coosCercle(plgcb,d,170+ori)],[p2,pt_sg(p1,pt_sg(ch,ct,2),2,3)]]
-    a, b = 4, 11
-    lines += [[pt_sg(p3, ct, a, b), pt_sg(p4, cd, a, b)], [pt_sg(cb, p4, a, b), pt_sg(ct, cd, a, b)]]
-    for pa, pb in lines: img.ligne(pa, pb, c, ep, l_t) ## Dessin des lignes ##
-    return image
+from koma import *
+from dessine_kanjis import *
 def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=1, l_t=2) -> image:
     if True: ## VARS ##
         ori = 0 if koma.isupper() else 180
@@ -201,6 +134,10 @@ def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.
             img.ellipse(pt_sg(cd, pt_sg(ct, cb, 2), 5, 3), (dist(cd, pb4)*0.5, dist(cd, cb)*0.7), c3, ep_l, l_t, 20, 230, 45+ori)
             img.ellipse(pt_sg(cg, pt_sg(ct, cb, 2), 5, 3), (dist(cd, pb4)*0.5, dist(cd, cb)*0.7), c3, ep_l, l_t, 125, 175, 135+ori)
         case 'L':
+            dessine_kanji_encens(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
+            dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+        case 'C':
+            dessine_kanji_cannellier(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
             dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'T':
             dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
@@ -310,19 +247,57 @@ class Shogi:
         img = image(self.name, img=copy.deepcopy(Shogi.img))
         for x in range(9):
             for y in range(9):
-                t = self.matrix[x, y]
+                t = self.matrix[y, x]
                 if t in ["", " ", ".", "·"]: continue
-                dessine_koma(img, self.plateau[x, y, 0], self.plateau[x, y, 1], t, col.blanc, col.black)
+                dessine_koma(img, self.plateau[y, x, 0], self.plateau[y, x, 1], t, col.blanc, col.black)
         return img
     def vide(self, x, y) -> bool:
-        return shoginame(self.matrix[x, y]) == '  '
+        return shoginame(self.matrix[y, x]) == '  '
+    def legal_gen_or(self, xo, yo, xa, ya) -> bool:
+        x, y = self.depl_piece(xo, yo, xa, ya)
+        if y==1 and abs(x)<=1: return True
+        elif y==-1 and x==0: return True
+        elif y==0 and abs(x)==1: return True
+        return False
+    def depl_piece(self, xo, yo, xa, ya):
+        if self.trait: return (xo-xa, yo-ya)
+        else: return (xa-xo, ya-yo)
+    def leg_roi(self, xo, yo, xa, ya):
+        return max([abs(i) for i in self.depl_piece(xo, yo, xa, ya)])==1
     def legal(self, xo, yo, xa, ya) -> bool: ## TODO ##
         if xo==xa and yo==ya: return False ## Suicide de pièce ##
-        print(self.matrix[xa, ya])
-        if not self.vide(xa, ya) and self.matrix[xa, ya][0].isupper() == self.trait: ## Autocapture ##
+        if not self.vide(xa, ya) and self.matrix[ya, xa][0].isupper() == self.trait: ## Autocapture ##
             return False
-        
-        return True
+        piece = self.matrix[yo, xo]
+        match piece.upper():
+            case 'R' | 'J': return self.leg_roi(xo, yo, xa, ya)
+            case Or if Or in ['O', 'A+', 'C+', 'L+', 'P+']: return self.legal_gen_or(xo, yo, xa, ya)
+            case 'A': x,y=self.depl_piece(xo,yo,xa,ya);return(y==1 and abs(x)<=1)or(y==-1 and abs(x)==1)
+            case 'C':
+                x, y = self.depl_piece(xo, yo, xa, ya)
+                if (y==2 and abs(x)==1): return True
+                else: return False
+            case 'P':
+                x, y = self.depl_piece(xo, yo, xa, ya)
+                if (y==1 and x==0): return True
+                else: return False
+            case 'L':
+                x, y = self.depl_piece(xo, yo, xa, ya)
+                if x==0:print(f'({xo}, {yo}) -> ({xa}, {ya})')
+                if x==0 and y>0:
+                    for y_ in range(y)[1::]:
+                        if not self.vide(xo, (yo-y_ if self.trait else yo+y_)):
+                            return False
+                    return True
+            case 'F' | 'F+': ## TODO : vérifier qu'il ne saute aucune pièce ##
+                if '+' in piece and self.leg_roi(xo, yo, xa, ya): return True
+                x, y = self.depl_piece(xo, yo, xa, ya)
+                return abs(x)==abs(y)
+            case 'T' | 'T+': ## TODO : vérifier qu'elle ne saute aucune pièce ##
+                if '+' in piece and self.leg_roi(xo, yo, xa, ya): return True
+                x, y = self.depl_piece(xo, yo, xa, ya)
+                return x==0 or y == 0
+        return False
     def get_case(self, img):
         img.montre(1, fullscreen=self.fullscreen)
         cv2.setMouseCallback(self.name, mouse_get_case)
@@ -338,25 +313,39 @@ class Shogi:
                 mouse.click = False
                 pt = mouse.pos
                 break
-        for x in range(len(self.plateau)):
-            for y in range(len(self.plateau[x])):
-                if clicked_in(pt, self.plateau[x, y]):
+        for y in range(len(self.plateau)):
+            for x in range(len(self.plateau[y])):
+                if clicked_in(pt, self.plateau[y, x]):
                     return [x, y]
         raise ValueError
     def move(self):
         img = self.image()
-        xo, yo = self.get_case(img)
-        if self.matrix[xo, yo] in ' ._·': return ## Bouge que des pièces
-        elif self.matrix[xo, yo][0].isupper() != self.trait: return ## Bouge que celui qui a le trait
-        img.rectangle(self.plateau[xo, yo, 0], self.plateau[xo, yo, 1], col.green, 3) ## Cadre de selection
-        xa, ya = self.get_case(img)
+        co = False
+        while not co:
+            xo, yo = self.get_case(img)
+            if self.matrix[yo, xo] in ' ._·': continue ## Bouge que des pièces
+            elif self.matrix[yo, xo][0].isupper() != self.trait: continue ## Bouge que celui qui a le trait
+            else: co = True
+        ca = False
+        while not ca:
+            s_img = image(nom=img.nom, img=copy.deepcopy(img.img))
+            s_img.rectangle(self.plateau[yo, xo, 0], self.plateau[yo, xo, 1], col.green, 3) ## Cadre de selection
+            for x in range(9):
+                for y in range(9):
+                    if self.legal(xo, yo, x, y):
+                        c = self.plateau[y, x]
+                        s_img.cercle(ct_sg(c[0], c[1]), 10, col.new('#800080', 'rgb'), 0, 2)
+            xa, ya = self.get_case(s_img)
+            if not self.vide(xa, ya):
+                if self.matrix[ya, xa].isupper() == self.trait:
+                    xo, yo = xa, ya; continue
+            ca = True
         if self.legal(xo, yo, xa, ya):
-            if self.matrix[xo, yo].lower() in "plcatf" and len(self.matrix[xo, yo]) == 1: ## Promotion ## TODO ##
-                if (self.trait and xa<3) or (not self.trait and xa>5):
-                    self.matrix[xo, yo] = f'{self.matrix[xo, yo]}+'
-                print(self.matrix)
-            self.matrix[xa, ya] = self.matrix[xo, yo]
-            self.matrix[xo, yo] = ' '
+            if self.matrix[yo, xo].lower() in "plcatf" and len(self.matrix[yo, xo]) == 1: ## Promotion ## TODO ##
+                if (self.trait and ya<3) or (not self.trait and ya>5):
+                    self.matrix[yo, xo] = f'{self.matrix[yo, xo]}+'
+            self.matrix[ya, xa] = self.matrix[yo, xo]
+            self.matrix[yo, xo] = ' '
             self.trait = not self.trait
         else: print('Illegal move')
     def jouable(self): return True ## TODO ##
