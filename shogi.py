@@ -25,7 +25,7 @@ def defTab() -> list:
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+        ['P', 'P', 'P', 'P', 'P+', 'P', 'P', 'P', 'P'],
         [' ', 'F', ' ', ' ', ' ', ' ', ' ', 'T', ' '],
         ['L', 'C', 'A', 'O', 'R', 'O', 'A', 'C', 'L']
     ]; return l
@@ -197,8 +197,9 @@ def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.
                 ptctb = ct_sg(ctb, cbb)
                 img.ligne(pt_sg(ptctb, pb3, a, b), pt_sg(ptctb, pb3, b, a), c2, ep_l, l_t)
                 img.ligne(pt_sg(ptctb, pb4, a, b), pt_sg(ptctb, pb4, b, a), c2, ep_l, l_t)
-        case 'P+': ## と ## TODO ##
-            img.ellipse(cd, (dist(cd, cb), dist(cd, pb4)), c2, ep_l, l_t, 45, 250, 45+ori)
+        case 'P+': ## と ## DONE ##
+            img.ellipse(pt_sg(cd, pt_sg(ct, cb, 2), 5, 3), (dist(cd, pb4)*0.5, dist(cd, cb)*0.7), c3, ep_l, l_t, 20, 230, 45+ori)
+            img.ellipse(pt_sg(cg, pt_sg(ct, cb, 2), 5, 3), (dist(cd, pb4)*0.5, dist(cd, cb)*0.7), c3, ep_l, l_t, 125, 175, 135+ori)
         case 'L':
             dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'T':
@@ -258,9 +259,10 @@ class Shogi:
         pkda = [pkda[0], pkda[1], pkda[3], pkda[2]]
         pkdb = [ coosCercle(save['ctkdb'], save['dist'], 90*i+45) for i in range(4) ] ## Points des bords du komadai B
         pkdb = [pkdb[0], pkdb[1], pkdb[3], pkdb[2]]
+    ex = 3
     if True: ### Création de l'image ###
         img = image('Shogi', image.new_img(fond=col.bg)) ## Création de l'image
-        img.rectangle([p1[0]-px, p1[1]-py], [p4[0]+px, p4[1]+py], fond, 0) ## Dessin du shogiban
+        img.rectangle([p1[0]-px*ex, p1[1]-py*ex], [p4[0]+px*ex, p4[1]+py*ex], fond, 0) ## Dessin du shogiban
         for y in range2(ya, yb+1, dy): img.ligne([xa, y], [xb, y], col.li, ep_li) ## Lignes horizontales
         for x in range2(xa, xb+1, dx): img.ligne([x, ya], [x, yb], col.li, ep_li) ## Lignes verticales
         for y in range2(ya+diff(ya, yb)/3, yb, diff(ya, yb)/3): ## Dessin des points d'aide du shogiban
