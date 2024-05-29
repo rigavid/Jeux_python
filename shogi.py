@@ -145,8 +145,13 @@ def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.
             dessine_kanji_or(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
             dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case 'A': ## Général d'argent ##
-            dessine_kanji_or(img, ph1, chh, ph3, chb, c2, ep_l, ori, l_t)
+            dessine_kanji_argent(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
             dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+        case 'A+': ## Général d'argent promu ##
+            dessine_kanji_argent(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+        case 'F+':
+            dessine_kanji_dragon(img, ph1, chh, ph3, chb, c2, ep_l, ori, l_t)
+            dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case _: ## Unmapped piece ## TODO -> TO REMOVE ##
             char = koma[0].upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
             img.ecris(char, [ct[0], ct[1]+5], col.blue[::-1] if koma.isupper() else col.red[::-1], 3, 2, cv2.FONT_HERSHEY_SIMPLEX, l_t)
@@ -164,11 +169,11 @@ class EXIT(Exception):
         return f'GAME EXIT'
 class mouse:
     click = False
-    pos = [0, 0]
+    pos = [-1, -1]
 def mouse_get_case(event, x, y, flags, params) -> None:
     if event==cv2.EVENT_LBUTTONDOWN:
+        mouse.click = True
         if clicked_in((x,y), [Shogi.p1, Shogi.p4]):
-            mouse.click = True
             mouse.pos = [x, y]
         
 save = {}
@@ -196,7 +201,7 @@ class Shogi:
         pkda = [pkda[0], pkda[1], pkda[3], pkda[2]]
         pkdb = [ coosCercle(save['ctkdb'], save['dist'], 90*i+45) for i in range(4) ] ## Points des bords du komadai B
         pkdb = [pkdb[0], pkdb[1], pkdb[3], pkdb[2]]
-    ex = 3
+        ex = 3
     if True: ### Création de l'image ###
         img = image('Shogi', image.new_img(fond=col.bg)) ## Création de l'image
         img.rectangle([p1[0]-px*ex, p1[1]-py*ex], [p4[0]+px*ex, p4[1]+py*ex], fond, 0) ## Dessin du shogiban
@@ -245,11 +250,14 @@ class Shogi:
         self.captures = [[], []]
     def image(self) -> image:
         img = image(self.name, img=copy.deepcopy(Shogi.img))
+        ep_l = 1; l_t = 2
         for x in range(9):
             for y in range(9):
                 t = self.matrix[y, x]
                 if t in ["", " ", ".", "·"]: continue
-                dessine_koma(img, self.plateau[y, x, 0], self.plateau[y, x, 1], t, col.blanc, col.black)
+                elif t.upper() in 'RJ':
+                    img.rectangle(self.plateau[y, x, 0]+self.ep_li, self.plateau[y, x, 1]-self.ep_li, col.red, 0, l_t)
+                dessine_koma(img, self.plateau[y, x, 0], self.plateau[y, x, 1], t, col.blanc, col.black, col.red, ep_l, l_t)
         return img
     def vide(self, x, y) -> bool:
         return shoginame(self.matrix[y, x]) == '  '
@@ -264,7 +272,8 @@ class Shogi:
         else: return (xa-xo, ya-yo)
     def leg_roi(self, xo, yo, xa, ya):
         return max([abs(i) for i in self.depl_piece(xo, yo, xa, ya)])==1
-    def legal(self, xo, yo, xa, ya) -> bool: ## TODO ##
+    def legal(self, xo, yo, xa, ya) -> bool:
+        return True
         if xo==xa and yo==ya: return False ## Suicide de pièce ##
         if not self.vide(xa, ya) and self.matrix[ya, xa][0].isupper() == self.trait: ## Autocapture ##
             return False
@@ -283,7 +292,6 @@ class Shogi:
                 else: return False
             case 'L':
                 x, y = self.depl_piece(xo, yo, xa, ya)
-                if x==0:print(f'({xo}, {yo}) -> ({xa}, {ya})')
                 if x==0 and y>0:
                     for y_ in range(y)[1::]:
                         if not self.vide(xo, (yo-y_ if self.trait else yo+y_)):
@@ -311,7 +319,9 @@ class Shogi:
                     cv2.setMouseCallback(self.name, mouse_get_case)
             if mouse.click:
                 mouse.click = False
+                if mouse.pos == [-1, -1]: return [-1, -1]
                 pt = mouse.pos
+                mouse.pos = [-1, -1]
                 break
         for y in range(len(self.plateau)):
             for x in range(len(self.plateau[y])):
@@ -323,6 +333,7 @@ class Shogi:
         co = False
         while not co:
             xo, yo = self.get_case(img)
+            if -1 in [xo, yo]: continue
             if self.matrix[yo, xo] in ' ._·': continue ## Bouge que des pièces
             elif self.matrix[yo, xo][0].isupper() != self.trait: continue ## Bouge que celui qui a le trait
             else: co = True
@@ -336,6 +347,7 @@ class Shogi:
                         c = self.plateau[y, x]
                         s_img.cercle(ct_sg(c[0], c[1]), 10, col.new('#800080', 'rgb'), 0, 2)
             xa, ya = self.get_case(s_img)
+            if -1 in [xa, ya]: return
             if not self.vide(xa, ya):
                 if self.matrix[ya, xa].isupper() == self.trait:
                     xo, yo = xa, ya; continue
@@ -358,5 +370,5 @@ class Shogi:
 
 
 if __name__ == '__main__' and True:
-    try: pt = Shogi(); pt.start()
+    try: pt = Shogi(); pt.start(True)
     except EXIT: print('GAME ENDED!'); raise SystemExit
