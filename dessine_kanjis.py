@@ -73,6 +73,11 @@ def dessine_kanji_or(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2)
     img.ligne(pt_sg(pt1, clb, a, b), pt_sg(pt1, clb, b, a), c, ep, l_t)
     img.ligne(pt_sg(pt2, clb, a, b), pt_sg(pt2, clb, b, a), c, ep, l_t)
     return img
+def dessine_kanji_argent(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+    dessine_kanji_or(img, p1, ct_sg(p1, p2), p3, ct_sg(p3, p4), c, ep, ori, l_t)
+    return img
+def dessine_kanji_dragon(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+    return img
 def dessine_kanji_charriot(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
     ch, cb = ct_sg(p1, p2), ct_sg(p3, p4)
     pts = []
