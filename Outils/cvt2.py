@@ -15,6 +15,8 @@ try: from calculs import *
 except: from Outils.calculs import *
 try: from _vars_ import *
 except: from Outils._vars_ import *
+def debug(*args, **kwargs) -> None:
+    return print(*args, **kwargs)
 def fusionImages(img, img_base, pos=[0, 0]):
     '''
     Prend:
