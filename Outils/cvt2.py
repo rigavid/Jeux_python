@@ -177,7 +177,7 @@ class image:
             x = round(xxx-tailles[0][0]/2)
             y = round(yyy+tailles[1]/2)
             yy = y + i*tailles[0][1]*2
-            cv2.putText(self.img, line, (x, yy), police, taille, couleur, epaisseur, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
+            cv2.putText(self.img, line, (x, yy), police, taille, couleur[::-1], epaisseur, [cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA][lineType%3])
         return None
 
 class layout:

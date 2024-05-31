@@ -106,14 +106,11 @@ def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.
                 ptcd = pt_sg(chd, cth, 5)
                 img.ligne(ptcg, pt_sg(ptcg, pthg, 5, 4), c2, ep_l, l_t)
                 img.ligne(pt_sg(cth, chh), pt_sg(ptcd, pthd), c2, ep_l, l_t)
-                img.ligne(chh, cth, c2, ep_l, l_t)
+                img.ligne(chh, pt_sg(cth, chb), c2, ep_l, l_t)
                 img.ligne(pt_sg(cth, ph3, 5, 2), pt_sg(ph3, cth, 5, 2), c2, ep_l, l_t)
-                plbdh, plbdb = pt_sg(ct_sg(cth, chd), ph4, 5, 2), pt_sg(pt_sg(ph4, chd, 3), ct_sg(cth, chd), 5)
+                plbdh, plbdb = pt_sg(ct_sg(cth, ct_sg(cth, chd)), ph4, 5, 2), pt_sg(pt_sg(ph4, chd, 3), ct_sg(cth, chd), 5)
                 img.ligne(plbdh, plbdb, c2, ep_l, l_t)
-                length = dist(ct_sg(phg, ph1), ct_sg(plbdh, plbdb))
-                a, b = 4, 1; c, d = 15, 3
-                pthc, pthb = pt_sg(cth, chd, c, d), pt_sg(chb, ph4, c, d)
-                img.ligne(pt_sg(pthc, pthb, a, b), pt_sg(pthb, pthc, a, b), c2, ep_l, l_t)
+                length = dist(ct_sg(phg, ph1), ct_sg(plbdh, plbdb))*0.9
                 img.ellipse(ph1, (length, length), c2, ep_l, anD=55, anF=75, ang=ori, lineType=l_t)
             if True: ## 兵 ## DONE ##
                 a, b = 5, 3
@@ -149,7 +146,7 @@ def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.
             dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
         case _: ## Unmapped piece ## TODO -> TO REMOVE ##
             char = koma[0].upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
-            img.ecris(char, [ct[0], ct[1]+5], col.blue[::-1] if koma.isupper() else col.red[::-1], 3, 2, cv2.FONT_HERSHEY_SIMPLEX, l_t)
+            img.ecris(char, [ct[0], ct[1]+5], col.blue if koma.isupper() else col.red, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, l_t)
     if GUIDES: ### Guides ## TODO -> TO REMOVE ###
         for p in [p1, p2, p3, p4, ct, ch, cb, cg, cd]:
             img.cercle(p, 3, col.red, 0)
@@ -193,9 +190,9 @@ class Shogi:
         save['ctkda'] = ctkda; save['ctkdb'] = ctkdb
         save['dist'] = racine_carree((conversion*(proportions_kd/2))**2*2)
         pkda = [ coosCercle(save['ctkda'], save['dist'], 90*i+45) for i in range(4) ] ## Points des bords du komadai A
-        pkda = [pkda[0], pkda[1], pkda[3], pkda[2]]
+        pkda = [pkda[2], pkda[3], pkda[1], pkda[0]]
         pkdb = [ coosCercle(save['ctkdb'], save['dist'], 90*i+45) for i in range(4) ] ## Points des bords du komadai B
-        pkdb = [pkdb[0], pkdb[1], pkdb[3], pkdb[2]]
+        pkdb = [pkdb[2], pkdb[3], pkdb[1], pkdb[0]]
     ex = 3
     if True: ### Création de l'image ###
         img = image('Shogi', image.new_img(fond=col.bg)) ## Création de l'image
@@ -243,13 +240,57 @@ class Shogi:
         self.trait = True
         self.matrix = np.array(tableau, dtype=object)
         self.captures = [[], []]
+        coef = 1
+        nx, ny = [2, 3, 2], 3
+        ## KOMADAI A ##
+        coos_kd_a = []
+        for i, y in enumerate(range(self.pkda[0][1], self.pkda[2][1], round(self.dy*coef))[:ny:]):
+            x_, y_ = (diff(self.pkda[0][0], self.pkda[1][0])-self.dx*coef*nx[i])/2, (diff(self.pkda[0][1], self.pkda[2][1])-self.dy*coef*ny)/2
+            for x in range(self.pkda[0][0], self.pkda[1][0], round(self.dx*coef))[:nx[i]:]:
+                coos_kd_a.append([[x+x_,y+y_], [x+x_+self.dx*coef,y+y_+self.dy*coef]])
+        ## KOMADAI B ##
+        coos_kd_b = []
+        for i, y in enumerate(range(self.pkdb[0][1], self.pkdb[2][1], round(self.dy*coef))[:ny:]):
+            x_, y_ = (diff(self.pkdb[0][0], self.pkdb[1][0])-self.dx*coef*nx[i])/2, (diff(self.pkda[0][1], self.pkda[2][1])-self.dy*coef*ny)/2
+            for x in range(self.pkdb[0][0], self.pkdb[1][0], round(self.dx*coef))[:nx[i]:]:
+                coos_kd_b.append([[x+x_,y+y_], [x+x_+self.dx*coef,y+y_+self.dy*coef]])
+        coos_komadai = [coos_kd_a, coos_kd_b]
+        self.coos_komadai = np.array(coos_komadai)
     def image(self) -> image:
+        c1, c2, c3 = col.blanc, col.black, col.red
+        ep_l, l_t = 2, 2
         img = image(self.name, img=copy.deepcopy(Shogi.img))
         for x in range(9):
             for y in range(9):
                 t = self.matrix[y, x]
                 if t in ["", " ", ".", "·"]: continue
-                dessine_koma(img, self.plateau[y, x, 0], self.plateau[y, x, 1], t, col.blanc, col.black)
+                dessine_koma(img, self.plateau[y, x, 0], self.plateau[y, x, 1], t, c1, c2, c3, ep_l, l_t)
+        ind = 0
+        print(self.coos_komadai[0])
+        print(len(self.coos_komadai[0]), len(self.coos_komadai[0, 0]))
+        for c in range(len(self.coos_komadai[0])):
+            p1, p2 = self.coos_komadai[0, c]
+            c = 'TFLPCAO'[ind]
+            n = ''.join(c.upper() for c in self.captures[0]).count(c)
+            if n > 0: dessine_koma(img, p1, p2, c, c1, c2, c3, ep_l, l_t)
+            if n > 1:
+                sz = 2; pt = pt_sg(p1, p2, 1, 5); ckd1, ckd2 = col.black, col.white
+                img.ecris(n, pt_sg(p1, p2, 1, 5), ckd1, ep_l*3, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
+                img.ecris(n, [pt[0]-2, pt[1]+1], ckd2, ep_l, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
+            ind += 1
+            if GUIDES: img.rectangle(p1, p2, col.green, 2)
+        ind = 0
+        for c in range(len(self.coos_komadai[1])):
+            p1, p2 = self.coos_komadai[1, c]
+            c = 'OACPLFT'[ind]
+            n = ''.join(c.upper() for c in self.captures[1]).count(c)
+            if n > 0: dessine_koma(img, p1, p2, c.lower(), c1, c2, c3, ep_l, l_t)
+            if n > 1:
+                sz = 2; pt = pt_sg(p1, p2, 1, 5); ckd1, ckd2 = col.black, col.white
+                img.ecris(n, pt_sg(p1, p2, 1, 5), ckd1, ep_l*3, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
+                img.ecris(n, [pt[0]-2, pt[1]+1], ckd2, ep_l, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
+            ind += 1
+            if GUIDES: img.rectangle(p1, p2, col.green, 2)
         return img
     def vide(self, x, y) -> bool:
         return shoginame(self.matrix[y, x]) == '  '
@@ -317,25 +358,33 @@ class Shogi:
             for x in range(len(self.plateau[y])):
                 if clicked_in(pt, self.plateau[y, x]):
                     return [x, y]
-        raise ValueError
+        kd = self.coos_komadai[0 if self.trait else 1]
+        x = -1
+        for y in range(len(kd)): ## TODO ## PROBLEMES ??? ##
+            if clicked_in(pt, kd[y]):
+                return [x, y]
+        return None
     def move(self):
         img = self.image()
         co = False
         while not co:
             xo, yo = self.get_case(img)
-            if self.matrix[yo, xo] in ' ._·': continue ## Bouge que des pièces
+            if xo==-1: pass ## From KOMADAI ##
+            elif self.matrix[yo, xo] in ' ._·': continue ## Bouge que des pièces
             elif self.matrix[yo, xo][0].isupper() != self.trait: continue ## Bouge que celui qui a le trait
             else: co = True
         ca = False
         while not ca:
             s_img = image(nom=img.nom, img=copy.deepcopy(img.img))
-            s_img.rectangle(self.plateau[yo, xo, 0], self.plateau[yo, xo, 1], col.green, 3) ## Cadre de selection
+            if xo>=0: s_img.rectangle(self.plateau[yo, xo, 0], self.plateau[yo, xo, 1], col.green, 3) ## Cadre de selection
+            else: s_img.rectangle(self.coos_komadai[0 if self.trait else 1, yo, 0], self.coos_komadai[0 if self.trait else 1, yo, 0], col.green, 3) ## Cadre de selection
             for x in range(9):
                 for y in range(9):
                     if self.legal(xo, yo, x, y):
                         c = self.plateau[y, x]
                         s_img.cercle(ct_sg(c[0], c[1]), 10, col.new('#800080', 'rgb'), 0, 2)
             xa, ya = self.get_case(s_img)
+            if xa<0 or ya<0: continue
             if not self.vide(xa, ya):
                 if self.matrix[ya, xa].isupper() == self.trait:
                     xo, yo = xa, ya; continue
@@ -344,6 +393,7 @@ class Shogi:
             if self.matrix[yo, xo].lower() in "plcatf" and len(self.matrix[yo, xo]) == 1: ## Promotion ## TODO ##
                 if (self.trait and ya<3) or (not self.trait and ya>5):
                     self.matrix[yo, xo] = f'{self.matrix[yo, xo]}+'
+            if not self.vide(xa, ya): self.captures[0 if self.trait else 1].append(self.matrix[ya, xa])
             self.matrix[ya, xa] = self.matrix[yo, xo]
             self.matrix[yo, xo] = ' '
             self.trait = not self.trait
