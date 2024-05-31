@@ -392,7 +392,7 @@ class Shogi:
                         c = self.plateau[y, x]
                         s_img.cercle(ct_sg(c[0], c[1]), 10, col.new('#800080', 'rgb'), 0, 2)
             xa, ya = self.get_case(s_img)
-            if xa<0 or ya<0: continue
+            if xa<0 or ya<0: return
             if not self.vide(xa, ya):
                 if self.matrix[ya, xa].isupper() == self.trait:
                     xo, yo = xa, ya; continue
