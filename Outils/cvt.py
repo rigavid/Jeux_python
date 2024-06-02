@@ -37,10 +37,8 @@ if oui: ## Tout ##
             x, y = p1[0] - p2[0], p1[1] - p2[1]
             p3 = (p1[0] - x, p1[1])
             p4 = (p1[0], p1[1] - y)
-            if a < b:
-                return(p3)
-            else:
-                return(p4)
+            if a < b: return(p3)
+            else: return(p4)
     if oui: ########################### Classes ###
         class save_pos:
             d = ''

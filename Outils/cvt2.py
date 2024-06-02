@@ -15,6 +15,8 @@ try: from calculs import *
 except: from Outils.calculs import *
 try: from _vars_ import *
 except: from Outils._vars_ import *
+try: os.environ["XDG_SESSION_TYPE"] = "xcb"
+except: pass
 def debug(*args, **kwargs) -> None:
     return print(*args, **kwargs)
 def fusionImages(img, img_base, pos=[0, 0]):

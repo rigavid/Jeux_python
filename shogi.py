@@ -6,25 +6,24 @@
 ## Dessin des noms japonais en mode graphique - EN COURS ##
 ## Légalité des mouvements des pièces  - EN COURS #########
 ## Parachutage des pièces  - EN COURS ##############
-## Promotion des pièces ################
-##########################
+########################################
 
 ### INFO-HERE ###
 ### https://gist.github.com/greduan/3763b7d9d5c1d6a4916f?permalink_comment_id=4292174#gistcomment-4292174
 ### https://fr.wikipedia.org/wiki/Sh%C5%8Dgi#Pi%C3%A8ces
 
-GUIDES = False ## TODO -> TO REMOVE ##
 if True: ## IMPORTS ##
     from Outils.cvt2 import *
     from sty import bg as STY_BG
 if True: ## FUNCTIONS & CONSTANTS ##
-    def defTab() -> list:
+    def defTab() -> list: ## TODO -> REPAIR ##
         l = [
             ['l', 'c', 'a', 'o', 'j', 'o', 'a', 'c', 'l'],
             [' ', 't', ' ', ' ', ' ', ' ', ' ', 'f', ' '],
             ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            #[' ', 'a+', 'l+', 'c+', '', 'C+', 'L+', 'A+', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
             ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
             [' ', 'F', ' ', ' ', ' ', ' ', ' ', 'T', ' '],
@@ -70,7 +69,7 @@ if True: ## FUNCTIONS & CONSTANTS ##
                     if breyk: break
                 pts = np.array([ch, phd, cbd, cbg, phg], np.int32)
             cv2.fillPoly(img.img, [pts], c1) ## Dessin pièce ##
-            cv2.polylines(img.img, [pts], True, c2, 2) ## Dessin bord de la pièce ##
+            cv2.polylines(img.img, [pts], True, c2, 2, lineType=cv2.LINE_AA) ## Dessin bord de la pièce ##
             if True: ## Coos du texte ##
                 a, b = 5, 1
                 dtp = tailles_koma[koma[0].upper()][1]/11
@@ -89,16 +88,9 @@ if True: ## FUNCTIONS & CONSTANTS ##
                 cbg, cbd = ct_sg(pb1, pb3), ct_sg(pb2, pb4)
         match koma.upper():
             case a if a in 'RJ': ## DONE ##
-                lines = [
-                    [pt_sg(ph1, chh, 7), pt_sg(ph2, chh, 7)],
-                    [pt_sg(chg, cth, 3), pt_sg(chd, cth, 3)],
-                    [chh, chb], [ph3, ph4]
-                ]
-                if koma.upper() == 'J':
-                    lines.append([pt_sg(cth, ph4, 5, 2), pt_sg(ph4, cth, 5, 4)])
-                for pa, pb in lines: img.ligne(pa, pb, c2, ep_l, l_t) ## Dessin des lignes ##
+                dessine_kanji_roi(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t, koma)
                 dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-            case 'P': ## 歩兵 ## DONE ##
+            case 'P': ## DONE ##
                 if True: ## 歩 ## DONE ##
                     img.ligne(chg, chd, c2, ep_l)
                     pthg = pt_sg(ph1, chh)
@@ -128,37 +120,39 @@ if True: ## FUNCTIONS & CONSTANTS ##
                     ptctb = ct_sg(ctb, cbb)
                     img.ligne(pt_sg(ptctb, pb3, a, b), pt_sg(ptctb, pb3, b, a), c2, ep_l, l_t)
                     img.ligne(pt_sg(ptctb, pb4, a, b), pt_sg(ptctb, pb4, b, a), c2, ep_l, l_t)
-            case 'P+': ## と ## DONE ##
+            case 'P+':## DONE ##
                 img.ellipse(pt_sg(cd, pt_sg(ct, cb, 2), 5, 3), (dist(cd, pb4)*0.5, dist(cd, cb)*0.7), c3, ep_l, l_t, 20, 230, 45+ori)
                 img.ellipse(pt_sg(cg, pt_sg(ct, cb, 2), 5, 3), (dist(cd, pb4)*0.5, dist(cd, cb)*0.7), c3, ep_l, l_t, 125, 175, 135+ori)
-            case 'L':
+            case 'L': ## DONE ##
                 dessine_kanji_encens(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-            case 'C':
+            case 'C': ## DONE ##
                 dessine_kanji_cannellier(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-            case 'T':
+            case 'T': ## DONE ##
+                dessine_kanji_volant(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-            case 'O': ## Général d'or ## DONE ##
+            case 'T+':## DONE ##
+                dessine_kanji_dragon(img, ph1, ph2, ph3, ph4, c3, ep_l, ori, l_t, 1)
+                dessine_kanji_roi(img, pb1, pb2, pb3, pb4, c3, ep_l, ori, l_t, 'R')
+            case 'O': ## DONE ##
                 dessine_kanji_or(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-            case 'A': ## Général d'argent ##
+            case 'A': ## DONE ##
                 dessine_kanji_argent(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_general(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-            case 'A+': ## Général d'argent promu ##
-                dessine_kanji_argent(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
-            case 'F+':
-                dessine_kanji_dragon(img, ph1, chh, ph3, chb, c2, ep_l, ori, l_t)
-                dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+            case 'A+':## DONE ##
+                dessine_kanji_promu(img, ph1, ph2, ph3, ph4, c3, ep_l, ori, l_t)
+                dessine_kanji_argent(img, pb1, pb2, pb3, pb4, c3, ep_l, ori, l_t)
+            case 'F': ## DONE ##
+                dessine_kanji_diagonale(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
+                dessine_kanji_marcheur(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+            case 'F+':## DONE ##
+                dessine_kanji_dragon(img, ph1, ph2, ph3, ph4, c3, ep_l, ori, l_t, 0)
+                dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c3, ep_l, ori, l_t)
             case _: ## Unmapped piece ## TODO -> TO REMOVE ##
                 char = koma[0].upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
                 img.ecris(char, [ct[0], ct[1]+5], col.blue if koma.isupper() else col.red, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, l_t)
-        if GUIDES: ### Guides ## TODO -> TO REMOVE ###
-            for p in [p1, p2, p3, p4, ct, ch, cb, cg, cd]:
-                img.cercle(p, 3, col.red, 0)
-            img.rectangle(p1, p4, col.green, 1)
-            img.rectangle(ph1, ph4, col.green, 1)
-            img.rectangle(pb1, pb4, col.green, 1)
         return img
     class EXIT(Exception):
         def __init__(self, *args):
@@ -181,6 +175,7 @@ if True: ## FUNCTIONS & CONSTANTS ##
 save = {}
 class Shogi:
     if True: ### CONSTANTES ###
+        l_t = 1
         col.bg=col.new('#1340ff', 'rgb')
         fond = col.new('#C89678', 'rgb'); col.li = col.new('#281711', 'rgb') ## Couleurs
         proportions_sb = (33, 36) ## Proportions des lignes du shogiban
@@ -206,33 +201,53 @@ class Shogi:
         ex = 3
     if True: ### Création de l'image ###
         img = image('Shogi', image.new_img(fond=col.bg)) ## Création de l'image
-        img.rectangle([p1[0]-px*ex, p1[1]-py*ex], [p4[0]+px*ex, p4[1]+py*ex], fond, 0) ## Dessin du shogiban
-        for y in range2(ya, yb+1, dy): img.ligne([xa, y], [xb, y], col.li, ep_li) ## Lignes horizontales
-        for x in range2(xa, xb+1, dx): img.ligne([x, ya], [x, yb], col.li, ep_li) ## Lignes verticales
+        img.rectangle([p1[0]-px*ex, p1[1]-py*ex], [p4[0]+px*ex, p4[1]+py*ex], fond, 0, l_t) ## Dessin du shogiban
+        for y in range2(ya, yb+1, dy): img.ligne([xa, y], [xb, y], col.li, ep_li, l_t) ## Lignes horizontales
+        for x in range2(xa, xb+1, dx): img.ligne([x, ya], [x, yb], col.li, ep_li, l_t) ## Lignes verticales
         for y in range2(ya+diff(ya, yb)/3, yb, diff(ya, yb)/3): ## Dessin des points d'aide du shogiban
-            for x in range2(xa+diff(xa, xb)/3, xb, diff(xa, xb)/3): img.cercle([x, y], ep_c, col.li, 0)
-        img.rectangle(pkda[0], pkda[3], fond, 0) ## Komadai A
-        img.rectangle(pkdb[0], pkdb[3], fond, 0) ## Komadai B
-    if GUIDES: ### Guides ## TODO -> TO REMOVE ###
-        img.ligne((screen[0]/2, 0), (screen[0]/2, screen[1]), col.red, 1)
-        img.ligne((0, screen[1]/2), (screen[0], screen[1]/2), col.red, 1)
-        img.ligne((0,0), screen, col.red, 1); img.ligne((screen[0],0), (0,screen[1]), col.red, 1)
-        img.ligne(pkda[0], pkda[3], col.green, 1);img.ligne(pkda[1], pkda[2], col.green, 1) ## Komadai A
-        img.ligne(pkdb[0], pkdb[3], col.green, 1);img.ligne(pkdb[1], pkdb[2], col.green, 1) ## Komadai B
+            for x in range2(xa+diff(xa, xb)/3, xb, diff(xa, xb)/3): img.cercle([x, y], ep_c, col.li, 0, l_t)
+        img.rectangle(pkda[0], pkda[3], fond, 0, l_t) ## Komadai A
+        img.rectangle(pkdb[0], pkdb[3], fond, 0, l_t) ## Komadai B
     def reset(self):
         return Shogi(name=self.name, j1=self.j1, j2=self.j2)
+    def get_pieces_ligne(self, y:int) -> list:
+        pcs = []; espaces = 4
+        for x in range(9):
+            n = shoginame(self.matrix[y, x]) if not self.vide(x, y) else ' '*espaces
+            if not n == ' '*espaces:
+                s = f' {fg.blue if self.matrix[y, x][0].isupper() else fg.red}{n}{fg.rs} '
+                pcs.append(s)
+            else: pcs.append(n)
+        return pcs
+    def get_pieces_capturees(self, c:int) -> list:
+        espaces = 5
+        s = self.str_p if c == 0 else self.str_p[::-1]
+        k = [i.upper() for i in (self.captures[0] if c == 0 else self.captures[1])]
+        pcs = []
+        for p in s:
+            if not p in k: pcs.append(' '*espaces); continue
+            else:
+                n = k.count(p)
+                pc = f'{fg.blue if c==0 else fg.red}{f"{shoginame(p)}{n if n>1 else ''}":^4}{fg.rs}'
+                pcs.append(pc)
+        return pcs
     def __str__(self) -> str:
         cl1, cl2, cl3 = 200, 150, 120
-        matrix = self.matrix; s = f' {STY_BG(cl1, cl2, cl3)},--------------------------------------------¬{STY_BG.rs}'
-        for i, l in enumerate(matrix):
-            s += f'{STY_BG.rs}\n {STY_BG(cl1, cl2, cl3)}|'
-            for c in l:
-                t = (fg.blue if c.isupper() else fg.red) + shoginame(c) + fg.rs 
-                s += f' {t} |'
-            if not i in [2, 5, 8]: s += f'{STY_BG.rs}\n {STY_BG(cl1, cl2, cl3)}|----+----+----+----+----+----+----+----+----|'
-            elif i == 8: s += f'{STY_BG.rs}\n {STY_BG(cl1, cl2, cl3)}`--------------------------------------------´' + STY_BG.rs
-            else: s += f'{STY_BG.rs}\n {STY_BG(cl1, cl2, cl3)}|----+----+----X----+----+----X----+----+----|'
-        return s
+        sy, ns = STY_BG(cl1, cl2, cl3), STY_BG.rs
+        a1, a2, a3, a4, a5, a6, a7, a8, a9 = self.get_pieces_ligne(0)
+        b1, b2, b3, b4, b5, b6, b7, b8, b9 = self.get_pieces_ligne(1)
+        c1, c2, c3, c4, c5, c6, c7, c8, c9 = self.get_pieces_ligne(2)
+        d1, d2, d3, d4, d5, d6, d7, d8, d9 = self.get_pieces_ligne(3)
+        e1, e2, e3, e4, e5, e6, e7, e8, e9 = self.get_pieces_ligne(4)
+        f1, f2, f3, f4, f5, f6, f7, f8, f9 = self.get_pieces_ligne(5)
+        g1, g2, g3, g4, g5, g6, g7, g8, g9 = self.get_pieces_ligne(6)
+        h1, h2, h3, h4, h5, h6, h7, h8, h9 = self.get_pieces_ligne(7)
+        i1, i2, i3, i4, i5, i6, i7, i8, i9 = self.get_pieces_ligne(8)
+        kdO, kdA, kdC, kdP, kdL, kdF, kdT = self.get_pieces_capturees(0)
+        kdo, kda, kdc, kdp, kdl, kdf, kdt = self.get_pieces_capturees(1)
+        if True: ## Plateau en str ##
+            o = f'''{' '*22}{sy},--------------------------------------------¬{ns}\n{' '*22}{sy}|{a1}|{a2}|{a3}|{a4}|{a5}|{a6}|{a7}|{a8}|{a9}|{ns}\n{' '*22}{sy}|----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sy}|{b1}|{b2}|{b3}|{b4}|{b5}|{b6}|{b7}|{b8}|{b9}|{ns}\n {sy},-----------------¬{ns}  {sy}|----+----+----+----+----+----+----+----+----|{ns}  {sy},-----------------¬{ns}\n {sy}|  {kdo} | {kda}  |{ns}  {sy}|{c1}|{c2}|{c3}|{c4}|{c5}|{c6}|{c7}|{c8}|{c9}|{ns}  {sy}|  {kdT} | {kdF}  |{ns}\n {sy}|-----+-----+-----|{ns}  {sy}|----+----+----X----+----+----X----+----+----|{ns}  {sy}|-----+-----+-----|{ns}\n {sy}|{kdc}|{kdp}|{kdl}|{ns}  {sy}|{d1}|{d2}|{d3}|{d4}|{d5}|{d6}|{d7}|{d8}|{d9}|{ns}  {sy}|{kdL}|{kdP}|{kdC}|{ns}\n {sy}|-----+-----+-----|{ns}  {sy}|----+----+----+----+----+----+----+----+----|{ns}  {sy}|-----+-----+-----|{ns}\n {sy}|  {kdf} | {kdt}  |{ns}  {sy}|{e1}|{e2}|{e3}|{e4}|{e5}|{e6}|{e7}|{e8}|{e9}|{ns}  {sy}|  {kdA} | {kdO}  |{ns}\n {sy}`-----------------´{ns}  {sy}|----+----+----+----+----+----+----+----+----|{ns}  {sy}`-----------------´{ns}\n{' '*22}{sy}|{f1}|{f2}|{f3}|{f4}|{f5}|{f6}|{f7}|{f8}|{f9}|{ns}\n{' '*22}{sy}|----+----+----X----+----+----X----+----+----|{ns}\n{' '*22}{sy}|{g1}|{g2}|{g3}|{g4}|{g5}|{g6}|{g7}|{g8}|{g9}|{ns}\n{' '*22}{sy}|----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sy}|{h1}|{h2}|{h3}|{h4}|{h5}|{h6}|{h7}|{h8}|{h9}|{ns}\n{' '*22}{sy}|----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sy}|{i1}|{i2}|{i3}|{i4}|{i5}|{i6}|{i7}|{i8}|{i9}|{ns}\n{' '*22}{sy}`--------------------------------------------´{ns}'''
+        return o
     def __init__(self, tableau=defTab(), name:str='Shogi', j1:str='J1', j2:str='J2', fullscreen:bool=True) -> None:
         self.str_p = 'TFLPCAO'
         self.fullscreen = fullscreen
@@ -269,12 +284,14 @@ class Shogi:
         self.coos_komadai = np.array(coos_komadai)
     def image(self) -> image:
         c1, c2, c3 = col.blanc, col.black, col.red
-        ep_l, l_t = 2, 2
+        ep_l, l_t = 1, 2
         img = image(self.name, img=copy.deepcopy(Shogi.img))
-        ep_l = 1; l_t = 2
         for x in range(9):
             for y in range(9):
                 t = self.matrix[y, x]
+                if self.last_move != None:
+                    if [x, y] in self.last_move:
+                        img.rectangle(self.plateau[y, x, 0], self.plateau[y, x, 1], col.cyan, Shogi.ep_li, l_t)
                 if t in ["", " ", ".", "·"]: continue
                 dessine_koma(img, self.plateau[y, x, 0], self.plateau[y, x, 1], t, c1, c2, c3, ep_l, l_t)
         ind = 0
@@ -288,7 +305,6 @@ class Shogi:
                 img.ecris(n, pt_sg(p1, p2, 1, 5), ckd1, ep_l*3, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
                 img.ecris(n, [pt[0]-2, pt[1]+1], ckd2, ep_l, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
             ind += 1
-            if GUIDES: img.rectangle(p1, p2, col.green, 2)
         ind = 0
         for c in range(len(self.coos_komadai[1])):
             p1, p2 = self.coos_komadai[1, c]
@@ -300,7 +316,6 @@ class Shogi:
                 img.ecris(n, pt_sg(p1, p2, 1, 5), ckd1, ep_l*3, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
                 img.ecris(n, [pt[0]-2, pt[1]+1], ckd2, ep_l, sz, cv2.FONT_HERSHEY_COMPLEX_SMALL, l_t)
             ind += 1
-            if GUIDES: img.rectangle(p1, p2, col.green, 2)
         return img
     def vide(self, x, y) -> bool:
         return shoginame(self.matrix[y, x]) == '  '
@@ -316,7 +331,10 @@ class Shogi:
     def leg_roi(self, xo, yo, xa, ya):
         return max([abs(i) for i in self.depl_piece(xo, yo, xa, ya)])==1
     def legal(self, xo, yo, xa, ya) -> bool:
-        if xo == -1: return True
+        if xo == -1:
+            if yo == 3:
+                if ('P' if self.trait else 'p') in [self.matrix[i, xa] for i in range(9)]: return False
+            return self.vide(xa, ya)
         if xo==xa and yo==ya: return False ## Suicide de pièce ##
         if not self.vide(xa, ya) and self.matrix[ya, xa][0].isupper() == self.trait: ## Autocapture ##
             return False
@@ -379,6 +397,8 @@ class Shogi:
     def move(self):
         img = self.image()
         co = False
+        col.violet = col.new("#800080", 'rgb')
+        l_t = 2
         while not co:
             xo, yo = self.get_case(img)
             if xo==-1:
@@ -390,15 +410,16 @@ class Shogi:
         ca = False
         while not ca:
             s_img = image(nom=img.nom, img=copy.deepcopy(img.img))
-            if xo>=0: s_img.rectangle(self.plateau[yo, xo, 0], self.plateau[yo, xo, 1], col.green, 3) ## Cadre de selection
-            else: s_img.rectangle(self.coos_komadai[0 if self.trait else 1, yo, 0], self.coos_komadai[0 if self.trait else 1, yo, 1], col.green, 3) ## Cadre de selection
+            if xo>=0: s_img.rectangle(self.plateau[yo, xo, 0], self.plateau[yo, xo, 1], col.green, Shogi.ep_li) ## Cadre de selection
+            else: s_img.rectangle(self.coos_komadai[0 if self.trait else 1, yo, 0], self.coos_komadai[0 if self.trait else 1, yo, 1], col.green, Shogi.ep_li, l_t) ## Cadre de selection
             for x in range(9):
                 for y in range(9):
                     if self.legal(xo, yo, x, y):
                         c = self.plateau[y, x]
-                        s_img.cercle(ct_sg(c[0], c[1]), 10, col.new('#800080', 'rgb'), 0, 2)
+                        s_img.cercle(ct_sg(c[0], c[1]), 10, col.violet, 0, l_t)
             xa, ya = self.get_case(s_img)
             if xa<0 or ya<0: return
+            if xa==xo and ya==yo: return
             if not self.vide(xa, ya):
                 if self.matrix[ya, xa].isupper() == self.trait:
                     xo, yo = xa, ya; continue
@@ -409,17 +430,18 @@ class Shogi:
                     self.matrix[yo, xo] = f'{self.matrix[yo, xo]}+'
             if not self.vide(xa, ya):
                 if self.trait:
-                    self.captures[0].append(self.matrix[ya, xa].upper())
+                    self.captures[0].append(self.matrix[ya, xa][0].upper())
                 else:
-                    self.captures[1].append(self.matrix[ya, xa].lower())
+                    self.captures[1].append(self.matrix[ya, xa][0].lower())
             if xo == -1:
                 if self.trait: piece = self.str_p[yo].upper()
-                else: piece = self.str_p[yo].lower()
+                else: piece = self.str_p[::-1][yo].lower()
                 self.matrix[ya, xa] = piece
                 self.captures[0 if self.trait else 1].pop(self.captures[0 if self.trait else 1].index(piece))
             else:
                 self.matrix[ya, xa] = self.matrix[yo, xo]
                 self.matrix[yo, xo] = ' '
+            self.last_move = [[xo, yo], [xa, ya]]
             self.trait = not self.trait
         else: print('Illegal move')
     def jouable(self): return True ## TODO ##
