@@ -2,28 +2,28 @@
 ## Author: T-Sana ###########
 ## 24/5/2024 -> **/**/202* ##
 #############################
-## TODO ###################################################
-## Dessin des noms japonais en mode graphique - EN COURS ##
-## Légalité des mouvements des pièces  - EN COURS #########
-## Parachutage des pièces  - EN COURS ##############
-########################################
+## TODO #######################################
+## Fin du jeu dès qu'un des rois est capturé ##
+## Parachutage de pion si sauf échec et mat ###
+## Roi en rouge lorsqu'il est en échec #######
+## Promotion des pièces #################
+##########################
 
 ### INFO-HERE ###
 ### https://gist.github.com/greduan/3763b7d9d5c1d6a4916f?permalink_comment_id=4292174#gistcomment-4292174
 ### https://fr.wikipedia.org/wiki/Sh%C5%8Dgi#Pi%C3%A8ces
 
 if True: ## IMPORTS ##
-    from Outils.cvt2 import *
     from sty import bg as STY_BG
+    from dessine_kanjis import *
 if True: ## FUNCTIONS & CONSTANTS ##
-    def defTab() -> list: ## TODO -> REPAIR ##
+    def defTab() -> list:
         l = [
             ['l', 'c', 'a', 'o', 'j', 'o', 'a', 'c', 'l'],
             [' ', 't', ' ', ' ', ' ', ' ', ' ', 'f', ' '],
             ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-            #[' ', 'a+', 'l+', 'c+', '', 'C+', 'L+', 'A+', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
             ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
             [' ', 'F', ' ', ' ', ' ', ' ', ' ', 'T', ' '],
@@ -36,9 +36,6 @@ if True: ## FUNCTIONS & CONSTANTS ##
     def shoginame(p) -> str:
         if not p in list(eq.keys())+[k.lower() for k in eq.keys()]: return '  '
         return eq[p.upper()]
-
-    from koma import *
-    from dessine_kanjis import *
     def dessine_koma(img:image, p1, p2, koma:str, c1=col.blanc, c2=col.bleu, c3=col.red, ep_l=1, l_t=2) -> image:
         if True: ## VARS ##
             ori = 0 if koma.isupper() else 180
@@ -68,6 +65,7 @@ if True: ## FUNCTIONS & CONSTANTS ##
                             break
                     if breyk: break
                 pts = np.array([ch, phd, cbd, cbg, phg], np.int32)
+            cv2.fillPoly(img.img, [pts+round(tailles_koma[koma.upper()][0]/27)], c2, lineType=cv2.LINE_AA) ## Dessin pièce ##
             cv2.fillPoly(img.img, [pts], c1) ## Dessin pièce ##
             cv2.polylines(img.img, [pts], True, c2, 2, lineType=cv2.LINE_AA) ## Dessin bord de la pièce ##
             if True: ## Coos du texte ##
@@ -126,9 +124,15 @@ if True: ## FUNCTIONS & CONSTANTS ##
             case 'L': ## DONE ##
                 dessine_kanji_encens(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+            case 'L+':## DONE ##
+                dessine_kanji_promu(img, ph1, ph2, ph3, ph4, c3, ep_l, ori, l_t)
+                dessine_kanji_encens(img, pb1, pb2, pb3, pb4, c3, ep_l, ori, l_t)
             case 'C': ## DONE ##
                 dessine_kanji_cannellier(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
+            case 'C+':## DONE ##
+                dessine_kanji_promu(img, ph1, ph2, ph3, ph4, c3, ep_l, ori, l_t)
+                dessine_kanji_cannellier(img, pb1, pb2, pb3, pb4, c3, ep_l, ori, l_t)
             case 'T': ## DONE ##
                 dessine_kanji_volant(img, ph1, ph2, ph3, ph4, c2, ep_l, ori, l_t)
                 dessine_kanji_charriot(img, pb1, pb2, pb3, pb4, c2, ep_l, ori, l_t)
@@ -150,9 +154,6 @@ if True: ## FUNCTIONS & CONSTANTS ##
             case 'F+':## DONE ##
                 dessine_kanji_dragon(img, ph1, ph2, ph3, ph4, c3, ep_l, ori, l_t, 0)
                 dessine_kanji_cheval(img, pb1, pb2, pb3, pb4, c3, ep_l, ori, l_t)
-            case _: ## Unmapped piece ## TODO -> TO REMOVE ##
-                char = koma[0].upper() if len(koma)>1 or koma in 'RJO' else koma[0].lower()
-                img.ecris(char, [ct[0], ct[1]+5], col.blue if koma.isupper() else col.red, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, l_t)
         return img
     class EXIT(Exception):
         def __init__(self, *args):
@@ -175,9 +176,7 @@ if True: ## FUNCTIONS & CONSTANTS ##
 save = {}
 class Shogi:
     if True: ### CONSTANTES ###
-        l_t = 1
-        col.bg=col.new('#1340ff', 'rgb')
-        fond = col.new('#C89678', 'rgb'); col.li = col.new('#281711', 'rgb') ## Couleurs
+        col.bg=col.new('#1340ff', 'rgb'); fond = col.new('#C89678', 'rgb'); col.li = col.new('#281711', 'rgb') ## Couleurs
         proportions_sb = (33, 36) ## Proportions des lignes du shogiban
         proportions_sb_ext = (33.33, 36.36) ## Proportions du shogiban (10x11 sun (mesure japonaise (~3.03cm)))
         proportions_kd = 12.12 ## Proportions des komadai (4x4 sun)
@@ -192,13 +191,10 @@ class Shogi:
         px, py = conversion*proportions_sb_ext[1]-height_sb, width_sb/proportions_sb[0]*proportions_sb_ext[0]-width_sb
         ctkda, ctkdb = (moyenne(xb+px, screen[0]), screen[1]/15*8), (moyenne(0, xa-px), screen[1]/15*7) ## Points du centre des komadai
         mgkd = 20 ## Émargements des komadai (en pixels)
-        save['ctkda'] = ctkda; save['ctkdb'] = ctkdb
-        save['dist'] = racine_carree((conversion*(proportions_kd/2))**2*2)
+        save['ctkda'] = ctkda; save['ctkdb'] = ctkdb; save['dist'] = racine_carree((conversion*(proportions_kd/2))**2*2)
         pkda = [ coosCercle(save['ctkda'], save['dist'], 90*i+45) for i in range(4) ] ## Points des bords du komadai A
-        pkda = [pkda[2], pkda[3], pkda[1], pkda[0]]
         pkdb = [ coosCercle(save['ctkdb'], save['dist'], 90*i+45) for i in range(4) ] ## Points des bords du komadai B
-        pkdb = [pkdb[2], pkdb[3], pkdb[1], pkdb[0]]
-        ex = 3
+        pkda = [pkda[2], pkda[3], pkda[1], pkda[0]]; pkdb = [pkdb[2], pkdb[3], pkdb[1], pkdb[0]]; ex = 3; l_t = 1
     if True: ### Création de l'image ###
         img = image('Shogi', image.new_img(fond=col.bg)) ## Création de l'image
         img.rectangle([p1[0]-px*ex, p1[1]-py*ex], [p4[0]+px*ex, p4[1]+py*ex], fond, 0, l_t) ## Dessin du shogiban
@@ -390,10 +386,10 @@ class Shogi:
                     return [x, y]
         kd = self.coos_komadai[0 if self.trait else 1]
         x = -1
-        for y in range(len(kd)): ## TODO ## PROBLEMES ??? ##
+        for y in range(len(kd)):
             if clicked_in(pt, kd[y]):
                 return [x, y]
-        return None
+        return -1, -1
     def move(self):
         img = self.image()
         co = False
@@ -444,7 +440,8 @@ class Shogi:
             self.last_move = [[xo, yo], [xa, ya]]
             self.trait = not self.trait
         else: print('Illegal move')
-    def jouable(self): return True ## TODO ##
+    def jouable(self):
+        return [self.matrix[y, x].upper() in 'RJ' for x in range(9) for y in range(9)].count(True) == 2
     def start(self, out=False):
         while self.jouable():
             if out: print(self)

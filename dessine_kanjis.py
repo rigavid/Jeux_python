@@ -94,7 +94,7 @@ def dessine_kanji_argent(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_
         [pt_sg(pt1, pt2), pt_sg(pt_sg(cd, ct, 2), p4, 2)], [p3, pt_sg(cb, ct, 3)]]
     for a, b in LINES: img.ligne(a, b, c, ep, l_t)
     return img
-def dessine_kanji_promu(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+def dessine_kanji_promu(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
     ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4); ct = ct_cr(p1, p2, p3, p4)
     a, b = 3, 2; pt = pt_sg(p1, p3, a, b); ctg, ctd = pt_sg(pt, pt_sg(ch, cb, a, b)), pt_sg(p2, p4, a, b)
     ptt = pt_sg(ctd, ctg, 4); d = dist(p1, p2)/4
@@ -104,11 +104,11 @@ def dessine_kanji_promu(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t
     img.ellipse(peg, (dist(peg, pfeg), dist(peg, p3)*0.85), c, ep, l_t, 0, 100, ori)
     img.ellipse(ct, (dist(ct, cd)*0.7, dist(ct, cb)), c, ep, l_t, 30, 110, -20+ori)
     ctb = ct_sg(ct, cb)
-    img.ellipse(ctb, (dist(ctb, cd)*0.8, dist(ctb, ch)), c, ep, l_t, 0, 360, -20+ori)
+    img.ellipse(ctb, (dist(ctb, cd), dist(ctb, ch)*0.9), c, ep, l_t, 315, 335, -20+ori)
     LINES = [[ctg, ctd], [peg, pfeg]]
     for a, b in LINES: img.ligne(a, b, c, ep, l_t)
     return img
-def dessine_kanji_diagonale(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
+def dessine_kanji_diagonale(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## DONE ##
     ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4); ct = ct_cr(p1, p2, p3, p4)
     img.ellipse(p1, (dist(p1, ch)*0.8, dist(p1, ct_sg(ct_sg(p1, ch), cg))/2), c, ep, l_t, 0, 110, ori-20)
     img.ellipse(ct_sg(p1, cg), (dist(p1, ch)/4, dist(ct_sg(p1, cg), p3)), c, ep, l_t, 0, 90, ori)
