@@ -4,9 +4,9 @@
 #############################
 ## TODO ##########################################
 ## Inerdire parachutage de pion si échec et mat ##
-## Roi en rouge lorsqu'il est en échec ###########
-## Promotion des pièces #################
-## Écran de fin de partie ##
+## Légalité du fou et de la tour #################
+## Écran de fin de partie #########
+## Promotion des pièces ####
 ############################
 
 ### INFO-HERE ###
@@ -17,6 +17,8 @@ if True: ## IMPORTS ##
     from sty import bg as STY_BG
     from dessine_kanjis import *
 if True: ## FUNCTIONS & CONSTANTS ##
+    def jap(n:int):
+        return '〇一二三四五六七八九'[n%10]
     def defTab() -> list:
         l = [
             ['l', 'c', 'a', 'o', 'j', 'o', 'a', 'c', 'l'],
@@ -228,22 +230,21 @@ class Shogi:
                 pcs.append(pc)
         return pcs
     def __str__(self) -> str:
-        cl1, cl2, cl3 = 200, 150, 120
-        sy, ns = STY_BG(cl1, cl2, cl3), STY_BG.rs
-        a1, a2, a3, a4, a5, a6, a7, a8, a9 = self.get_pieces_ligne(0)
-        b1, b2, b3, b4, b5, b6, b7, b8, b9 = self.get_pieces_ligne(1)
-        c1, c2, c3, c4, c5, c6, c7, c8, c9 = self.get_pieces_ligne(2)
-        d1, d2, d3, d4, d5, d6, d7, d8, d9 = self.get_pieces_ligne(3)
-        e1, e2, e3, e4, e5, e6, e7, e8, e9 = self.get_pieces_ligne(4)
-        f1, f2, f3, f4, f5, f6, f7, f8, f9 = self.get_pieces_ligne(5)
-        g1, g2, g3, g4, g5, g6, g7, g8, g9 = self.get_pieces_ligne(6)
-        h1, h2, h3, h4, h5, h6, h7, h8, h9 = self.get_pieces_ligne(7)
-        i1, i2, i3, i4, i5, i6, i7, i8, i9 = self.get_pieces_ligne(8)
-        kdO, kdA, kdC, kdP, kdL, kdF, kdT = self.get_pieces_capturees(0)
-        kdo, kda, kdc, kdp, kdl, kdf, kdt = self.get_pieces_capturees(1)
-        if True: ## Plateau en str ##
-            o = f'''{' '*22}{sy},--------------------------------------------¬{ns}\n{' '*22}{sy}|{a1}|{a2}|{a3}|{a4}|{a5}|{a6}|{a7}|{a8}|{a9}|{ns}\n{' '*22}{sy}|----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sy}|{b1}|{b2}|{b3}|{b4}|{b5}|{b6}|{b7}|{b8}|{b9}|{ns}\n {sy},-----------------¬{ns}  {sy}|----+----+----+----+----+----+----+----+----|{ns}  {sy},-----------------¬{ns}\n {sy}|  {kdo} | {kda}  |{ns}  {sy}|{c1}|{c2}|{c3}|{c4}|{c5}|{c6}|{c7}|{c8}|{c9}|{ns}  {sy}|  {kdT} | {kdF}  |{ns}\n {sy}|-----+-----+-----|{ns}  {sy}|----+----+----X----+----+----X----+----+----|{ns}  {sy}|-----+-----+-----|{ns}\n {sy}|{kdc}|{kdp}|{kdl}|{ns}  {sy}|{d1}|{d2}|{d3}|{d4}|{d5}|{d6}|{d7}|{d8}|{d9}|{ns}  {sy}|{kdL}|{kdP}|{kdC}|{ns}\n {sy}|-----+-----+-----|{ns}  {sy}|----+----+----+----+----+----+----+----+----|{ns}  {sy}|-----+-----+-----|{ns}\n {sy}|  {kdf} | {kdt}  |{ns}  {sy}|{e1}|{e2}|{e3}|{e4}|{e5}|{e6}|{e7}|{e8}|{e9}|{ns}  {sy}|  {kdA} | {kdO}  |{ns}\n {sy}`-----------------´{ns}  {sy}|----+----+----+----+----+----+----+----+----|{ns}  {sy}`-----------------´{ns}\n{' '*22}{sy}|{f1}|{f2}|{f3}|{f4}|{f5}|{f6}|{f7}|{f8}|{f9}|{ns}\n{' '*22}{sy}|----+----+----X----+----+----X----+----+----|{ns}\n{' '*22}{sy}|{g1}|{g2}|{g3}|{g4}|{g5}|{g6}|{g7}|{g8}|{g9}|{ns}\n{' '*22}{sy}|----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sy}|{h1}|{h2}|{h3}|{h4}|{h5}|{h6}|{h7}|{h8}|{h9}|{ns}\n{' '*22}{sy}|----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sy}|{i1}|{i2}|{i3}|{i4}|{i5}|{i6}|{i7}|{i8}|{i9}|{ns}\n{' '*22}{sy}`--------------------------------------------´{ns}'''
-        return o
+        if True: ## VARS ##
+            cl1, cl2, cl3 = 200, 150, 120
+            sb, ns = STY_BG(cl1, cl2, cl3), STY_BG.rs
+            a1, a2, a3, a4, a5, a6, a7, a8, a9 = self.get_pieces_ligne(0)
+            b1, b2, b3, b4, b5, b6, b7, b8, b9 = self.get_pieces_ligne(1)
+            c1, c2, c3, c4, c5, c6, c7, c8, c9 = self.get_pieces_ligne(2)
+            d1, d2, d3, d4, d5, d6, d7, d8, d9 = self.get_pieces_ligne(3)
+            e1, e2, e3, e4, e5, e6, e7, e8, e9 = self.get_pieces_ligne(4)
+            f1, f2, f3, f4, f5, f6, f7, f8, f9 = self.get_pieces_ligne(5)
+            g1, g2, g3, g4, g5, g6, g7, g8, g9 = self.get_pieces_ligne(6)
+            h1, h2, h3, h4, h5, h6, h7, h8, h9 = self.get_pieces_ligne(7)
+            i1, i2, i3, i4, i5, i6, i7, i8, i9 = self.get_pieces_ligne(8)
+            kdO, kdA, kdC, kdP, kdL, kdF, kdT = self.get_pieces_capturees(0)
+            kdo, kda, kdc, kdp, kdl, kdf, kdt = self.get_pieces_capturees(1)
+        return f'''{' '*22}{sb}.--------------------------------------------.{ns}{' '*22}{sb}|  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----.{ns}{' '*22}{sb}|{a1}|{a2}|{a3}|{a4}|{a5}|{a6}|{a7}|{a8}|{a9}| {jap(1)} |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}{' '*22}{sb}|{b1}|{b2}|{b3}|{b4}|{b5}|{b6}|{b7}|{b8}|{b9}| {jap(2)} |{ns} {sb}.-----------------.{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}.-----------------.{ns} {sb}|  {kdo} | {kda}  |{ns}  {sb}|{c1}|{c2}|{c3}|{c4}|{c5}|{c6}|{c7}|{c8}|{c9}| {jap(3)} |{ns}  {sb}|  {kdT} | {kdF}  |{ns} {sb}|-----+-----+-----|{ns}  {sb}|----+----+----X----+----+----X----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns} {sb}|{kdc}|{kdp}|{kdl}|{ns}  {sb}|{d1}|{d2}|{d3}|{d4}|{d5}|{d6}|{d7}|{d8}|{d9}| {jap(4)} |{ns}  {sb}|{kdL}|{kdP}|{kdC}|{ns} {sb}|-----+-----+-----|{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns} {sb}|  {kdf} | {kdt}  |{ns}  {sb}|{e1}|{e2}|{e3}|{e4}|{e5}|{e6}|{e7}|{e8}|{e9}| {jap(5)} |{ns}  {sb}|  {kdA} | {kdO}  |{ns} {sb}`-----------------´{ns}  {sb}|----+----+----+----+----+----+----+----+----|----|{ns}  {sb}`-----------------´{ns}{' '*22}{sb}|{f1}|{f2}|{f3}|{f4}|{f5}|{f6}|{f7}|{f8}|{f9}| {jap(6)} |{ns}{' '*22}{sb}|----+----+----X----+----+----X----+----+----+----|{ns}{' '*22}{sb}|{g1}|{g2}|{g3}|{g4}|{g5}|{g6}|{g7}|{g8}|{g9}| {jap(7)} |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}{' '*22}{sb}|{h1}|{h2}|{h3}|{h4}|{h5}|{h6}|{h7}|{h8}|{h9}| {jap(8)} |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}{' '*22}{sb}|{i1}|{i2}|{i3}|{i4}|{i5}|{i6}|{i7}|{i8}|{i9}| {jap(9)} |{ns}{' '*22}{sb}`-------------------------------------------------´{ns}'''
     def __init__(self, tableau=defTab(), name:str='Shogi', j1:str='J1', j2:str='J2', fullscreen:bool=True) -> None:
         self.str_p = 'TFLPCAO'
         self.fullscreen = fullscreen
@@ -281,26 +282,37 @@ class Shogi:
     def gdye(self, p='R') -> list:
         for y in range(9):
             for x in range(9):
-                if self.matrix[y, x] == p:
+                if self.matrix[y, x].upper() == p.upper():
                     return [x, y]
         return [-1, -1]
     def echec(self, c='R') -> bool: ### TODO ### TODO ###
         xa, ya = self.gdye('R' if c == 'R' else 'J')
-        change = (c == 'R') != self.trait
-        if change: self.trait = not self.trait
+        save['trait'] = self.trait
+        i = 0
         for yo in range(9):
             for xo in range(9):
-                if self.legal(yo, xo, xa, ya):
-                    if change: self.trait = not self.trait
-                    return True
-        if change: self.trait = not self.trait
+                if not self.vide(xo, yo):
+                    p = self.matrix[yo, xo]
+                    if p[0].isupper() == (c=='R'): continue
+                    if p[0].isupper() != self.trait: self.trait = not self.trait
+                    if self.legal(xo, yo, xa, ya):
+                        self.trait = save['trait']
+                        return True
+        self.trait = save['trait']
         return False
     def image(self) -> image:
         c1, c2, c3 = col.blanc, col.black, col.red
         ep_l, l_t = 1, 2
         img = image(self.name, img=copy.deepcopy(Shogi.img))
-        for x in range(9):
-            for y in range(9):
+        roi, jade = self.gdye('R'), self.gdye('J')
+        if self.echec('J'):
+            img.rectangle(self.plateau[jade[1], jade[0], 0], self.plateau[jade[1], jade[0], 1], col.red, 0)
+            img.rectangle(self.plateau[jade[1], jade[0], 0], self.plateau[jade[1], jade[0], 1], col.li, Shogi.ep_li)
+        if self.echec('R'):
+            img.rectangle(self.plateau[roi[1], roi[0], 0], self.plateau[roi[1], roi[0], 1], col.red, 0)
+            img.rectangle(self.plateau[roi[1], roi[0], 0], self.plateau[roi[1], roi[0], 1], col.li, Shogi.ep_li)
+        for y in range(9):
+            for x in range(9):
                 t = self.matrix[y, x]
                 if self.last_move != None:
                     if [x, y] in self.last_move:
@@ -344,9 +356,12 @@ class Shogi:
     def leg_roi(self, xo, yo, xa, ya):
         return max([abs(i) for i in self.depl_piece(xo, yo, xa, ya)])==1
     def legal(self, xo, yo, xa, ya) -> bool:
-        if xo == -1:
-            if yo == 3:
+        if xo == -1: ## Cas de parachutage ##
+            if yo == 3: ## Si c'est un pion
                 if ('P' if self.trait else 'p') in [self.matrix[i, xa] for i in range(9)]: return False
+                if (0 if self.trait else 8) == ya: return False
+            elif (self.trait and yo == 4) or (not self.trait and yo == 2):
+                if ya in ([0,1] if self.trait else [8,7]): return False
             return self.vide(xa, ya)
         if xo==xa and yo==ya: return False ## Suicide de pièce ##
         if not self.vide(xa, ya) and self.matrix[ya, xa][0].isupper() == self.trait: ## Autocapture ##
@@ -423,9 +438,6 @@ class Shogi:
         ca = False
         while not ca:
             s_img = image(nom=img.nom, img=copy.deepcopy(img.img))
-            if self.echec('R'):
-                x, y = self.gdye('R')
-                s_img.rectangle(self.plateau[y, x, 0], self.plateau[y, x, 1], col.red, 0)
             if xo>=0: s_img.rectangle(self.plateau[yo, xo, 0], self.plateau[yo, xo, 1], col.green, Shogi.ep_li) ## Cadre de selection
             else: s_img.rectangle(self.coos_komadai[0 if self.trait else 1, yo, 0], self.coos_komadai[0 if self.trait else 1, yo, 1], col.green, Shogi.ep_li, l_t) ## Cadre de selection
             for x in range(9):
@@ -441,33 +453,45 @@ class Shogi:
                     xo, yo = xa, ya; continue
             ca = True
         if self.legal(xo, yo, xa, ya):
-            if self.matrix[yo, xo].lower() in "plcatf" and len(self.matrix[yo, xo]) == 1: ## Promotion ## TODO ##
+            p = self.matrix[yo, xo]
+            if p.lower() in "plcatf" and len(self.matrix[yo, xo]) == 1: ## Promotion ## TODO ##
                 if (self.trait and ya<3) or (not self.trait and ya>5):
-                    self.matrix[yo, xo] = f'{self.matrix[yo, xo]}+'
-            if not self.vide(xa, ya):
-                if self.trait:
-                    self.captures[0].append(self.matrix[ya, xa][0].upper())
-                else:
-                    self.captures[1].append(self.matrix[ya, xa][0].lower())
-            if xo == -1:
+                    self.matrix[yo, xo] = f'{p}+'
+            if xo == -1: ## Si parachutage ##
                 if self.trait: piece = self.str_p[yo].upper()
                 else: piece = self.str_p[::-1][yo].lower()
                 self.matrix[ya, xa] = piece
                 self.captures[0 if self.trait else 1].pop(self.captures[0 if self.trait else 1].index(piece))
-            else:
+                notation = ''
+            else: ## Si déplacement ##
+                if not self.vide(xa, ya): ## Si capture de pièces ##
+                    if self.trait: self.captures[0].append(self.matrix[ya, xa][0].upper())
+                    else: self.captures[1].append(self.matrix[ya, xa][0].lower())
+                    capture = True
+                else: capture = False
+                notation = f'{'☗' if self.trait else '☖'} {shoginame(p)}{9-(xo+1)}{jap(yo+1)}{f'x{shoginame(self.matrix[ya, xa])}'if capture else'-'}{9-(xa+1)}{jap(ya+1)}'
                 self.matrix[ya, xa] = self.matrix[yo, xo]
                 self.matrix[yo, xo] = ' '
             self.last_move = [[xo, yo], [xa, ya]]
             self.trait = not self.trait
+            return notation
         else: print('Illegal move')
     def jouable(self):
         return [self.matrix[y, x].upper() in 'RJ' for x in range(9) for y in range(9)].count(True) == 2
     def start(self, out=False):
-        while self.jouable():
-            if out: print(self)
-            self.move()
         if out: print(self)
+        moves = []
+        while self.jouable():
+            n = self.move()
+            moves.append(n)
+            if out: print(self); print(n)
+        if out:
+            print(self)
+            for move in moves:
+                print(move)
 
-if __name__ == '__main__' and True:
+if __name__ == '__main__' and False:
     try: pt = Shogi(); pt.start(True)
     except EXIT: print('GAME ENDED!'); raise SystemExit
+else:
+    print(Shogi())
