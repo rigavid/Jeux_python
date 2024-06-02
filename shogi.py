@@ -2,12 +2,12 @@
 ## Author: T-Sana ###########
 ## 24/5/2024 -> **/**/202* ##
 #############################
-## TODO #######################################
-## Fin du jeu dès qu'un des rois est capturé ##
-## Parachutage de pion si sauf échec et mat ###
-## Roi en rouge lorsqu'il est en échec #######
+## TODO ##########################################
+## Inerdire parachutage de pion si échec et mat ##
+## Roi en rouge lorsqu'il est en échec ###########
 ## Promotion des pièces #################
-##########################
+## Écran de fin de partie ##
+############################
 
 ### INFO-HERE ###
 ### https://gist.github.com/greduan/3763b7d9d5c1d6a4916f?permalink_comment_id=4292174#gistcomment-4292174
@@ -65,7 +65,7 @@ if True: ## FUNCTIONS & CONSTANTS ##
                             break
                     if breyk: break
                 pts = np.array([ch, phd, cbd, cbg, phg], np.int32)
-            cv2.fillPoly(img.img, [pts+round(tailles_koma[koma.upper()][0]/27)], c2, lineType=cv2.LINE_AA) ## Dessin pièce ##
+            cv2.fillPoly(img.img, [pts+round(tailles_koma[koma.upper()[0]][0]/27)], c2, lineType=cv2.LINE_AA) ## Dessin pièce ##
             cv2.fillPoly(img.img, [pts], c1) ## Dessin pièce ##
             cv2.polylines(img.img, [pts], True, c2, 2, lineType=cv2.LINE_AA) ## Dessin bord de la pièce ##
             if True: ## Coos du texte ##
@@ -278,6 +278,23 @@ class Shogi:
                 coos_kd_b.append([[x+x_,y+y_], [x+x_+self.dx*coef,y+y_+self.dy*coef]])
         coos_komadai = [coos_kd_a, coos_kd_b]
         self.coos_komadai = np.array(coos_komadai)
+    def gdye(self, p='R') -> list:
+        for y in range(9):
+            for x in range(9):
+                if self.matrix[y, x] == p:
+                    return [x, y]
+        return [-1, -1]
+    def echec(self, c='R') -> bool: ### TODO ### TODO ###
+        xa, ya = self.gdye('R' if c == 'R' else 'J')
+        change = (c == 'R') != self.trait
+        if change: self.trait = not self.trait
+        for yo in range(9):
+            for xo in range(9):
+                if self.legal(yo, xo, xa, ya):
+                    if change: self.trait = not self.trait
+                    return True
+        if change: self.trait = not self.trait
+        return False
     def image(self) -> image:
         c1, c2, c3 = col.blanc, col.black, col.red
         ep_l, l_t = 1, 2
@@ -406,6 +423,9 @@ class Shogi:
         ca = False
         while not ca:
             s_img = image(nom=img.nom, img=copy.deepcopy(img.img))
+            if self.echec('R'):
+                x, y = self.gdye('R')
+                s_img.rectangle(self.plateau[y, x, 0], self.plateau[y, x, 1], col.red, 0)
             if xo>=0: s_img.rectangle(self.plateau[yo, xo, 0], self.plateau[yo, xo, 1], col.green, Shogi.ep_li) ## Cadre de selection
             else: s_img.rectangle(self.coos_komadai[0 if self.trait else 1, yo, 0], self.coos_komadai[0 if self.trait else 1, yo, 1], col.green, Shogi.ep_li, l_t) ## Cadre de selection
             for x in range(9):
