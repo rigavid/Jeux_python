@@ -1,7 +1,7 @@
 from koma import *
 from Outils.cvt2 import *
 
-def dessine_kanji_roi(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2, koma='R') -> image:
+def dessine_kanji_roi(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2, koma='R') -> image: ## DONE ##
     ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4); ct = ct_cr(p1, p2, p3, p4)
     lines = [
         [pt_sg(p1, ch, 7), pt_sg(p2, ch, 7)],
@@ -249,14 +249,11 @@ def dessine_kanji_cheval(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_
     for pa, pb in lines: img.ligne(pa, pb, c, ep, l_t)
     return img
 def dessine_kanji_general(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2) -> image: ## TODO ##
-    ch, cb, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p2, p4)
-    ct = ct_cr(p1, p2, p3, p4)
-    d = dist(p1, p2)/6; a, b = 5, 4
-    plgh, plgb = coosCercle(p1, d, ori), coosCercle(p3, d, ori)
-    plgch, plgcb = (pt_sg(plgh, plgb, [a,b][i], [b,a][i]) for i in range(2))
-    plhdg = pt_sg(p1,pt_sg(ch,ct,2),2,3)
-    lines = [[plgh,plgb],[plgch,coosCercle(plgch,d*1.5,245+ori)],[plgch,coosCercle(plgcb,d,170+ori)],[p2,plhdg]]
-    a, b = 4, 11
-    lines += [[pt_sg(p3, ct, a, b), pt_sg(p4, cd, a, b)], [pt_sg(cb, p4, a, b), pt_sg(ct, cd, a, b)], [ct_sg(plhdg, ct), ct]]
-    for pa, pb in lines: img.ligne(pa, pb, c, ep, l_t) ## Dessin des lignes ##
+    ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4); ct = ct_cr(p1, p2, p3, p4)
+    col = c; a, b = 4, 1; c, d = 4, 3; vh, vb = pt_sg(p1, p2, a, b), pt_sg(p3, p4, a, b)
+    cvh, cvb = pt_sg(vh, vb, c, d), pt_sg(vb, vh, c, d); cgh, cgb = pt_sg(p1, cg, c, d), pt_sg(p3, cg, c, d)
+    LINES = [[vh, vb], [cvh, ct_sg(cvh, cgh)], [cvb, ct_sg(cvb, cgb)],
+        []
+    ]
+    for a, b in LINES: img.ligne(a, b, col, ep, l_t)
     return image

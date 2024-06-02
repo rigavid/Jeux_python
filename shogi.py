@@ -4,14 +4,15 @@
 #############################
 ## TODO ##########################################
 ## Inerdire parachutage de pion si échec et mat ##
-## Légalité du fou et de la tour #################
-## Écran de fin de partie #########
+## Écran de fin de partie ########################
 ## Promotion des pièces ####
-############################
+##########################
 
-### INFO-HERE ###
-### https://gist.github.com/greduan/3763b7d9d5c1d6a4916f?permalink_comment_id=4292174#gistcomment-4292174
-### https://fr.wikipedia.org/wiki/Sh%C5%8Dgi#Pi%C3%A8ces
+############
+### INFO ####################################################################################################
+### https://gist.github.com/greduan/3763b7d9d5c1d6a4916f?permalink_comment_id=4292174#gistcomment-4292174 ###
+### https://fr.wikipedia.org/wiki/Shogi #####################################################################
+###########################################
 
 if True: ## IMPORTS ##
     from sty import bg as STY_BG
@@ -244,7 +245,7 @@ class Shogi:
             i1, i2, i3, i4, i5, i6, i7, i8, i9 = self.get_pieces_ligne(8)
             kdO, kdA, kdC, kdP, kdL, kdF, kdT = self.get_pieces_capturees(0)
             kdo, kda, kdc, kdp, kdl, kdf, kdt = self.get_pieces_capturees(1)
-        return f'''{' '*22}{sb}.--------------------------------------------.{ns}{' '*22}{sb}|  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----.{ns}{' '*22}{sb}|{a1}|{a2}|{a3}|{a4}|{a5}|{a6}|{a7}|{a8}|{a9}| {jap(1)} |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}{' '*22}{sb}|{b1}|{b2}|{b3}|{b4}|{b5}|{b6}|{b7}|{b8}|{b9}| {jap(2)} |{ns} {sb}.-----------------.{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}.-----------------.{ns} {sb}|  {kdo} | {kda}  |{ns}  {sb}|{c1}|{c2}|{c3}|{c4}|{c5}|{c6}|{c7}|{c8}|{c9}| {jap(3)} |{ns}  {sb}|  {kdT} | {kdF}  |{ns} {sb}|-----+-----+-----|{ns}  {sb}|----+----+----X----+----+----X----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns} {sb}|{kdc}|{kdp}|{kdl}|{ns}  {sb}|{d1}|{d2}|{d3}|{d4}|{d5}|{d6}|{d7}|{d8}|{d9}| {jap(4)} |{ns}  {sb}|{kdL}|{kdP}|{kdC}|{ns} {sb}|-----+-----+-----|{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns} {sb}|  {kdf} | {kdt}  |{ns}  {sb}|{e1}|{e2}|{e3}|{e4}|{e5}|{e6}|{e7}|{e8}|{e9}| {jap(5)} |{ns}  {sb}|  {kdA} | {kdO}  |{ns} {sb}`-----------------´{ns}  {sb}|----+----+----+----+----+----+----+----+----|----|{ns}  {sb}`-----------------´{ns}{' '*22}{sb}|{f1}|{f2}|{f3}|{f4}|{f5}|{f6}|{f7}|{f8}|{f9}| {jap(6)} |{ns}{' '*22}{sb}|----+----+----X----+----+----X----+----+----+----|{ns}{' '*22}{sb}|{g1}|{g2}|{g3}|{g4}|{g5}|{g6}|{g7}|{g8}|{g9}| {jap(7)} |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}{' '*22}{sb}|{h1}|{h2}|{h3}|{h4}|{h5}|{h6}|{h7}|{h8}|{h9}| {jap(8)} |{ns}{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}{' '*22}{sb}|{i1}|{i2}|{i3}|{i4}|{i5}|{i6}|{i7}|{i8}|{i9}| {jap(9)} |{ns}{' '*22}{sb}`-------------------------------------------------´{ns}'''
+        return f'''{' '*22}{sb}.--------------------------------------------.{ns}\n{' '*22}{sb}|  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----.{ns}\n{' '*22}{sb}|{a1}|{a2}|{a3}|{a4}|{a5}|{a6}|{a7}|{a8}|{a9}| {jap(1)} |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sb}|{b1}|{b2}|{b3}|{b4}|{b5}|{b6}|{b7}|{b8}|{b9}| {jap(2)} |{ns}\n {sb}.-----------------.{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}.-----------------.{ns}\n {sb}|  {kdo} | {kda}  |{ns}  {sb}|{c1}|{c2}|{c3}|{c4}|{c5}|{c6}|{c7}|{c8}|{c9}| {jap(3)} |{ns}  {sb}|  {kdT} | {kdF}  |{ns}\n {sb}|-----+-----+-----|{ns}  {sb}|----+----+----X----+----+----X----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns}\n {sb}|{kdc}|{kdp}|{kdl}|{ns}  {sb}|{d1}|{d2}|{d3}|{d4}|{d5}|{d6}|{d7}|{d8}|{d9}| {jap(4)} |{ns}  {sb}|{kdL}|{kdP}|{kdC}|{ns}\n {sb}|-----+-----+-----|{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns}\n {sb}|  {kdf} | {kdt}  |{ns}  {sb}|{e1}|{e2}|{e3}|{e4}|{e5}|{e6}|{e7}|{e8}|{e9}| {jap(5)} |{ns}  {sb}|  {kdA} | {kdO}  |{ns}\n {sb}`-----------------´{ns}  {sb}|----+----+----+----+----+----+----+----+----|----|{ns}  {sb}`-----------------´{ns}\n{' '*22}{sb}|{f1}|{f2}|{f3}|{f4}|{f5}|{f6}|{f7}|{f8}|{f9}| {jap(6)} |{ns}\n{' '*22}{sb}|----+----+----X----+----+----X----+----+----+----|{ns}\n{' '*22}{sb}|{g1}|{g2}|{g3}|{g4}|{g5}|{g6}|{g7}|{g8}|{g9}| {jap(7)} |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sb}|{h1}|{h2}|{h3}|{h4}|{h5}|{h6}|{h7}|{h8}|{h9}| {jap(8)} |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sb}|{i1}|{i2}|{i3}|{i4}|{i5}|{i6}|{i7}|{i8}|{i9}| {jap(9)} |{ns}\n{' '*22}{sb}`-------------------------------------------------´{ns}'''
     def __init__(self, tableau=defTab(), name:str='Shogi', j1:str='J1', j2:str='J2', fullscreen:bool=True) -> None:
         self.str_p = 'TFLPCAO'
         self.fullscreen = fullscreen
@@ -386,14 +387,32 @@ class Shogi:
                         if not self.vide(xo, (yo-y_ if self.trait else yo+y_)):
                             return False
                     return True
+            case 'T' | 'T+':
+                if '+' in piece and self.leg_roi(xo, yo, xa, ya): return True
+                x, y = self.depl_piece(xo, yo, xa, ya)
+                if piece.islower(): x, y = -x, -y
+                if x==0:
+                    for y_ in range(min(0, y), max(0, y))[1::]:
+                        if not self.vide(xo, yo-y_): return False
+                    return True
+                elif y == 0:
+                    for x_ in range(min(0, x), max(0, x))[1::]:
+                        if not self.vide(xo-x_, yo): return False
+                    return True
+                return False
             case 'F' | 'F+': ## TODO : vérifier qu'il ne saute aucune pièce ##
                 if '+' in piece and self.leg_roi(xo, yo, xa, ya): return True
                 x, y = self.depl_piece(xo, yo, xa, ya)
-                return abs(x)==abs(y)
-            case 'T' | 'T+': ## TODO : vérifier qu'elle ne saute aucune pièce ##
-                if '+' in piece and self.leg_roi(xo, yo, xa, ya): return True
-                x, y = self.depl_piece(xo, yo, xa, ya)
-                return x==0 or y == 0
+                if x==y: ## \
+                    for i in range(min(x, 0), max(x, 0))[1::]:
+                        if not self.vide(xo-i, yo-i): return False
+                    return True
+                elif abs(x)==abs(y): ## /
+                    if piece.islower(): x, y = -x, -y
+                    for i in range(min(0, x), max(x, 0))[1::]:
+                        if not self.vide(xo-i, yo+i): return False
+                    return True
+                return False
         return False
     def get_case(self, img):
         img.montre(1, fullscreen=self.fullscreen)
@@ -478,19 +497,26 @@ class Shogi:
         else: print('Illegal move')
     def jouable(self):
         return [self.matrix[y, x].upper() in 'RJ' for x in range(9) for y in range(9)].count(True) == 2
+    def ecran_fin(self):
+        img = self.image()
+        a = pt_sg(pt_sg(Shogi.p1, Shogi.p3, 3), ct_cr(Shogi.p1, Shogi.p2, Shogi.p3, Shogi.p4), 2)
+        b = pt_sg(pt_sg(Shogi.p4, Shogi.p2, 3), ct_cr(Shogi.p1, Shogi.p2, Shogi.p3, Shogi.p4), 2)
+        img.rectangle(a, b, col.green, 0)
+        img.rectangle(a, b, col.red, Shogi.ep_li, Shogi.l_t)
+        img.montre()
     def start(self, out=False):
         if out: print(self)
         moves = []
         while self.jouable():
-            n = self.move()
-            moves.append(n)
-            if out: print(self); print(n)
+            n = self.move(); moves.append(n)
+            if out: print(self); print(f'{len(moves)}.{n}')
         if out:
             print(self)
-            for move in moves:
-                print(move)
+            for n, move in enumerate(moves): print(f'{n}.{move}')
+        if self.ecran_fin():
+            return self.reset().start()
 
-if __name__ == '__main__' and False:
+if __name__ == '__main__' and True:
     try: pt = Shogi(); pt.start(True)
     except EXIT: print('GAME ENDED!'); raise SystemExit
 else:
