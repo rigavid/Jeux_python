@@ -17,7 +17,9 @@ xc, yc = 8*pw, 8*pw
 
 coul = col.black
 c = 0
-remove_dir('imgs_cpc_font', rel_path)
+
+try: remove_dir('imgs_cpc_font', rel_path)
+except: pass
 if create_dir_if_unexisting('imgs_cpc_font', rel_path):
     print('\nExecuting\n')
     for y in range(16):
