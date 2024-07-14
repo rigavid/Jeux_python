@@ -266,7 +266,7 @@ try:
         sco.img = image(img=copy.deepcopy(imgScore.img))
         h,m,s = diff(time.time(), temps)//3600, diff(time.time(), temps)%3600//60, int(diff(time.time(), temps)%60)
         sco.img.ecris(f'{int(h):0>2}:{int(m):0>2}:{int(s):0>2}\n'+str(score)+f'\n{level}/{n_of_levels-1}\n{time_to_advance:.2f}', [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]])
-        wk = ly.montre(debug=True, except_frames=[pause])
+        wk = ly.montre(bords=col.new("800080"), except_frames=[pause])
         if True: ## Inputs ##
             if wk == 27: raise stopGameException
             elif wk in keys_soft_drop:
