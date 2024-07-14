@@ -264,7 +264,7 @@ class Shogi:
             print(self)
             for n,move in enumerate(moves):print(f'{n}.{move}')
         if self.ecran_fin():return self.reset().start()
+start = "pt = Shogi(); pt.start(True)"
 if __name__=='__main__':
     try: pt = Shogi(); pt.start(True)
     except EXIT: print('GAME ENDED!'); raise SystemExit
-else: print(Shogi())

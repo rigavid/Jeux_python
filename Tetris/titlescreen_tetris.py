@@ -1,4 +1,4 @@
-from Outils.cvt2 import *
+from tsanap import *
 
 pixelisation = 7
 

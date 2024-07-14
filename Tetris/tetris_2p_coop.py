@@ -1,6 +1,6 @@
 from touches_tetris import *
 from pieces_tetris import *
-from Outils.cvt2 import *
+from tsanap import *
 import keyboard
 
 ##########

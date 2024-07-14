@@ -1,0 +1,1 @@
+from Asteroids.maelstrom import main

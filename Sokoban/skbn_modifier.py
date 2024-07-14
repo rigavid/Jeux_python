@@ -1,4 +1,4 @@
-from Outils.cvt2 import *
+import os
 levs = os.listdir('./Sokoban_levels')
 for nom in levs:
     with open(f'./Sokoban_levels/{nom}', 'r', encoding='utf8') as file:

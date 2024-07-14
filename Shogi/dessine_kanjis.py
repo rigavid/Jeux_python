@@ -1,4 +1,4 @@
-from koma import *; from Outils.cvt2 import *
+from koma import *; from tsanap import *
 def dessine_kanji_roi(img:image, p1, p2, p3, p4, c=col.black, ep=1, ori=0, l_t=2, koma='R'): ## DONE ##
     ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4); ct = ct_cr(p1, p2, p3, p4)
     lines = [[pt_sg(p1, ch, 7), pt_sg(p2, ch, 7)], [pt_sg(cg, ct, 3), pt_sg(cd, ct, 3)], [ch, cb], [p3, p4]]

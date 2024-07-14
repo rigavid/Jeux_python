@@ -1,4 +1,5 @@
-from Outils.cvt2 import *
+from tsanap import *
+os.chdir(__file__[::-1].split("/",1)[1][::-1])
 from touches_sokoban import keys_j1
 import keyboard as kb
 class invalidLevel(Exception):

@@ -277,89 +277,92 @@ def nuit_etoilee(size=[1920, 1080]):
     for etoile in pts:
         cercle(img, etoile, rd.randint(1, 2), blanc, 0)
     return(img)
-t = time.time()
-img_s = nuit_etoilee(frame.size)
-while diff(t, time.time()) < 3:
-    montre(ecris(copy.deepcopy(img_s), 'Welcome commander!\nYou\'re in charge of\nthe Maelstrom spaceship.\nGood luck!', hg, bd, 3, bleu, 10), attente=1, destroy=non)
+def main():
+    t = time.time()
+    img_s = nuit_etoilee(frame.size)
+    while diff(t, time.time()) < 3:
+        montre(ecris(copy.deepcopy(img_s), 'Welcome commander!\nYou\'re in charge of\nthe Maelstrom spaceship.\nGood luck!', hg, bd, 3, bleu, 10), attente=1, destroy=non)
 
-while True:
-    if True: ## Vars ##
-        frame.points = 0
-        navette = vaisseau()
-        navette.tirs = []
-        img_s = nuit_etoilee(frame.size)
-        asteroides = [asteroide() for _ in range(5)]
-        ovnis = []
-        bonuses = []
-        etoiles = []
     while True:
         if True: ## Vars ##
-            if len(ovnis+etoiles+asteroides) == 0: end(img_s, True); break
-            img = copy.deepcopy(img_s)
-            frame.dessine_bonuses(navette, img)
-            ecris(img, f'{navette.shield_qt:.2f}', hg, [400, 200], 1, cyan, 3)
-            ecris(img, f'{navette.vies}', bd, [1920-400, 1080-200], 1, cyan, 3)
-            ecris(img, f'{frame.points}', hd, [1920-400, 200], 1, cyan, 3)
-            navette.update(img, asteroides)
-            if not navette.alive: end(img_s); break
-            asteroides_to_remove = []
-        if True: ## Spawn ##
-            if rd.randint(0, 1000)==0: ovnis.append(ovni())
-            if rd.randint(0, 1000)==0: bonuses.append(power_up(navette))
-        if True: ## Update ##
-            for ufo in ovnis:
-                ufo.move(navette, navette.tirs, asteroides)
-                if rd.randint(0, 10)==0:
-                    ufo.shoote(navette) 
-                ufo.dessine(img)
-            for etoile in etoiles:
-                etoile.move(navette.tirs)
-                etoile.dessine(img)
-            for rock in asteroides:
-                rock.move(navette.tirs, asteroides)
-                if rock.type == 0:
-                    asteroides_to_remove.append(rock)
-                    continue
-                rock.dessine(img)
-            for p_u in bonuses:
-                p_u.move(navette)
-                p_u.dessine(img)
-        if True: ## Remove ##
-            for p_u in bonuses:
-                if p_u.remove:
-                    bonuses.remove(p_u)
-            for rock in asteroides_to_remove:
-                frame.points += rock.points
-                asteroides.remove(rock)
-            for etoile in etoiles:
-                if etoile.remove:
-                    frame.points += round((etoile.live_t-diff(etoile.spawn_t, time.time()))*50)
-                    etoiles.remove(etoile)
-            for ufo in ovnis:
-                if ufo.remove:
-                    frame.points += 400
-                    ovnis.remove(ufo)
-        montre(img, attente=1, destroy=non)
-        if True: ## Get actions ##
-            if keyboard.is_pressed('esc'): raise SystemExit
-            try:
-                if keyboard.is_pressed('up') or keyboard.is_pressed('w'):
-                    navette.accel = True
-                    inercie = [p*rd.randint(700, 1300)/10000 for p in coosCercle([0, 0], 10, navette.ori)]
-                    navette.inercie += Vector2D(inercie[0], inercie[1])
-                    inercie = [max_vel if p > max_vel else -max_vel if p < -max_vel else p for p in eval(str(navette.inercie))]
-                    navette.inercie = Vector2D(inercie[0], inercie[1])
-                else: navette.accel = False
-                if (keyboard.is_pressed('down') or keyboard.is_pressed('s')) and bonus.retro_thrusters in navette.bonuses:
-                    inercie = [p*rd.randint(700, 1300)/10000 for p in coosCercle([0, 0], -10, navette.ori)]
-                    navette.inercie += Vector2D(inercie[0], inercie[1])
-                    inercie = [max_vel if p > max_vel else -max_vel if p < -max_vel else p for p in eval(str(navette.inercie))]
-                    navette.inercie = Vector2D(inercie[0], inercie[1])
-                if keyboard.is_pressed('left') or keyboard.is_pressed('a'):navette.ori-=rd.randint(250, 350)/100*game_vel
-                if keyboard.is_pressed('right') or keyboard.is_pressed('d'):navette.ori+=rd.randint(250, 350)/100*game_vel
-                if keyboard.is_pressed(' '): navette.shield()
-                elif navette.shield_on and diff(navette.spawn_t,time.time())>=immunity_time:
-                    navette.shield_qt -= diff(navette.shield_t, time.time())
-                    navette.shield_on = False
-                if keyboard.is_pressed('tab') or keyboard.is_pressed('alt'): navette.shoote()
-            except: pass
+            frame.points = 0
+            navette = vaisseau()
+            navette.tirs = []
+            img_s = nuit_etoilee(frame.size)
+            asteroides = [asteroide() for _ in range(5)]
+            ovnis = []
+            bonuses = []
+            etoiles = []
+        while True:
+            if True: ## Vars ##
+                if len(ovnis+etoiles+asteroides) == 0: end(img_s, True); break
+                img = copy.deepcopy(img_s)
+                frame.dessine_bonuses(navette, img)
+                ecris(img, f'{navette.shield_qt:.2f}', hg, [400, 200], 1, cyan, 3)
+                ecris(img, f'{navette.vies}', bd, [1920-400, 1080-200], 1, cyan, 3)
+                ecris(img, f'{frame.points}', hd, [1920-400, 200], 1, cyan, 3)
+                navette.update(img, asteroides)
+                if not navette.alive: end(img_s); break
+                asteroides_to_remove = []
+            if True: ## Spawn ##
+                if rd.randint(0, 1000)==0: ovnis.append(ovni())
+                if rd.randint(0, 1000)==0: bonuses.append(power_up(navette))
+            if True: ## Update ##
+                for ufo in ovnis:
+                    ufo.move(navette, navette.tirs, asteroides)
+                    if rd.randint(0, 10)==0:
+                        ufo.shoote(navette) 
+                    ufo.dessine(img)
+                for etoile in etoiles:
+                    etoile.move(navette.tirs)
+                    etoile.dessine(img)
+                for rock in asteroides:
+                    rock.move(navette.tirs, asteroides)
+                    if rock.type == 0:
+                        asteroides_to_remove.append(rock)
+                        continue
+                    rock.dessine(img)
+                for p_u in bonuses:
+                    p_u.move(navette)
+                    p_u.dessine(img)
+            if True: ## Remove ##
+                for p_u in bonuses:
+                    if p_u.remove:
+                        bonuses.remove(p_u)
+                for rock in asteroides_to_remove:
+                    frame.points += rock.points
+                    asteroides.remove(rock)
+                for etoile in etoiles:
+                    if etoile.remove:
+                        frame.points += round((etoile.live_t-diff(etoile.spawn_t, time.time()))*50)
+                        etoiles.remove(etoile)
+                for ufo in ovnis:
+                    if ufo.remove:
+                        frame.points += 400
+                        ovnis.remove(ufo)
+            montre(img, attente=1, destroy=non)
+            if True: ## Get actions ##
+                if keyboard.is_pressed('esc'): raise SystemExit
+                try:
+                    if keyboard.is_pressed('up') or keyboard.is_pressed('w'):
+                        navette.accel = True
+                        inercie = [p*rd.randint(700, 1300)/10000 for p in coosCercle([0, 0], 10, navette.ori)]
+                        navette.inercie += Vector2D(inercie[0], inercie[1])
+                        inercie = [max_vel if p > max_vel else -max_vel if p < -max_vel else p for p in eval(str(navette.inercie))]
+                        navette.inercie = Vector2D(inercie[0], inercie[1])
+                    else: navette.accel = False
+                    if (keyboard.is_pressed('down') or keyboard.is_pressed('s')) and bonus.retro_thrusters in navette.bonuses:
+                        inercie = [p*rd.randint(700, 1300)/10000 for p in coosCercle([0, 0], -10, navette.ori)]
+                        navette.inercie += Vector2D(inercie[0], inercie[1])
+                        inercie = [max_vel if p > max_vel else -max_vel if p < -max_vel else p for p in eval(str(navette.inercie))]
+                        navette.inercie = Vector2D(inercie[0], inercie[1])
+                    if keyboard.is_pressed('left') or keyboard.is_pressed('a'):navette.ori-=rd.randint(250, 350)/100*game_vel
+                    if keyboard.is_pressed('right') or keyboard.is_pressed('d'):navette.ori+=rd.randint(250, 350)/100*game_vel
+                    if keyboard.is_pressed(' '): navette.shield()
+                    elif navette.shield_on and diff(navette.spawn_t,time.time())>=immunity_time:
+                        navette.shield_qt -= diff(navette.shield_t, time.time())
+                        navette.shield_on = False
+                    if keyboard.is_pressed('tab') or keyboard.is_pressed('alt'): navette.shoote()
+                except: pass
+if __name__ == "__main__":
+    main()
