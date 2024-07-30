@@ -16,10 +16,6 @@ import keyboard
 ## Save (high)scores in a highscores.txt ##
 ###########################################
 
-class glob:
-    n_c_X = 0
-    n_c_Y = 0
-
 class toucheException(Exception): ## Raise whenever a piece is overlaping another or going out the matrix ##
     def __init__(self, message=""):
         self.message = message
@@ -38,7 +34,7 @@ class piece:
         self.tipe = pieces[tipe]
         self.rot = 0
         self.forme = self.tipe[self.rot]
-        self.pos = [round(glob.n_c_X/2-2), 0]
+        self.pos = [round(n_c_X/2-2), 0]
         return None
     def rotate(self, v, arr) -> None:
         '''
@@ -65,7 +61,7 @@ class piece:
             for y in range(5):
                 if self.forme[y,x] != 0:
                     iy, ix = y+self.pos[1],x+self.pos[0]
-                    if iy>=glob.n_c_Y or ix>=glob.n_c_X or iy<0 or ix<0: raise toucheException
+                    if iy>=n_c_Y or ix>=n_c_X or iy<0 or ix<0: raise toucheException
                     elif arr[iy, ix] != 0: raise toucheException
         for x in range(5):
             for y in range(5):
@@ -95,7 +91,7 @@ class piece:
         for x in range(5):
             for y in range(5):
                 if self.forme[y,x] != 0:
-                    chg, cbd = [glob.cols[self.pos[0]+x]+dx,glob.rows[self.pos[1]+y]+dy], [glob.cols[self.pos[0]+x+1]+dx,glob.rows[self.pos[1]+y+1]+dy]
+                    chg, cbd = [cols[self.pos[0]+x]+dx,rows[self.pos[1]+y]+dy], [cols[self.pos[0]+x+1]+dx,rows[self.pos[1]+y+1]+dy]
                     p1, p4 = [p+ofs for p in chg], [p-ofs for p in cbd]
                     p2, p3 = [p4[0],p1[1]], [p1[0],p4[1]]
                     ct = ct_cr(p1,p2,p3,p4)
@@ -103,7 +99,7 @@ class piece:
                     cg , cd  = ct_sg(p1, p3), ct_sg(p2, p4)
                     cgh, cgb = ct_sg(cg, p1), ct_sg(cg, p3)
                     cdh, cdb = ct_sg(cd, p2), ct_sg(cd, p4)
-                    couls = [[n_entre(v-20*i, 0, 255) for v in glob.couleurs[(self.forme[y,x]-1)%len(glob.couleurs)]] for i in range(5)]
+                    couls = [[n_entre(v-20*i, 0, 255) for v in couleurs[(self.forme[y,x]-1)%len(couleurs)]] for i in range(5)]
                     img.rectangle(c1, c4, couls[0],0)
                     img.rectangle(p1, cdh, couls[1], 0)
                     img.rectangle(c2, cdb, couls[2], 0)
@@ -136,7 +132,7 @@ class piece:
             self.pos = [self.pos[n]+w[n] for n in range(2)]
             self.set(arr)
         return None
-def updateImg(jeu, cols, rows):
+def updateImg(jeu, cols, rows, matrice):
     jeu.img = image(img=copy.deepcopy(imgJeu.img))
     for x in range(n_c_X):
         for y in range(n_c_Y):
@@ -170,25 +166,24 @@ def vars(n_c_X=10, n_c_Y=22):
     return VARS
 def main():
     TITLESCREEN.montre(fullscreen=True)
-
     ### GAME VARS ###
+    global n_c_X, n_c_Y
     n_c_X, n_c_Y = [10, 22] ## Width and Height of the matrix ##
     gameType = 0 ## N between 0 to 6 (choses the polyminos to play with) ##
-    level = 1
+    level = 30
     #################
+    global couleurs
     couleurs = [col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow]
-    glob.couleurs = couleurs
     #rd.shuffle(couleurs) ## TO REMOVE ##
     #################
     if True: ## Vars ##
         VARS = vars(n_c_X, n_c_Y)
         n_c_X, n_c_Y, d_x, d_y, x, y = [VARS[var] for var in ['n_c_X', 'n_c_Y', 'd_x', 'd_y', 'x', 'y']]
-        glob.n_c_X = n_c_X
-        glob.n_c_Y = n_c_Y
         n_of_levels = 31
         level = n_entre(level, 1, n_of_levels)
         sep_d = 20
         if True: ## Image de fond du jeu ##
+            global imgJeu
             imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
             offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
             for line_n in range(n_c_Y):
@@ -239,10 +234,9 @@ def main():
         if True: ## __Vars__ ##
             ht = len(jeu.img.img)+d_y*n_c_Y
             lg = len(jeu.img.img[0])+d_x*n_c_X
+            global cols, rows
             cols = [x for x in np.arange(0,lg,d_x)]
             rows = [y for y in np.arange(0,ht,d_y)]
-            glob.cols = cols
-            glob.rows = rows
             matrice = np.array([[0 for _ in range(n_c_X)] for _ in range(n_c_Y)])
             playing = piece(tipe=rd.randint(0, len(pieces)-1), pieces=pieces)
             playing.set(matrice)
@@ -252,10 +246,12 @@ def main():
             temps = time.time()
             t = time.time()
             scoring = [0, 100, 300, 600, 1000, 1500]
+            global score
             score = 0
             last_score = 0
+            global ofst
             ofst = 2
-            vitesse = float_range(1, 0.13, n_of_levels-1)
+            vitesse = float_range(1, 0.13, n_of_levels)
 
     try:
         time_to_advance = vitesse[level]
@@ -276,7 +272,8 @@ def main():
             sco.img = image(img=copy.deepcopy(imgScore.img))
             h,m,s = diff(time.time(), temps)//3600, diff(time.time(), temps)%3600//60, int(diff(time.time(), temps)%60)
             sco.img.ecris(f'{int(h):0>2}:{int(m):0>2}:{int(s):0>2}\n'+str(score)+f'\n{level}/{n_of_levels-1}\n{time_to_advance:.2f}', [round(v) for v in [len(sco.img.img[0])//2, len(sco.img.img)//2]])
-            wk = ly.montre(bords=col.new("800080"), except_frames=[pause])
+            try: wk = ly.montre(bords=col.new("800080"), except_frames=[pause])
+            except: wk = ly.montre(debug=True, except_frames=[pause])
             if True: ## Inputs ##
                 if wk == 27: raise stopGameException
                 elif wk in keys_soft_drop:
@@ -358,7 +355,7 @@ def main():
                             holding, playing = playing, holding
                             if playing == None:
                                 playing = next_ps.pop(0)
-                                next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1)), pieces=pieces)
+                                next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1), pieces=pieces))
                             playing.pos = [round(n_c_X/2-2), 0]
                             playing.set(matrice)
                             holding.pos = [0, 0]
@@ -463,7 +460,7 @@ def main():
                     playing.pos = [round(n_c_X/2-2), 0]
                     next_ps.append(piece(tipe=rd.randint(0, len(pieces)-1), pieces=pieces))
                     end_p = True
-            updateImg(jeu, cols, rows)
+            updateImg(jeu, cols, rows, matrice)
             if end_p:
                 m = [list(l) for l in matrice]
                 lgs = []
@@ -491,7 +488,7 @@ def main():
         print(f'Game Over!\nPoints : {score:0>8}\nTemps  : {temps}')
         playing.remove(matrice)
         playing.set(matrice)
-        jeu = updateImg(jeu, cols, rows)
+        jeu = updateImg(jeu, cols, rows, matrice)
         ly.montre(except_frames=[pause])
         img = ly.img
         time.sleep(1)

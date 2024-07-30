@@ -11,7 +11,7 @@ import keyboard
 
 ## Général ##
 game_size = 1
-game_vel = 0.5
+game_vel = 1
 shoot_range = 50
 max_vel = 100
 ## Astéroides ##

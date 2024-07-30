@@ -2,7 +2,7 @@ if True: ## Contrôles 1J ##
     fl_g = 'left'
     fl_d = 'right'
     fl_h = 'up'
-    fl_b = 2621440
+    fl_b = 65364
     keys_hold = ['c']
     keys_soft_drop = [fl_b]
     keys_hard_drop = ['space']
