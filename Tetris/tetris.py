@@ -170,7 +170,7 @@ def main():
     global n_c_X, n_c_Y
     n_c_X, n_c_Y = [10, 22] ## Width and Height of the matrix ##
     gameType = 0 ## N between 0 to 6 (choses the polyminos to play with) ##
-    level = 30
+    level = 0
     #################
     global couleurs
     couleurs = [col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow]
@@ -211,6 +211,7 @@ def main():
             offset_hold = [offset_jeu[0]-sep_d-len(imgHold.img[0]), 0]
         if True: ## Img pause ##
             imgPause = image(img=image.new_img(dimensions=[d_x*(n_c_X-1), d_y*(n_c_Y-1)], fond=col.cyan))
+            imgPause.ecris("Pause", [d_x*(n_c_X-1)/2, d_y*(n_c_Y-1)/2], col.red)
             offset_pause = [offset_jeu[0]+d_x/2, offset_jeu[1]+d_y/2]
         if True: ## Img scores ##
             offset_score = [offset_jeu[0]-sep_d-len(imgHold.img[0]), round(d_y*5+sep_d)]
