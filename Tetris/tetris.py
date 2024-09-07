@@ -1,8 +1,10 @@
 from tsanap import *
-os.chdir(__file__[::-1].split("/",1)[1][::-1])
-from titlescreen_tetris import img as TITLESCREEN
-from touches_tetris import *
-from pieces_tetris import *
+try: from titlescreen_tetris import img as TITLESCREEN, nf
+except: from Tetris.titlescreen_tetris import img as TITLESCREEN, nf
+try: from touches_tetris import *
+except: from Tetris.touches_tetris import *
+try: from pieces_tetris import *
+except: from Tetris.pieces_tetris import *
 import keyboard
 
 ##########
@@ -15,6 +17,9 @@ import keyboard
 ## |-> Game size ##########################
 ## Save (high)scores in a highscores.txt ##
 ###########################################
+
+class glob:
+    ...
 
 class toucheException(Exception): ## Raise whenever a piece is overlaping another or going out the matrix ##
     def __init__(self, message=""):
@@ -34,7 +39,7 @@ class piece:
         self.tipe = pieces[tipe]
         self.rot = 0
         self.forme = self.tipe[self.rot]
-        self.pos = [round(n_c_X/2-2), 0]
+        self.pos = [round(glob.n_c_X/2-2), 0]
         return None
     def rotate(self, v, arr) -> None:
         '''
@@ -61,7 +66,7 @@ class piece:
             for y in range(5):
                 if self.forme[y,x] != 0:
                     iy, ix = y+self.pos[1],x+self.pos[0]
-                    if iy>=n_c_Y or ix>=n_c_X or iy<0 or ix<0: raise toucheException
+                    if iy>=glob.n_c_Y or ix>=glob.n_c_X or iy<0 or ix<0: raise toucheException
                     elif arr[iy, ix] != 0: raise toucheException
         for x in range(5):
             for y in range(5):
@@ -86,6 +91,8 @@ class piece:
         self.deployed = False
         return None
     def dessine(self, img, offset=[0,0]) -> None:
+        couleurs = glob.couleurs
+        cols, rows = glob.cols, glob.rows
         ofs = 2
         dx, dy = offset
         for x in range(5):
@@ -125,7 +132,7 @@ class piece:
         game_over = self.is_over(arr)
         if game_over:
             self.overset(arr)
-            raise gameOverException(score)
+            raise gameOverException(glob.score)
         else:
             self.remove(arr)
             self.save_pos = self.pos
@@ -133,7 +140,10 @@ class piece:
             self.set(arr)
         return None
 def updateImg(jeu, cols, rows, matrice):
-    jeu.img = image(img=copy.deepcopy(imgJeu.img))
+    couleurs = glob.couleurs
+    ofst = glob.ofst
+    jeu.img = image(img=copy.deepcopy(glob.imgJeu.img))
+    n_c_X, n_c_Y = glob.n_c_X, glob.n_c_Y
     for x in range(n_c_X):
         for y in range(n_c_Y):
             if matrice[y,x] != 0:
@@ -167,14 +177,13 @@ def vars(n_c_X=10, n_c_Y=22):
 def main():
     TITLESCREEN.montre(fullscreen=True)
     ### GAME VARS ###
-    global n_c_X, n_c_Y
     n_c_X, n_c_Y = [10, 22] ## Width and Height of the matrix ##
+    glob.n_c_X, glob.n_c_Y = n_c_X, n_c_Y
     gameType = 0 ## N between 0 to 6 (choses the polyminos to play with) ##
     level = 0
     #################
-    global couleurs
     couleurs = [col.red, col.blue, col.green, col.cyan, col.magenta, col.yellow]
-    #rd.shuffle(couleurs) ## TO REMOVE ##
+    glob.couleurs = couleurs
     #################
     if True: ## Vars ##
         VARS = vars(n_c_X, n_c_Y)
@@ -183,13 +192,13 @@ def main():
         level = n_entre(level, 1, n_of_levels)
         sep_d = 20
         if True: ## Image de fond du jeu ##
-            global imgJeu
             imgJeu = image('grilleJeu', image.new_img(dimensions=[round(d_x*n_c_X), round(d_y*n_c_Y)], fond=col.white))
             offset_jeu = [round((x-(d_x*n_c_X))/2)+ct[0]-round(len(imgJeu.img)/2), round((y-(d_y*n_c_Y))/2)]
             for line_n in range(n_c_Y):
                 imgJeu.ligne([0, d_y*line_n], [len(imgJeu.img), d_y*line_n], col.noir, 2)
             for col_n in range(n_c_X):
                 imgJeu.ligne([d_x*col_n, 0], [d_x*col_n, len(imgJeu.img)], col.noir, 2)
+            glob.imgJeu = imgJeu
         if True: ## Img next ##
             imgNext = image('grilleNext', image.new_img(dimensions=[round(d_x*5), round(d_y*5)*3+sep_d*2], fond=col.white))
             offset_next = [offset_jeu[0]+len(imgJeu.img[0])+sep_d, 0]
@@ -226,7 +235,8 @@ def main():
             case 6: pieces = tetraminos + specialminos
         pieces = np.array(pieces)
         if True: ## Imaging ##
-            ly = layout()
+            ly = layout(nom=nf)
+            ly.frames = []
             jeu = ly.frame(copy.deepcopy(imgJeu.img), offset_jeu, 'Matrix_frame')
             nex = ly.frame(copy.deepcopy(imgNext.img), offset_next, 'Nexts_frame')
             hol = ly.frame(copy.deepcopy(imgHold.img), offset_hold, 'Hold_frame')
@@ -235,9 +245,9 @@ def main():
         if True: ## __Vars__ ##
             ht = len(jeu.img.img)+d_y*n_c_Y
             lg = len(jeu.img.img[0])+d_x*n_c_X
-            global cols, rows
             cols = [x for x in np.arange(0,lg,d_x)]
             rows = [y for y in np.arange(0,ht,d_y)]
+            glob.cols, glob.rows = cols, rows
             matrice = np.array([[0 for _ in range(n_c_X)] for _ in range(n_c_Y)])
             playing = piece(tipe=rd.randint(0, len(pieces)-1), pieces=pieces)
             playing.set(matrice)
@@ -247,11 +257,11 @@ def main():
             temps = time.time()
             t = time.time()
             scoring = [0, 100, 300, 600, 1000, 1500]
-            global score
             score = 0
+            glob.score = score
             last_score = 0
-            global ofst
             ofst = 2
+            glob.ofst = ofst
             vitesse = float_range(1, 0.13, n_of_levels)
 
     try:
@@ -450,6 +460,8 @@ def main():
                         score += cases_parcourues*2*level
                         time.sleep(0.2)
                         break
+            glob.imgJeu = imgJeu
+            glob.n_c_X, glob.n_c_Y = n_c_X, n_c_Y
             if diff(t,time.time()) > time_to_advance and not end_p:
                 if time_to_advance == 0.5: time_to_advance = vitesse[level]
                 t = time.time()
@@ -501,8 +513,7 @@ def main():
             if img.montre(1, fullscreen=True) == 27: t=None; break
         if t != None:
             img.montre(0, fullscreen=True)
-        # fusee(score)
+        # fusee(glob.score)
     except stopGameException: print('Game ended.')
-    #except Exception as e: print(e)
 if __name__ == "__main__":
     main()

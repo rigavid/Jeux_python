@@ -13,7 +13,9 @@
 ### https://gist.github.com/greduan/3763b7d9d5c1d6a4916f?permalink_comment_id=4292174#gistcomment-4292174 ###
 ### https://fr.wikipedia.org/wiki/Shogi #####################################################################
 ###########################################
-from sty import bg as STY_BG;from dessine_kanjis import*
+from sty import bg as STY_BG
+try: from dessine_kanjis import*
+except: from Shogi.dessine_kanjis import*
 def jap(n:int):return'〇一二三四五六七八九'[n%10]
 def defTab()->list:return[['l','c','a','o','j','o','a','c','l'],[' ','t']+[' ']*5+['f',' '],['p']*9,[' ']*9,[' ']*9,[' ']*9,['P']*9,[' ','F']+[' ']*5+['T',' '],['L','C','A','O','R','O','A','C','L']]
 save={};eq={'R':'王','J':'玉','T':'飛','T+':'龍','F':'角','F+':'馬','O':'金','A':'銀','A+':'全','C':'桂','C+':'圭','L':'香','L+':'杏','P':'歩','P+':'と'}
@@ -82,12 +84,12 @@ class Shogi:
     def __str__(self)->str:cl1,cl2,cl3=200,150,120;sb,ns=STY_BG(cl1,cl2,cl3),STY_BG.rs;a1,a2,a3,a4,a5,a6,a7,a8,a9=self.get_pieces_ligne(0);b1,b2,b3,b4,b5,b6,b7,b8,b9=self.get_pieces_ligne(1);c1,c2,c3,c4,c5,c6,c7,c8,c9=self.get_pieces_ligne(2);d1,d2,d3,d4,d5,d6,d7,d8,d9=self.get_pieces_ligne(3);e1,e2,e3,e4,e5,e6,e7,e8,e9=self.get_pieces_ligne(4);f1,f2,f3,f4,f5,f6,f7,f8,f9=self.get_pieces_ligne(5);g1,g2,g3,g4,g5,g6,g7,g8,g9=self.get_pieces_ligne(6);h1,h2,h3,h4,h5,h6,h7,h8,h9=self.get_pieces_ligne(7);i1,i2,i3,i4,i5,i6,i7,i8,i9=self.get_pieces_ligne(8);kdO,kdA,kdC,kdP,kdL,kdF,kdT=self.get_pieces_capturees(0);kdo,kda,kdc,kdp,kdl,kdf,kdt=self.get_pieces_capturees(1);return f'''{' '*22}{sb}.--------------------------------------------.{ns}\n{' '*22}{sb}|  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----.{ns}\n{' '*22}{sb}|{a1}|{a2}|{a3}|{a4}|{a5}|{a6}|{a7}|{a8}|{a9}| {jap(1)} |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sb}|{b1}|{b2}|{b3}|{b4}|{b5}|{b6}|{b7}|{b8}|{b9}| {jap(2)} |{ns}\n {sb}.-----------------.{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}.-----------------.{ns}\n {sb}|  {kdo} | {kda}  |{ns}  {sb}|{c1}|{c2}|{c3}|{c4}|{c5}|{c6}|{c7}|{c8}|{c9}| {jap(3)} |{ns}  {sb}|  {kdT} | {kdF}  |{ns}\n {sb}|-----+-----+-----|{ns}  {sb}|----+----+----X----+----+----X----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns}\n {sb}|{kdc}|{kdp}|{kdl}|{ns}  {sb}|{d1}|{d2}|{d3}|{d4}|{d5}|{d6}|{d7}|{d8}|{d9}| {jap(4)} |{ns}  {sb}|{kdL}|{kdP}|{kdC}|{ns}\n {sb}|-----+-----+-----|{ns}  {sb}|----+----+----+----+----+----+----+----+----+----|{ns}  {sb}|-----+-----+-----|{ns}\n {sb}|  {kdf} | {kdt}  |{ns}  {sb}|{e1}|{e2}|{e3}|{e4}|{e5}|{e6}|{e7}|{e8}|{e9}| {jap(5)} |{ns}  {sb}|  {kdA} | {kdO}  |{ns}\n {sb}`-----------------´{ns}  {sb}|----+----+----+----+----+----+----+----+----|----|{ns}  {sb}`-----------------´{ns}\n{' '*22}{sb}|{f1}|{f2}|{f3}|{f4}|{f5}|{f6}|{f7}|{f8}|{f9}| {jap(6)} |{ns}\n{' '*22}{sb}|----+----+----X----+----+----X----+----+----+----|{ns}\n{' '*22}{sb}|{g1}|{g2}|{g3}|{g4}|{g5}|{g6}|{g7}|{g8}|{g9}| {jap(7)} |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sb}|{h1}|{h2}|{h3}|{h4}|{h5}|{h6}|{h7}|{h8}|{h9}| {jap(8)} |{ns}\n{' '*22}{sb}|----+----+----+----+----+----+----+----+----+----|{ns}\n{' '*22}{sb}|{i1}|{i2}|{i3}|{i4}|{i5}|{i6}|{i7}|{i8}|{i9}| {jap(9)} |{ns}\n{' '*22}{sb}`-------------------------------------------------´{ns}'''
     def __init__(self, tableau=defTab(), name:str='Shogi', j1:str='J1', j2:str='J2', fullscreen:bool=True) -> None:
         self.str_p='TFLPCAO';self.fullscreen=fullscreen;self.name=name;self.last_move=None;self.j1,self.j2=j1,j2;plateau = [[[[x,y],[x+self.dx,y+self.dy]]for x in range2(self.xa,self.xb,self.dx)]for y in range2(self.ya,self.yb,self.dy)];self.plateau=copy.deepcopy(np.array(plateau));self.trait=True;self.matrix=np.array(tableau,dtype=object);self.captures=[[],[]];coef=1;nx,ny=[2,3,2],3;coos_kd_a=[];coos_kd_b=[]
-        for i,y in enumerate(range(self.pkda[0][1],self.pkda[2][1],round(self.dy*coef))[:ny:]):#KOMADAI A
+        for i,y in enumerate(range(round(self.pkda[0][1]),round(self.pkda[2][1]),round(self.dy*coef))[:ny:]):#KOMADAI A
             x_,y_=(diff(self.pkda[0][0],self.pkda[1][0])-self.dx*coef*nx[i])/2,(diff(self.pkda[0][1],self.pkda[2][1])-self.dy*coef*ny)/2
-            for x in range(self.pkda[0][0],self.pkda[1][0],round(self.dx*coef))[:nx[i]:]:coos_kd_a.append([[x+x_,y+y_],[x+x_+self.dx*coef,y+y_+self.dy*coef]])
-        for i,y in enumerate(range(self.pkdb[0][1],self.pkdb[2][1],round(self.dy*coef))[:ny:]):#KOMADAI B
+            for x in range(round(self.pkda[0][0]),round(self.pkda[1][0]),round(self.dx*coef))[:nx[i]:]:coos_kd_a.append([[x+x_,y+y_],[x+x_+self.dx*coef,y+y_+self.dy*coef]])
+        for i,y in enumerate(range(round(self.pkdb[0][1]),round(self.pkdb[2][1]),round(self.dy*coef))[:ny:]):#KOMADAI B
             x_,y_=(diff(self.pkdb[0][0],self.pkdb[1][0])-self.dx*coef*nx[i])/2,(diff(self.pkdb[0][1],self.pkdb[2][1])-self.dy*coef*ny)/2
-            for x in range(self.pkdb[0][0],self.pkdb[1][0],round(self.dx*coef))[:nx[i]:]:coos_kd_b.append([[x+x_,y+y_],[x+x_+self.dx*coef,y+y_+self.dy*coef]])
+            for x in range(round(self.pkdb[0][0]),round(self.pkdb[1][0]),round(self.dx*coef))[:nx[i]:]:coos_kd_b.append([[x+x_,y+y_],[x+x_+self.dx*coef,y+y_+self.dy*coef]])
         coos_komadai=[coos_kd_a,coos_kd_b];self.coos_komadai=np.array(coos_komadai)
     def gdye(self,p='R')->list:
         for y in range(9):
@@ -264,7 +266,9 @@ class Shogi:
             print(self)
             for n,move in enumerate(moves):print(f'{n}.{move}')
         if self.ecran_fin():return self.reset().start()
-start = "pt = Shogi(); pt.start(True)"
-if __name__=='__main__':
+def main():
     try: pt = Shogi(); pt.start(True)
-    except EXIT: print('GAME ENDED!'); raise SystemExit
+    except EXIT: pt.img.ferme()
+
+if __name__=='__main__':
+    main()

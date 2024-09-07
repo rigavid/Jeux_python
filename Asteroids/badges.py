@@ -1,4 +1,5 @@
-from Outils.cvt import *
+try: from Outils.cvt import *
+except: from Asteroids.Outils.cvt import *
 def flatten(L) -> list:
     o = []
     for l in L: o += l

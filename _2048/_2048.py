@@ -52,7 +52,9 @@ def add_new(t) -> bool:
 
 cols = {'2':'ede5da', '4':'ebe1c8', '8':'f2b177', '16':'eb8e53', '32':'f57c5f', '64':'e95937', '128':'f3d96b', '256':'f1d04b', '512':'e4c02a', '1024':'f7d639', '2048':'ecc400', '4096':'f0a0a0'}
 for c in cols: cols[c] = col.new(cols[c])
-keys = [65363, 65361, 65362, 65364]
+class kys:
+    k1, k2, k3, k4 = 65363, 65361, 65362, 65364
+keys = [kys.k1, kys.k2, kys.k3, kys.k4]
 
 def img2048(t) -> image:
     img = image("2048", img=image.new_img(dimensions=res.res, fond=col.cyan))
@@ -117,7 +119,7 @@ def go_img(t) -> image:
     texte(f"{s.size[0]}x{s.size[1]}", [res.res[0]/2, res.res[1]/1.375], 1.75, 3).ecris(img)
     return img
 
-def main():
+def main_():
     fs = False
     r = False
     while True:
@@ -128,11 +130,12 @@ def main():
             s.score = score(t)
             img = img2048(t)
             while True: ## Get a key with WaitKey (wk)
-                wk = img.montre(1, fullscreen=fs)
+                wk = img.montre(3, fullscreen=fs)
+                if wk in keys: break
                 if r and wk not in [27, 114, 8, 32, 102, 65470, 65471]:
                     wk = 116
                 match wk:
-                    case 27: return
+                    case 27: return img
                     case 8|102: fs = not fs
                     case 32:
                         change_res()
@@ -144,8 +147,7 @@ def main():
                     case 65470: cv2.moveWindow(img.nom, 0, 0) ## F1
                     case 65471: cv2.moveWindow(img.nom, 1920, 0) ## F2
                     case 116: wk = rd.choice(keys); break
-                    case a if a in keys: break
-                if img.is_closed(): return
+                if img.is_closed(): return img
             if breyk: break
             sens = [3, 1, 2, 0][keys.index(wk)]
             moved = False
@@ -158,7 +160,7 @@ def main():
         img = go_img(t)
         while True:
             wk = img.montre(1, fullscreen=fs)
-            if img.is_closed(): return
+            if img.is_closed(): return img
             match wk:
                 case 27: return
                 case 8|102: fs = not fs
@@ -170,4 +172,10 @@ def main():
                 case 65472: break ## F3
                 case 65473: s.size = [max(i-1, 3) for i in s.size]; img = go_img(t) ## F4
                 case 65474: s.size = [min(i+1, 9) for i in s.size]; img = go_img(t) ## F5
-main()
+    return img
+def main():
+    img = main_()
+    img.ferme()
+
+if __name__ == "__main__":
+    main()

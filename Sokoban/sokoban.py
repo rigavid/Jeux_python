@@ -1,29 +1,32 @@
 from tsanap import *
-os.chdir(__file__[::-1].split("/",1)[1][::-1])
-from touches_sokoban import keys_j1
+try: from touches_sokoban import keys_j1
+except: from Sokoban.touches_sokoban import keys_j1
 import keyboard as kb
 class invalidLevel(Exception):
     def __init__(self) -> None:
         super().__init__('Le niveau est invalide')
 num_v = 30
 num_v2 = 10
+nf = "Sokoban"
+path = __file__[::-1].split("/",1)[1][::-1]
 class tableau:
     champs_infos = ['Nom du niveau', 'Niveau par', 'Date de création']
     def __init__(self, level=0, ly=layout()) -> None:
-        self.ly = layout()
+        self.ly = layout(nom=nf)
+        ly.frames = []
         self.img_jeu = image.new_img(dimensions=[1920,980], fond=col.cyan)
         self.img_inf = image.new_img(dimensions=[1920, 100], fond=col.new('808080'))
         self.fr_jeu = self.ly.frame(img=copy.deepcopy(self.img_jeu))
         self.fr_inf = self.ly.frame(img=copy.deepcopy(self.img_inf), pos=[0,980])
         self.infos = {}
-        level_names = os.listdir('./Sokoban_levels')
+        level_names = os.listdir(f'{path}/Sokoban_levels')
         if level > 0 and level < len(level_names):
             nom = level_names[level]
-            with open(f'./Sokoban_levels/{nom}', 'r', encoding='utf8') as file:
+            with open(f'{path}/Sokoban_levels/{nom}', 'r', encoding='utf8') as file:
                 lev = file.read()
         else:
             nom = level_names[level]
-            with open(f'./Sokoban_levels/{nom}', 'r', encoding='utf8') as file:
+            with open(f'{path}/Sokoban_levels/{nom}', 'r', encoding='utf8') as file:
                 lev = file.read()
         format = nom[len(nom)-nom[::-1].index('.')::]
         print(f'Format "{format}"')
@@ -171,13 +174,10 @@ class tableau:
         self.fr_inf.img.ecris(txt, [1920/2, 50])
         return self.ly.montre(True)
 
-def main() -> None:
-    minimum, maximum = 0, len(os.listdir('./Sokoban_levels'))
+def main_() -> None:
+    minimum, maximum = 0, len(os.listdir(f'{path}/Sokoban_levels'))
     try:
-        try:
-            n_lev = int(input('Level: '))
-        except:
-            n_lev = 0
+        n_lev = 1
         while n_lev < maximum:
             arr=tableau(n_lev);r=False
             clear_terminal();print(f'Level {n_lev:0>2}\nMoves {arr.moves:0>4}');arr.imprimme()
@@ -206,4 +206,7 @@ def main() -> None:
         arr.imprimme()
         print(e)
     except KeyboardInterrupt: pass
+def main():
+    main_()
+    cv2.destroyWindow(nf)
 if __name__ == '__main__': main()

@@ -1,6 +1,9 @@
-from Outils.vecteurs import Vector2D
-from Outils.cvt import *
-from badges import *
+try: from Outils.vecteurs import Vector2D
+except: from Asteroids.Outils.vecteurs import Vector2D
+try: from Outils.cvt import *
+except: from Asteroids.Outils.cvt import *
+try: from badges import *
+except: from Asteroids.badges import *
 import keyboard
 
 ## TODO ##
@@ -14,12 +17,16 @@ game_size = 1
 game_vel = 1
 shoot_range = 50
 max_vel = 100
+nom_fenetre = "Maelstrom"
 ## Astéroides ##
 vel_min = 1.4142135623731
 vel_max = vel_min*1.3
 ## Navette ##
 immunity_time = 1.5
 
+class EXIT(Exception):
+    def __init__(self,*args):super().__init__(args)
+    def __str__(self):return f'GAME EXIT'
 class frame:
     size = [p*game_size for p in [long, haut]]
     points = 0
@@ -167,7 +174,7 @@ class power_up:
                 if not chc in nav.bonuses: choices.append(chc)
             if len(choices) == 0: self.type = bonus.shield
             else: self.type = rd.choice(choices)
-            if self.type == bonus.shield: navette.shield_qt += 10
+            if self.type == bonus.shield: nav.shield_qt += 10
             else: nav.bonuses.append(self.type)
             self.remove = True
     def dessine(self, img):
@@ -264,10 +271,10 @@ def end(img_s, result=False):
     t = time.time()
     img = ecris(copy.deepcopy(img_s), ('You won' if result else 'Game Over') + f'\n{frame.points}', hg, bd, 3, rouge)
     while diff(t, time.time()) < 1:
-        if montre(img, destroy=non) == 27: raise SystemExit
-    wk = montre(img, destroy=non, attente=0)
+        if montre(img, nom_fenetre, destroy=non, ) == 27: raise EXIT
+    wk = montre(img, nom_fenetre, destroy=non, attente=0)
     match wk:
-        case 27: raise SystemExit
+        case 27: raise EXIT
         case _: return
 def nuit_etoilee(size=[1920, 1080]):
     img = image(dimensions=size[::-1]+[3], remplissage=noir)
@@ -277,12 +284,13 @@ def nuit_etoilee(size=[1920, 1080]):
     for etoile in pts:
         cercle(img, etoile, rd.randint(1, 2), blanc, 0)
     return(img)
-def main():
+def main_():
     t = time.time()
     img_s = nuit_etoilee(frame.size)
     while diff(t, time.time()) < 3:
-        montre(ecris(copy.deepcopy(img_s), 'Welcome commander!\nYou\'re in charge of\nthe Maelstrom spaceship.\nGood luck!', hg, bd, 3, bleu, 10), attente=1, destroy=non)
-
+        wk = montre(ecris(copy.deepcopy(img_s), 'Welcome commander!\nYou\'re in charge of\nthe Maelstrom spaceship.\nGood luck!', hg, bd, 3, bleu, 10), nom_fenetre, attente=1, destroy=non)
+        match wk:
+            case 27: raise EXIT
     while True:
         if True: ## Vars ##
             frame.points = 0
@@ -340,9 +348,9 @@ def main():
                     if ufo.remove:
                         frame.points += 400
                         ovnis.remove(ufo)
-            montre(img, attente=1, destroy=non)
+            montre(img, nom_fenetre, attente=1, destroy=non)
             if True: ## Get actions ##
-                if keyboard.is_pressed('esc'): raise SystemExit
+                if keyboard.is_pressed('esc'): raise EXIT
                 try:
                     if keyboard.is_pressed('up') or keyboard.is_pressed('w'):
                         navette.accel = True
@@ -364,5 +372,8 @@ def main():
                         navette.shield_on = False
                     if keyboard.is_pressed('tab') or keyboard.is_pressed('alt'): navette.shoote()
                 except: pass
+def main():
+    try: main_()
+    except EXIT: ferme(nom_fenetre)
 if __name__ == "__main__":
     main()
