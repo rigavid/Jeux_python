@@ -11,6 +11,7 @@ class mmp: ## Maximorpion (MMP)
         self.matrix = np.array([[0 for _ in range(self.x)] for _ in range(self.y)])
         self.trait = True
         self.lastm = -1
+        self.winner = -1
     def __str__(self) -> str:
         return "\n".join(" ".join(str(self.matrix[x,y]) for x in range(self.x)) for y in range(self.y))
     def image(self) -> image:
@@ -25,8 +26,21 @@ class mmp: ## Maximorpion (MMP)
             for y in range(9):
                 c = self.matrix[x,y]
                 if c==0: continue
-                img.ecris("X" if c==1 else "O", [moyenne(X[x], X[x+1]), moyenne(Y[y], Y[y+1])], col.blue)
+                img.ecris("x" if c==1 else "o", [moyenne(X[x], X[x+1]), moyenne(Y[y], Y[y+1])], col.blue if c==1 else col.red, 5, 5, cv2.FONT_HERSHEY_SIMPLEX, 2)
         return img
+    def finished(self) -> bool:
+        for game in [self.matrix[x:x+3, y:y+3] for x in range(0,9,3) for y in range(0,9,3)]:
+            M = [game[0:3, n] for n in range(3)] + [game[n, 0:3] for n in range(3)]
+            M += [[game[n, n] for n in range(3)],  [game[2-n, n] for n in range(3)]]
+            for m in M:
+                if not 0 in set(m) and len(set(m)) == 1:
+                    self.winner = m[0]
+                    return True 
+        return False
+    def playable(self) -> bool:
+        if not 0 in self.matrix:
+            return self.finished()
+        return True
     def legal(self, game, case) -> bool:
         if self.lastm in [-1, game]:
             if self.matrix[case[0],case[1]] == 0:
@@ -34,23 +48,28 @@ class mmp: ## Maximorpion (MMP)
         return False
     def start(self) -> bool | None:
         fs = False
-        while True:
-            img = self.image()
-            img.montre(1, fullscreen=fs)
-            cv2.setMouseCallback(img.nom, get_mouse)
-            while True:
-                if mouse.click:
-                    if self.legal(mouse.game, mouse.case):
-                        self.matrix[mouse.case[0], mouse.case[1]] = 1 if self.trait else 2
-                        self.lastm = mouse.game
-                    mouse.click = False
-                wk = img.montre(1, fullscreen=fs)
-                if img.is_closed(): return
-                match wk:
-                    case 27: return
-                    case 32: fs = not fs
-                    case -1: ...
-                    case _: ...
+        img = self.image()
+        img.montre(1, fullscreen=fs)
+        cv2.setMouseCallback(img.nom, get_mouse)
+        while self.playable() and not self.finished():
+            if mouse.click:
+                if self.legal(mouse.game, mouse.case):
+                    self.matrix[mouse.case[0], mouse.case[1]] = 1 if self.trait else 2
+                    self.lastm = [i%3 for i in mouse.case]
+                    self.trait = not self.trait
+                    img = self.image()
+                mouse.click = False
+            wk = img.montre(1, fullscreen=fs)
+            if img.is_closed(): return
+            match wk:
+                case 27: return
+                case 32: fs = not fs
+                case -1: ...
+                case 65470: cv2.moveWindow(img.nom, 0, 0) ## f1
+                case 65471: cv2.moveWindow(img.nom, screen[0], 0) ## f2
+        img.ecris(f"{"J1" if self.winner == 1 else "J2"} won!", ct_sg(mmp.p1, mmp.p4), col.red, 12, 3, lineType=2)
+        img.ecris(f"{"J1" if self.winner == 1 else "J2"} won!", ct_sg(mmp.p1, mmp.p4), col.black, 5, 3, lineType=2)
+        img.montre(fullscreen=fs)
 
 
 class mouse:
