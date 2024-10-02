@@ -35,6 +35,7 @@ class mmp: ## Maximorpion (MMP)
         self.winner = -1
         self.wgames = [0, 0]
         self.ended = []
+        self.shifumi = False
 
     def restart(self, trait=None) -> None:
         self.matrix = np.array([[0 for _ in range(self.x)] for _ in range(self.y)])
@@ -45,6 +46,7 @@ class mmp: ## Maximorpion (MMP)
         mouse.click = False
         mouse.pos = [-1, -1]
         mouse.game = -1
+        self.shifumi = False
 
     def __str__(self) -> str:
         return "\n".join(" ".join(str(self.matrix[x,y]) for x in range(self.x)) for y in range(self.y))
@@ -77,6 +79,11 @@ class mmp: ## Maximorpion (MMP)
             if True in playable:
                 a, b = [X[game[0]*3], Y[game[1]*3]], [X[(game[0]+1)*3], Y[(game[1]+1)*3]]
                 img.rectangle(a, b, col.red, 3, 2)
+            elif game==self.lastm:
+                self.shifumi = True
+                print("Shifumi")
+                img.ecris("Shi-fu-mi !", ct_sg(mmp.p1, mmp.p4), col.red, 16, 3, lineType=2)
+                img.ecris("Shi-fu-mi !", ct_sg(mmp.p1, mmp.p4), col.noir, 8, 3, lineType=2)
         for game in self.ended:
             a, b = [X[game[0]*3], Y[game[1]*3]], [X[game[0]*3+3], Y[game[1]*3+3]]
             ct = ct_sg(a, b)
@@ -125,10 +132,8 @@ class mmp: ## Maximorpion (MMP)
         return True
 
     def legal(self, game, case) -> bool:
-        r = False
-        if self.lastm in self.ended: r = True
         if game in self.ended: return False
-        if self.lastm in [-1, game] or r:
+        if self.lastm in [-1, game]:
             if self.matrix[case[0],case[1]] == 0:
                 return True
         return False
@@ -152,6 +157,25 @@ class mmp: ## Maximorpion (MMP)
                 case 27: raise endGame
                 case 32 | 8: mmp.fs = not mmp.fs
                 case 114: return self.restart(True)
+                case 116:
+                    self.restart()
+                    test_matrix = [
+                        [1, 1, 2, 0, 0, 0, 0, 0, 0],
+                        [2, 1, 1, 0, 0, 0, 0, 0, 0],
+                        [1, 2, 2, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                    self.matrix = np.array(test_matrix)
+                    img = self.image()
+                case 115: ## S (Shi-fu-mi)
+                    if self.shifumi:
+                        self.lastm = -1
+                        img = self.image()
                 case -1: ...
                 case 65470: cv2.moveWindow(img.nom, 0, 0) ## f1
                 case 65471: cv2.moveWindow(img.nom, screen[0], 0) ## f2
