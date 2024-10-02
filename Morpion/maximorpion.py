@@ -3,6 +3,7 @@ class endGame(Exception): ...
 class mouse:
     click = False
     pos = [-1, -1]
+    game = -1
 
 def get_cases(pos) -> tuple:
     return ([int(i) for i in[(pos[0]-mmp.p1[0])/dist(mmp.p1,mmp.p2)*3,(pos[1]-mmp.p1[1])/dist(mmp.p1,mmp.p3)*3]] for n in [3, mmp.cases])
@@ -33,19 +34,23 @@ class mmp: ## Maximorpion (MMP)
         self.lastm = -1
         self.winner = -1
         self.wgames = [0, 0]
+        self.ended = []
 
     def restart(self, trait=None) -> None:
         self.matrix = np.array([[0 for _ in range(self.x)] for _ in range(self.y)])
         self.trait = True if trait == None else trait
         self.lastm = -1
+        self.ended = []
         self.winner = -1
         mouse.click = False
         mouse.pos = [-1, -1]
+        mouse.game = -1
 
     def __str__(self) -> str:
         return "\n".join(" ".join(str(self.matrix[x,y]) for x in range(self.x)) for y in range(self.y))
     
     def image(self) -> image:
+        self.finished()
         img = image(nom=self.name, img=image.new_img(fond=col.green, dimensions=screen))
         p1, p2, p3, p4 = self.p1, self.p2, self.p3, self.p4
         c = [0, 3, 6, 9]
@@ -61,7 +66,31 @@ class mmp: ## Maximorpion (MMP)
         img.ecris(f"A {"X" if self.trait else "O"} de\njouer", ct_sg([0, 0], p3), col.blue if self.trait else col.red, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
         img.ecris(f"X: {self.wgames[0]}\n", ct_sg(p2, screen), col.blue, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
         img.ecris(f"\nO: {self.wgames[1]}", ct_sg(p2, screen), col.red,  3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
+        if mouse.game != -1:
+            game = [i%3 for i in mouse.case]
+            if game not in self.ended:
+                a, b = [X[game[0]*3], Y[game[1]*3]], [X[(game[0]+1)*3], Y[(game[1]+1)*3]]
+                img.rectangle(a, b, col.red, 3, 2)
+        for game in self.ended:
+            a, b = [X[game[0]*3], Y[game[1]*3]], [X[game[0]*3+3], Y[game[1]*3+3]]
+            ct = ct_sg(a, b)
+            match self.winned(game):
+                case 1:
+                    pts = [coosCercle(ct, dist(a,b)*0.45, an+45) for an in range(0, 360, 90)]
+                    img.ligne(pts[0], pts[2], col.blue, 15, 2)
+                    img.ligne(pts[1], pts[3], col.blue, 15, 2)
+                case 2:
+                    img.cercle(ct, diff(a[0], b[0])*0.45, col.red, 15, 2)
         return img
+
+    def winned(self, game) -> int | None:
+        g = self.matrix[game[0]*3:game[0]*3+3, game[1]*3:game[1]*3+3]
+        M = [g[0:3, n] for n in range(3)] + [g[n, 0:3] for n in range(3)]
+        M += [[g[n, n] for n in range(3)],  [g[2-n, n] for n in range(3)]]
+        for m in M:
+            if not 0 in set(m) and len(set(m)) == 1:
+                return m[0]
+        return None
 
     def finished(self) -> bool:
         for game in [self.matrix[x:x+3, y:y+3] for x in range(0,9,3) for y in range(0,9,3)]:
@@ -69,18 +98,19 @@ class mmp: ## Maximorpion (MMP)
             M += [[game[n, n] for n in range(3)],  [game[2-n, n] for n in range(3)]]
             for m in M:
                 if not 0 in set(m) and len(set(m)) == 1:
-                    self.winner = m[0]
-                    self.wgames[m[0]-1] += 1
+                    if mouse.game not in self.ended:
+                        self.ended.append(mouse.game)
+                        self.lastm = -1
                     return True 
         return False
 
     def playable(self) -> bool:
-        if not 0 in self.matrix:
-            return self.finished()
+        if not 0 in self.matrix and len(self.ended) <= 9:
+            return False
         return True
 
     def legal(self, game, case) -> bool:
-        if self.lastm in [-1, game]:
+        if self.lastm in [-1, game] and game not in self.ended:
             if self.matrix[case[0],case[1]] == 0:
                 return True
         return False
@@ -89,7 +119,7 @@ class mmp: ## Maximorpion (MMP)
         img = self.image()
         img.montre(1, fullscreen=mmp.fs)
         cv2.setMouseCallback(img.nom, get_mouse)
-        while self.playable() and not self.finished():
+        while self.playable():
             if mouse.click:
                 if self.legal(mouse.game, mouse.case):
                     self.matrix[mouse.case[0], mouse.case[1]] = 1 if self.trait else 2
