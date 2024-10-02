@@ -50,7 +50,6 @@ class mmp: ## Maximorpion (MMP)
         return "\n".join(" ".join(str(self.matrix[x,y]) for x in range(self.x)) for y in range(self.y))
     
     def image(self) -> image:
-        self.finished()
         img = image(nom=self.name, img=image.new_img(fond=col.green, dimensions=screen))
         p1, p2, p3, p4 = self.p1, self.p2, self.p3, self.p4
         c = [0, 3, 6, 9]
@@ -73,10 +72,8 @@ class mmp: ## Maximorpion (MMP)
         img.ecris(f"A {"X" if self.trait else "O"} de\njouer", ct_sg([0, 0], p3), col.blue if self.trait else col.red, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
         img.ecris(f"X: {self.wgames[0]}\n", ct_sg(p2, screen), col.blue, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
         img.ecris(f"\nO: {self.wgames[1]}", ct_sg(p2, screen), col.red,  3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
-        print(self.ended)
         for game in [[x, y] for x in range(3) for y in range(3)]:
             playable = [self.legal([game[0], game[1]], [game[0]*3+x_, game[1]*3+y_]) for x_ in range(3) for y_ in range(3)]
-            print(f"{game} => {playable}")
             if True in playable:
                 a, b = [X[game[0]*3], Y[game[1]*3]], [X[(game[0]+1)*3], Y[(game[1]+1)*3]]
                 img.rectangle(a, b, col.red, 3, 2)
@@ -102,19 +99,29 @@ class mmp: ## Maximorpion (MMP)
         return None
 
     def finished(self) -> None:
+        games = np.array([[0 for _ in range(3)] for _ in range(3)])
         N = [[x,y] for x in range(3) for y in range(3)]
         for n, game in enumerate([self.matrix[x:x+3, y:y+3] for x in range(0,9,3) for y in range(0,9,3)]):
             M = [game[0:3, n] for n in range(3)] + [game[n, 0:3] for n in range(3)]
             M += [[game[n, n] for n in range(3)],  [game[2-n, n] for n in range(3)]]
             for m in M:
-                if not 0 in set(m) and len(set(m)) == 1:
+                if not 0 in m and len(set(m)) == 1:
+                    games[N[n][0], N[n][1]] = m[0]
                     if mouse.game not in self.ended:
                         if N[n]==mouse.game:
                             self.ended.append(mouse.game)
+        M = [games[0:3, n] for n in range(3)] + [games[n, 0:3] for n in range(3)]
+        M += [[games[n, n] for n in range(3)],  [games[2-n, n] for n in range(3)]]
+        for m in M:
+            if not 0 in m and len(set(m)) == 1:
+                self.winner = m[0]
+                self.wgames[m[0]-1] += 1
+                return
 
     def playable(self) -> bool:
         if not 0 in self.matrix and len(self.ended) <= 9:
             return False
+        elif self.winner != -1: return False
         return True
 
     def legal(self, game, case) -> bool:
@@ -136,6 +143,7 @@ class mmp: ## Maximorpion (MMP)
                     self.matrix[mouse.case[0], mouse.case[1]] = 1 if self.trait else 2
                     self.lastm = [i%3 for i in mouse.case]
                     self.trait = not self.trait
+                    self.finished()
                     img = self.image()
                 mouse.click = False
             wk = img.montre(1, fullscreen=mmp.fs)
