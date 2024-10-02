@@ -78,10 +78,10 @@ class mmp: ## Maximorpion (MMP)
             playable = [self.legal([game[0], game[1]], [game[0]*3+x_, game[1]*3+y_]) for x_ in range(3) for y_ in range(3)]
             if True in playable:
                 a, b = [X[game[0]*3], Y[game[1]*3]], [X[(game[0]+1)*3], Y[(game[1]+1)*3]]
-                img.rectangle(a, b, col.red, 3, 2)
+                ep = 3
+                img.rectangle([i+ep for i in a], [i-ep for i in b], col.red, ep, 2)
             elif game==self.lastm:
                 self.shifumi = True
-                print("Shifumi")
                 img.ecris("Shi-fu-mi !", ct_sg(mmp.p1, mmp.p4), col.red, 16, 3, lineType=2)
                 img.ecris("Shi-fu-mi !", ct_sg(mmp.p1, mmp.p4), col.noir, 8, 3, lineType=2)
         for game in self.ended:
