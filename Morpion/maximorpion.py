@@ -60,15 +60,24 @@ class mmp: ## Maximorpion (MMP)
         for n, y in enumerate(Y): img.ligne([p1[0], y], [p4[0], y], col.noir, 10 if n in c else 3, 2)
         for x in range(9):
             for y in range(9):
-                c = self.matrix[x,y]
-                if c==0: continue
-                img.ecris("x" if c==1 else "o", [moyenne(X[x], X[x+1]), moyenne(Y[y], Y[y+1])], col.blue if c==1 else col.red, 5, 5, cv2.FONT_HERSHEY_SIMPLEX, 2)
+                match self.matrix[x,y]:
+                    case 0: continue
+                    case 1:
+                        ct = [moyenne(X[x], X[x+1]), moyenne(Y[y], Y[y+1])]
+                        pts = [coosCercle(ct, dist([X[0],Y[0]],[X[1],Y[1]])*0.3, an+45) for an in range(0,360,90)]
+                        img.ligne(pts[0], pts[2], col.bleu, 5, 2)
+                        img.ligne(pts[1], pts[3], col.bleu, 5, 2)
+                    case 2:
+                        ct = [moyenne(X[x], X[x+1]), moyenne(Y[y], Y[y+1])]
+                        img.cercle(ct, diff(X[0],X[1])*0.3, col.red, 5, 2)
         img.ecris(f"A {"X" if self.trait else "O"} de\njouer", ct_sg([0, 0], p3), col.blue if self.trait else col.red, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
         img.ecris(f"X: {self.wgames[0]}\n", ct_sg(p2, screen), col.blue, 3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
         img.ecris(f"\nO: {self.wgames[1]}", ct_sg(p2, screen), col.red,  3, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
-        if mouse.game != -1:
-            game = [i%3 for i in mouse.case]
-            if game not in self.ended:
+        print(self.ended)
+        for game in [[x, y] for x in range(3) for y in range(3)]:
+            playable = [self.legal([game[0], game[1]], [game[0]*3+x_, game[1]*3+y_]) for x_ in range(3) for y_ in range(3)]
+            print(f"{game} => {playable}")
+            if True in playable:
                 a, b = [X[game[0]*3], Y[game[1]*3]], [X[(game[0]+1)*3], Y[(game[1]+1)*3]]
                 img.rectangle(a, b, col.red, 3, 2)
         for game in self.ended:
@@ -92,17 +101,16 @@ class mmp: ## Maximorpion (MMP)
                 return m[0]
         return None
 
-    def finished(self) -> bool:
-        for game in [self.matrix[x:x+3, y:y+3] for x in range(0,9,3) for y in range(0,9,3)]:
+    def finished(self) -> None:
+        N = [[x,y] for x in range(3) for y in range(3)]
+        for n, game in enumerate([self.matrix[x:x+3, y:y+3] for x in range(0,9,3) for y in range(0,9,3)]):
             M = [game[0:3, n] for n in range(3)] + [game[n, 0:3] for n in range(3)]
             M += [[game[n, n] for n in range(3)],  [game[2-n, n] for n in range(3)]]
             for m in M:
                 if not 0 in set(m) and len(set(m)) == 1:
                     if mouse.game not in self.ended:
-                        self.ended.append(mouse.game)
-                        self.lastm = -1
-                    return True 
-        return False
+                        if N[n]==mouse.game:
+                            self.ended.append(mouse.game)
 
     def playable(self) -> bool:
         if not 0 in self.matrix and len(self.ended) <= 9:
@@ -110,7 +118,10 @@ class mmp: ## Maximorpion (MMP)
         return True
 
     def legal(self, game, case) -> bool:
-        if self.lastm in [-1, game] and game not in self.ended:
+        r = False
+        if self.lastm in self.ended: r = True
+        if game in self.ended: return False
+        if self.lastm in [-1, game] or r:
             if self.matrix[case[0],case[1]] == 0:
                 return True
         return False
