@@ -1,6 +1,12 @@
 from tsanap import *
 
-screen = [1366, 768]
+class res:
+    resses = [screen, [1680, 1050], [1366, 768]]
+    resind = -1
+    res = resses[resind]
+    def update():
+        res.resind = (res.resind+1)%len(res.resses)
+        res.res = res.resses[res.resind]
 
 def get_cartes():
     cartes = [f"¬{n}{p}" for p in "♦♥♠♣" for n in "A 2 3 4 5 6 7 8 9 10 J Q K".split()]
@@ -10,10 +16,18 @@ def get_cartes():
 class mouse:
     click = False
     pos = [-1, -1]
+    action = None
 
 def get_mouse(event, x, y, flags, params) -> None:
+    pos = (x, y)
     if event == cv2.EVENT_LBUTTONDOWN: ...
-    elif event == cv2.EVENT_LBUTTONUP: ...
+        # if clicked_in(pos, [sol.p1, sol.p2]):
+        #     for i in sol.get_pickable_cards():
+        #         if clicked_in(pos, i):
+        #             sol.picked_card = i
+        #             click = True
+        #             return
+    elif event == cv2.EVENT_LBUTTONUP and click: ...
 
 class sol:
     x, y = diff(screen[0], screen[1])/4, screen[1]/20
@@ -70,8 +84,16 @@ class sol:
                 img.ecris(val[:-1:], ct_sg(p1, p2), col.noir if val[-1] in "♠♣" else col.red, 3, 3, cv2.FONT_HERSHEY_SIMPLEX)
         return img
     def image(self) -> image:
-        p1, p2, p3, p4, pcr, pcc, pcp, psp = sol.p1, sol.p2, sol.p3, sol.p4, sol.pcr, sol.pcc, sol.pcp, sol.psp
-        img = image(nom=self.name, img=image.new_img(dimensions=screen, fond=col.green))
+        x, y = diff(res.res[0], res.res[1])/4, res.res[1]/20
+        p1, p2, p3, p4 = [x, y], [res.res[0]-x, y], [x, res.res[1]-y], [res.res[0]-x, res.res[1]-y]
+        x, y = dist(p1, p2), dist(p1, p3)
+        pcr = [[p1[0]+x/2, p1[1]], [p2[0], p2[1]+y/4]] #Points cartes resolues
+        pcc = [p1, [p1[0]+x/2, p2[1]+y/4]] #Points cartes cachées
+        pcp = [pcc[0], pt_sg([pcc[0][0], pcc[1][1]], pcc[1], 3)] #Points cartes pioche
+        psp = [pt_sg(pcc[0], [pcc[1][0], pcc[0][1]], 3), pt_sg([pcc[0][0], pcc[1][1]], pcc[1], 1, 3)] #Points shown pioche
+        x_ = lambda i: (p2[0]-p1[0])/7*i
+        pcs = [[[p1[0]+x_(x), pcc[1][1]], [p1[0]+x_(x+1), p4[1]]] for x in range(7)] #Points colonnes solitaire
+        img = image(nom=self.name, img=image.new_img(dimensions=res.res, fond=col.green))
         val = "" if self.cartes == [] else "¬"
         self.dessin_carte(img, pcp, val)
         self.end = [[], ["3a", "qp"], [], []]
@@ -87,8 +109,12 @@ class sol:
             self.dessin_carte(img, pos, val)
         img.rectangle(p1, p4, col.noir, 2, 2) #Bord de la zone de jeu
         img.rectangle(p1, pcr[1], col.noir, 2, 2)
-        # img.rectangle(pcc[0], pcc[1], col.red, 2, 2)
-        # img.rectangle(psp[0], psp[1], col.blue, 2, 2)
+        ## TODO ## TOREMOVE ## DEBUG ##
+        for c in pcs:
+            img.rectangle(c[0], c[-1], col.red, 2, 2)
+        img.rectangle(pcc[0], pcc[1], col.yellow, 2, 2)
+        img.rectangle(psp[0], psp[1], col.blue, 2, 2)
+        img.rectangle(pcr[0], pcr[1], col.magenta, 2, 2)
         return img
     def game(self) -> bool:
         img = self.image()
@@ -98,7 +124,10 @@ class sol:
             if img.is_closed(): break
             match wk:
                 case 27: break
-                case 32: fs = not fs
+                case 32 | 102: fs = not fs
+                case  8 | 114: res.update(); img = self.image()
+                case 65470 | 49: cv2.moveWindow(img.nom,    0, 0) ## F1
+                case 65471 | 50: cv2.moveWindow(img.nom, 1920, 0) ## F2
 
 a = sol()
 a.game()
