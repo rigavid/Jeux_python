@@ -28,38 +28,54 @@ def get_mouse(event, x, y, flags, params) -> None:
     pcs, pcp, psp, pcr = sol.pcs, sol.pcp, sol.psp, sol.pcr
     if event == cv2.EVENT_LBUTTONDOWN and not mouse.click:
         if clicked_in(pos, pcp): mouse.action = actions[0] ## Pioche
-        if clicked_in(pos, psp):
+        if clicked_in(pos, psp): ## Prends carte dans la pioche
             mouse.action = actions[1]
             mouse.reload = True
             mouse.pos = pos
         if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Jeu
             for n, column in enumerate(pcs):
-                if clicked_in(pos, column):
+                if clicked_in(pos, column) and len(sol.jeu[n])>0:
                     mouse.action = actions[2]
+                    mouse.column = n
                     break
         if mouse.action != None: mouse.click = True
     elif event == cv2.EVENT_LBUTTONUP and mouse.click:
-        if clicked_in(pos, pcp) and mouse.action == actions[0]:
+        if clicked_in(pos, pcp) and mouse.action == actions[0]: # Piocher
             sol.update_sel()
             mouse.click = False
-        elif mouse.action == actions[1]:
-            if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]):
+        elif mouse.action == actions[1]: ## Carte venant de la pioche
+            if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Cartes dans le jeu
                 for n, column in enumerate(pcs):
                     if clicked_in(pos, column):
                         sol.jeu[n].append(sol.sel.pop(-1)) ## TODO ## Add rules to when I can put a card here
-            elif clicked_in(pos, pcr):
+            elif clicked_in(pos, pcr): ## Cartes dans la résolution
                 x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
                 for c in range(4):
                     if clicked_in(pos, [[x_(c), pcr[0][1]], [x_(c+1), pcr[1][1]]]): break
-                sol.end[c].append(sol.sel.pop(-1))
+                if sol.end[c] == []: ## TODO ## Add rules to when I can put a card here
+                    if sol.sel[-1][0].lower() == "a": sol.end[c].append(sol.sel.pop(-1))
+                else: sol.end[c].append(sol.sel.pop(-1))
             mouse.click = False
-        if not mouse.click:
-            mouse.reload = True
-            mouse.action = None
+        elif mouse.action == actions[2]:
+            if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Cartes dans le jeu
+                for n, column in enumerate(pcs):
+                    if clicked_in(pos, column) and not n == mouse.column:
+                        sol.jeu[n].append(sol.jeu[mouse.column].pop(-1)) ## TODO ## Add rules to when I can put a card here
+                        break
+                mouse.click = False
+            elif clicked_in(pos, pcr): ## Cartes dans la résolution
+                x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
+                for c in range(4):
+                    if clicked_in(pos, [[x_(c), pcr[0][1]], [x_(c+1), pcr[1][1]]]): break
+                if sol.end[c] == []: ## TODO ## Add rules to when I can put a card here
+                    # if sol.jeu[mouse.column][-1].lower() == "a":
+                    sol.end[c].append(sol.jeu[mouse.column].pop(-1))
+                else: sol.end[c].append(sol.jeu[mouse.column].pop(-1))
+            mouse.click = False
+        if not mouse.click: mouse.reload, mouse.action = True, None
     elif event == cv2.EVENT_MOUSEMOVE and mouse.click:
-        if mouse.action == actions[1]:
-            mouse.pos = pos
-            mouse.reload = True
+        if mouse.action == actions[1]: mouse.pos, mouse.reload = pos, True
+        elif mouse.action == actions[2]: mouse.pos, mouse.reload = pos, True
 
 class sol:
     def __init__(self, nom="Solitaire") -> None:
@@ -138,6 +154,7 @@ class sol:
         for x, column in enumerate(self.jeu):
             pc = pcs[x]
             Y = diff(pc[0][1], pc[1][1])-h
+            if mouse.action == actions[2] and x == mouse.column: column = column[:-1:]
             for y, card in enumerate(column):
                 X = (diff(pc[0][0], pc[1][0])-w)/2
                 pt1, pt2 = [pc[0][0]+X, pc[0][1]+Y/12*y], [pc[1][0]-X, pc[0][1]+Y/12*y+h]
@@ -151,16 +168,17 @@ class sol:
             img.rectangle(pcp[0], pcp[1], col.cyan, 1, 2)
             for c in pcs: img.rectangle(c[0], c[-1], col.red, 2, 2)
         ## Mise à jour de la carte en déplacement
-        sel_c, game_c, res_c, show_c = actions[1::]
         if mouse.click:
             val = False
-            match mouse.action:
-                case sel_c:
-                    try: val = self.sel[-1]
-                    except: return img
+            if mouse.action == actions[1]:
+                try: val = self.sel[-1]
+                except: ...
+            elif mouse.action == actions[2]:
+                try: val = self.jeu[mouse.column][-1]
+                except: ...
             if val:
                 try: self.dessin_carte(img, [[mouse.pos[i]-[w, h][i]/2 for i in [0, 1]], [mouse.pos[i]+[w, h][i]/2 for i in [0, 1]]], val)
-                except: return img
+                except: ...
         return img
     def game(self) -> bool:
         fs = False
