@@ -200,10 +200,10 @@ class sol:
         if val == None or len(val) == 0: img.rectangle(p1, p2, col.black, 1)
         else:
             if type(val) != str and len(val) > 0: val = val[-1]
-            if val[0] == "¬": ##TODO## Faire une couverture jolie pour les cartes
+            if val[0] == "¬":
                 img.rectangle(p1, p2, col.blue, 0)
                 img.rectangle(p1, p2, col.black, 2)
-                ## TODO ##
+                ## TODO ## Faire une couverture jolie pour les cartes
                 img.ecris("?", ct_sg(p1, p2), col.black, 2, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
             else:
                 img.rectangle(p1, p2, col.blanc, 0)
@@ -222,7 +222,7 @@ class sol:
                 for pt, a in [[pt_sg(p1, p2, 9), 0], [pt_sg([p2[0], p2[1]+diff(p1[1], p2[1])*0.055], p1, 9), 180]]:
                     v = diff(p1[1], p2[1])*0.2
                     forme(img, [pt[0], p1[1]+v if a==0 else p2[1]-v], 7)
-                    img.ecris(val[:-1:], pt, color, 2, 1, cv2.FONT_HERSHEY_COMPLEX, 2) # TO DO ## Add rotated text (update tsanap)
+                    img.ecris(val[:-1:], pt, color, 2, 1, cv2.FONT_HERSHEY_COMPLEX, 2) # TODO ## Add rotated text (update tsanap)
     def image(self, r=False) -> image:
         x, y = diff(res.res[0], res.res[1])/4, res.res[1]/20
         p1, p2, p3, p4 = [x, y], [res.res[0]-x, y], [x, res.res[1]-y], [res.res[0]-x, res.res[1]-y]
