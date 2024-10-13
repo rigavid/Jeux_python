@@ -2,7 +2,7 @@ from tsanap import *
 
 class res:
     resses = [screen, [1680, 1050], [1366, 768]]
-    resind = -1
+    resind = 0
     res = resses[resind]
     def update():
         res.resind = (res.resind+1)%len(res.resses)
@@ -10,17 +10,22 @@ class res:
         mouse.reload = True
 
 def get_cartes():
-    cartes = [f"¬{n}{p}" for p in "♦♥♠♣" for n in "A 2 3 4 5 6 7 8 9 10 J Q K".split()]
+    cartes = [f"¬{n}{p}" for p in "♦♥♠♣" for n in "A 2 3 4 5 6 7 8 9 10 V D R".split()]
     np.random.shuffle(cartes)
     return cartes
 
-actions = ["Pioche", "Sel_carte", "Game_carte", "Res_carte", "Show_carte"]
+actions = ["Pioche", "Sel_carte", "Game_carte", "Res_carte"]
 
 class mouse:
     click = False
     pos = [-1, -1]
     action = None
     reload = False
+
+def check_retourne_cartes(sol) -> None:
+    for n in range(len(sol.jeu)):
+        if sol.jeu[n] != [] and sol.jeu[n][-1][0] == "¬":
+            sol.jeu[n][-1] = sol.jeu[n][-1][1::]
 
 def get_mouse(event, x, y, flags, params) -> None:
     pos = (x, y)
@@ -32,12 +37,21 @@ def get_mouse(event, x, y, flags, params) -> None:
             mouse.action = actions[1]
             mouse.reload = True
             mouse.pos = pos
-        if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Jeu
-            for n, column in enumerate(pcs):
-                if clicked_in(pos, column) and len(sol.jeu[n])>0:
-                    mouse.action = actions[2]
-                    mouse.column = n
-                    break
+        if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Prends carte dans le jeu
+            w, h, pcs = sol.w, sol.h, sol.pcs
+            b = False
+            for x, column in enumerate(sol.jeu): ## Dessin cartes jeu
+                pc = pcs[x]
+                Y = diff(pc[0][1], pc[1][1])-h
+                for y, card in [[a, b] for a, b in enumerate(column)][::-1]:
+                    X = (diff(pc[0][0], pc[1][0])-w)/2
+                    pt1, pt2 = [pc[0][0]+X, pc[0][1]+Y/12*y], [pc[1][0]-X, pc[0][1]+Y/12*y+h]
+                    if clicked_in(pos, [pt1, pt2]):
+                        mouse.action = actions[2]
+                        mouse.column, mouse.row = x, y
+                        b = True
+                        break
+                if b: break
         if mouse.action != None: mouse.click = True
     elif event == cv2.EVENT_LBUTTONUP and mouse.click:
         if clicked_in(pos, pcp) and mouse.action == actions[0]: # Piocher
@@ -56,28 +70,75 @@ def get_mouse(event, x, y, flags, params) -> None:
                     if sol.sel[-1][0].lower() == "a": sol.end[c].append(sol.sel.pop(-1))
                 else: sol.end[c].append(sol.sel.pop(-1))
             mouse.click = False
-        elif mouse.action == actions[2]:
-            if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Cartes dans le jeu
-                for n, column in enumerate(pcs):
-                    if clicked_in(pos, column) and not n == mouse.column:
-                        sol.jeu[n].append(sol.jeu[mouse.column].pop(-1)) ## TODO ## Add rules to when I can put a card here
+        elif mouse.action == actions[2]: # Carte(s) venant du jeu
+            if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Carte(s) dans le jeu
+                for x, column in enumerate(pcs):
+                    if clicked_in(pos, column) and not x == mouse.column:
+                        cards = [sol.jeu[mouse.column].pop(y) for y in range(mouse.row, len(sol.jeu[mouse.column]))[::-1]][::-1]
+                        for card in cards: sol.jeu[x].append(card) ## TODO ## Add rules to when I can put a card here
                         break
                 mouse.click = False
-            elif clicked_in(pos, pcr): ## Cartes dans la résolution
+                check_retourne_cartes(sol)
+            elif clicked_in(pos, pcr) and mouse.row == len(sol.jeu[mouse.column])-1: ## Carte dans la résolution
                 x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
                 for c in range(4):
                     if clicked_in(pos, [[x_(c), pcr[0][1]], [x_(c+1), pcr[1][1]]]): break
                 if sol.end[c] == []: ## TODO ## Add rules to when I can put a card here
-                    # if sol.jeu[mouse.column][-1].lower() == "a":
-                    sol.end[c].append(sol.jeu[mouse.column].pop(-1))
+                    if sol.jeu[mouse.column][-1][0].lower() == "a":
+                        sol.end[c].append(sol.jeu[mouse.column].pop(-1))
                 else: sol.end[c].append(sol.jeu[mouse.column].pop(-1))
+                check_retourne_cartes(sol)
             mouse.click = False
         if not mouse.click: mouse.reload, mouse.action = True, None
-    elif event == cv2.EVENT_MOUSEMOVE and mouse.click:
-        if mouse.action == actions[1]: mouse.pos, mouse.reload = pos, True
-        elif mouse.action == actions[2]: mouse.pos, mouse.reload = pos, True
+    elif event == cv2.EVENT_MOUSEMOVE and mouse.click: ## Deplacement d'une carte
+        if mouse.action in actions[1::]: mouse.pos, mouse.reload = pos, True
+
+def carreau(img:image, ct, taille, an=0) -> None:
+    v = 1920/res.res[0]+2
+    a, b = taille*5/v, taille*3/v
+    pts = [coosCercle(ct, [a, b][ind%2], [i+90 for i in range(0, 360, 90)][ind]+an) for ind in range(4)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.red[::-1], cv2.LINE_AA)
+def coeur(img, ct, taille=1, an=0) -> None:
+    v = 1920/res.res[0]+2
+    a, b = taille*3/v, taille*5/v
+    pts = [coosCercle(ct, [a, b][ind%2], [i for i in range(0, 270, 90)][ind]+an) for ind in range(3)] + [coosCercle(ct, a, 240+an), coosCercle(ct, a/2, 270+an), coosCercle(ct, a, 300+an)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.red[::-1], cv2.LINE_AA)
+def pique(img, ct, taille=1, an=0) -> None:
+    v = 1920/res.res[0]+2
+    a, b = taille*3/v, taille*5/v
+    pts = [coosCercle(ct, [a, b][ind%2], [i+180 for i in range(0, 270, 90)][ind]+an) for ind in range(3)] + [coosCercle(ct, a, 60+an), ct, coosCercle(ct, b, 85+an), coosCercle(ct, b, 95+an), ct, coosCercle(ct, a, 120+an)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.black[::-1], cv2.LINE_AA)
+def trefle(img:image, ct, taille=1, an=0) -> None:
+    v = 1920/res.res[0]+2
+    a, b = taille*3/v, taille*5/v
+    pts = [ct, coosCercle(ct, b, 85+an), coosCercle(ct, b, 95+an)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.black[::-1], cv2.LINE_AA)
+    for c in [coosCercle(ct, a, 270+an)] + [coosCercle(ct, a, ang+an) for ang in [0, 180]]:
+        img.cercle(c, a/2, col.noir, 0, 2)
+        img.ligne(ct, c, col.noir, 6/v, 2)
 
 class sol:
+    def positions_figures(self, p1, p4) -> list:
+        p2, p3 = [p4[0], p1[1]], [p1[0], p4[1]]
+        cg, cd = ct_sg(p1, p3), ct_sg(p2, p4)
+        cth, ctb = ct_sg(p1, cd), ct_sg(p4, cg)
+        ct = ct_sg(p1, p4)
+        pts = [
+            [ct], # As
+            [cth, ctb], # 2
+            [cth, ctb, ct], # 3
+            [ct_sg(p, ct) for p in [p1, p2, p3, p4]], # 4
+            [ct_sg(p, ct) for p in [p1, p2, p3, p4]] + [ct], # 5
+            [ct_sg(p, ct) for p in [p1, p2, p3, p4]] + [ct_sg(pt, ct) for pt in[cg, cd]], # 6
+            [ct_sg(p, ct) for p in [p1, p2, p3, p4]] + [ct_sg(pt, ct) for pt in[cg, cd]] + [pt_sg(cth, ctb, 2)], # 7
+            [ct_sg(p, ct) for p in [p1, p2, p3, p4]] + [ct_sg(pt, ct) for pt in[cg, cd]] + [pt_sg(cth, ctb, 3), pt_sg(ctb, cth, 3)], # 8
+            [ct_sg([cth, ctb][i], [[p1, p2, cg, cd], [cg, cd, p3, p4]][i][j]) for i in range(2) for j in range(4)] + [ct], # 9
+            [ct_sg([cth, ctb][i], [[p1, p2, cg, cd], [cg, cd, p3, p4]][i][j]) for i in range(2) for j in range(4)] + [cth, ctb], # 10
+        ]
+        sens = [ [0], [0, 180], [0, 180, 0], [0, 0, 180, 180], [0, 0, 180, 180, 0], [0, 0, 180, 180, 0, 0],
+            [0, 0, 180, 180, 0, 0, 0], [0, 0, 180, 180, 0, 0, 0, 180], [0, 0, 0, 0, 180, 180, 180, 180, 0],
+            [0, 0, 0, 0, 180, 180, 180, 180, 0, 180] ]
+        return [zip(pts[i], sens[i]) for i in range(min(len(pts), len(sens)))]
     def __init__(self, nom="Solitaire") -> None:
         self.debug = False
         self.name = nom
@@ -109,7 +170,7 @@ class sol:
         else:
             self.cartes = [f"¬{i}" for i in self.sel]
             self.sel = []
-    def dessin_carte(self, img, pos, val="¬") -> image:
+    def dessin_carte(self, img, pos, val="¬") -> None:
         p1, p2 = pos
         offset = dist(p1, p2)/20
         p1, p2 = [i+offset for i in p1], [i-offset for i in p2]
@@ -119,12 +180,26 @@ class sol:
             if val[0] == "¬": ##TODO## Faire une couverture jolie pour les cartes
                 img.rectangle(p1, p2, col.blue, 0)
                 img.rectangle(p1, p2, col.black, 2)
+                ## TODO ##
                 img.ecris("?", ct_sg(p1, p2), col.black, 2, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
-            else:  ##TODO## Faire un design joli pour les cartes
+            else:
                 img.rectangle(p1, p2, col.blanc, 0)
                 img.rectangle(p1, p2, col.black, 2)
-                img.ecris(val[:-1:], ct_sg(p1, p2), col.noir if val[-1] in "♠♣" else col.red, 3, 3, cv2.FONT_HERSHEY_SIMPLEX)
-        return img
+                color = col.noir if val[-1] in "♠♣" else col.red
+                match val[-1]: # ♦♥♠♣
+                    case "♦": forme = carreau
+                    case "♥": forme = coeur
+                    case "♠": forme = pique
+                    case "♣": forme = trefle
+                n = val[:-1:]
+                if n.lower() not in "vdr":
+                    t = 9
+                    if n.lower() == "a": n, t = 1, 25
+                    for pt, an in self.positions_figures(p1, p2)[int(n)-1]: forme(img, pt, t, an)
+                for pt, a in [[pt_sg(p1, p2, 9), 0], [pt_sg([p2[0], p2[1]+diff(p1[1], p2[1])*0.055], p1, 9), 180]]:
+                    v = diff(p1[1], p2[1])*0.2
+                    forme(img, [pt[0], p1[1]+v if a==0 else p2[1]-v], 7)
+                    img.ecris(val[:-1:], pt, color, 2, 1, cv2.FONT_HERSHEY_COMPLEX, 2) # TO DO ## Add rotated text (update tsanap)
     def image(self, r=False) -> image:
         x, y = diff(res.res[0], res.res[1])/4, res.res[1]/20
         p1, p2, p3, p4 = [x, y], [res.res[0]-x, y], [x, res.res[1]-y], [res.res[0]-x, res.res[1]-y]
@@ -135,23 +210,21 @@ class sol:
         psp = [pt_sg(pcc[0], [pcc[1][0], pcc[0][1]], 3), pt_sg([pcc[0][0], pcc[1][1]], pcc[1], 1, 3)] #Points shown pioche # Centre haut gauche
         x_ = lambda i: (p2[0]-p1[0])/7*i
         pcs = [[[p1[0]+x_(x), pcc[1][1]], [p1[0]+x_(x+1), p4[1]]] for x in range(7)] #Points colonnes solitaire
-        h = diff(pcr[0][1], pcr[1][1])
-        w = diff(pcp[0][0], pcp[1][0])
+        w, h = diff(pcp[0][0], pcp[1][0]), diff(pcr[0][1], pcr[1][1])
+        self.w, self.h = w, w
         self.pcr, self.pcc, self.pcp, self.psp, self.pcs = pcr, pcc, pcp, psp, pcs
         img = image(nom=self.name, img=image.new_img(dimensions=res.res, fond=col.green))
         if r: img.ecris(f"{res.res[0]}x{res.res[1]}", [100, 25], col.black, 1, 1, cv2.FONT_HERSHEY_SIMPLEX, 2)
         self.dessin_carte(img, pcp, "" if self.cartes == [] else "¬")
         x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
-        for c in range(4):
-            pos = [[x_(c), pcr[0][1]], [x_(c+1), pcr[1][1]]]
-            self.dessin_carte(img, pos, self.end[c])
+        for c in range(4): self.dessin_carte(img, [[x_(c), pcr[0][1]], [x_(c+1), pcr[1][1]]], self.end[c])
         x_ = lambda i: psp[0][0]+w*i
         for i, n in enumerate([0, 0.5, 1][:min(3, len(self.sel))-1:] if mouse.click and mouse.action == actions[1] else [0, 0.5, 1]):
             pos = [[x_(n), psp[0][1]], [x_(n+1), psp[1][1]]]
             try: val = self.sel[-3::][i]
             except: continue
             self.dessin_carte(img, pos, val)
-        for x, column in enumerate(self.jeu):
+        for x, column in enumerate(self.jeu): ## Dessin cartes jeu
             pc = pcs[x]
             Y = diff(pc[0][1], pc[1][1])-h
             if mouse.action == actions[2] and x == mouse.column: column = column[:-1:]
@@ -161,8 +234,7 @@ class sol:
                 self.dessin_carte(img, [pt1, pt2], self.jeu[x][y])
         img.rectangle(p1, p4, col.noir, 2, 2) #Bord de la zone de jeu
         img.ligne([pcc[0][0], pcr[1][1]], pcr[1], col.noir, 2, 2) #Bord2 de la zone de jeu
-        ## TODO ## TOREMOVE ## DEBUG ##
-        if self.debug:
+        if self.debug: ## TOREMOVE ## DEBUG ##
             img.rectangle(pcr[0], pcr[1], col.magenta, 3, 2)
             img.rectangle(psp[0], psp[1], col.blue, 2, 2)
             img.rectangle(pcp[0], pcp[1], col.cyan, 1, 2)
@@ -188,9 +260,9 @@ class sol:
         cv2.setMouseCallback(img.nom, get_mouse, self)
         while True:
             wk = img.montre(1, fullscreen=fs)
-            if img.is_closed(): break
+            if img.is_closed(): return
             match wk:
-                case 27: break
+                case 27: return
                 case 32 | 102: fs = not fs
                 case  8 | 114: res.update()
                 case 65470 | 49: cv2.moveWindow(img.nom, 0, 0) ## F1 or 1
