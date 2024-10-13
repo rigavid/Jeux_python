@@ -8,9 +8,9 @@ class res:
         res.resind = (res.resind+1)%len(res.resses)
         res.res = res.resses[res.resind]
         mouse.reload = True
-
+cartes_types = "A 2 3 4 5 6 7 8 9 10 V D R"
 def get_cartes():
-    cartes = [f"¬{n}{p}" for p in "♦♥♠♣" for n in "A 2 3 4 5 6 7 8 9 10 V D R".split()]
+    cartes = [f"¬{n}{p}" for p in "♦♥♠♣" for n in cartes_types.split()]
     np.random.shuffle(cartes)
     return cartes
 
@@ -32,31 +32,26 @@ def get_mouse(event, x, y, flags, params) -> None:
     sol = params
     pcs, pcp, psp, pcr = sol.pcs, sol.pcp, sol.psp, sol.pcr
     if event == cv2.EVENT_LBUTTONDOWN and not mouse.click:
-        if clicked_in(pos, pcp): mouse.action = actions[0] ## Pioche
+        if clicked_in(pos, pcp): mouse.action = actions[0] ## Nouvelle pioche
         if clicked_in(pos, psp): ## Prends carte dans la pioche
             mouse.action = actions[1]
             mouse.reload = True
             mouse.pos = pos
         if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Prends carte dans le jeu
             w, h, pcs = sol.w, sol.h, sol.pcs
-            b = False
-            for x, column in enumerate(sol.jeu): ## Dessin cartes jeu
+            for x, column in enumerate(sol.jeu):
                 pc = pcs[x]
                 Y = diff(pc[0][1], pc[1][1])-h
                 for y, card in [[a, b] for a, b in enumerate(column)][::-1]:
                     X = (diff(pc[0][0], pc[1][0])-w)/2
                     pt1, pt2 = [pc[0][0]+X, pc[0][1]+Y/12*y], [pc[1][0]-X, pc[0][1]+Y/12*y+h]
                     if clicked_in(pos, [pt1, pt2]):
-                        mouse.action = actions[2]
-                        mouse.column, mouse.row = x, y
-                        b = True
+                        if sol.jeu[x][y][0] != "¬":
+                            mouse.action, mouse.column, mouse.row = actions[2], x, y
                         break
-                if b: break
         if mouse.action != None: mouse.click = True
     elif event == cv2.EVENT_LBUTTONUP and mouse.click:
-        if clicked_in(pos, pcp) and mouse.action == actions[0]: # Piocher
-            sol.update_sel()
-            mouse.click = False
+        if clicked_in(pos, pcp) and mouse.action == actions[0]: sol.update_sel() # Nouvelle pioche
         elif mouse.action == actions[1]: ## Carte venant de la pioche
             if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Cartes dans le jeu
                 for n, column in enumerate(pcs):
@@ -66,10 +61,12 @@ def get_mouse(event, x, y, flags, params) -> None:
                 x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
                 for c in range(4):
                     if clicked_in(pos, [[x_(c), pcr[0][1]], [x_(c+1), pcr[1][1]]]): break
-                if sol.end[c] == []: ## TODO ## Add rules to when I can put a card here
+                if sol.end[c] == []:
                     if sol.sel[-1][0].lower() == "a": sol.end[c].append(sol.sel.pop(-1))
-                else: sol.end[c].append(sol.sel.pop(-1))
-            mouse.click = False
+                else:
+                    if sol.end[c][-1][-1] == sol.sel[-1][-1]:
+                        if cartes_types.split().index(sol.sel[-1][:-1:])-cartes_types.split().index(sol.end[c][-1][:-1:]) == 1:
+                            sol.end[c].append(sol.sel.pop(-1))
         elif mouse.action == actions[2]: # Carte(s) venant du jeu
             if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Carte(s) dans le jeu
                 for x, column in enumerate(pcs):
@@ -77,7 +74,6 @@ def get_mouse(event, x, y, flags, params) -> None:
                         cards = [sol.jeu[mouse.column].pop(y) for y in range(mouse.row, len(sol.jeu[mouse.column]))[::-1]][::-1]
                         for card in cards: sol.jeu[x].append(card) ## TODO ## Add rules to when I can put a card here
                         break
-                mouse.click = False
                 check_retourne_cartes(sol)
             elif clicked_in(pos, pcr) and mouse.row == len(sol.jeu[mouse.column])-1: ## Carte dans la résolution
                 x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
@@ -86,10 +82,12 @@ def get_mouse(event, x, y, flags, params) -> None:
                 if sol.end[c] == []: ## TODO ## Add rules to when I can put a card here
                     if sol.jeu[mouse.column][-1][0].lower() == "a":
                         sol.end[c].append(sol.jeu[mouse.column].pop(-1))
-                else: sol.end[c].append(sol.jeu[mouse.column].pop(-1))
+                else:
+                    if sol.end[c][-1][-1] == sol.jeu[mouse.column][-1][-1]:
+                        if cartes_types.split().index(sol.jeu[mouse.column][-1][:-1:])-cartes_types.split().index(sol.end[c][-1][:-1:]) == 1:
+                            sol.end[c].append(sol.jeu[mouse.column].pop(-1))
                 check_retourne_cartes(sol)
-            mouse.click = False
-        if not mouse.click: mouse.reload, mouse.action = True, None
+        mouse.click, mouse.reload, mouse.action = False, True, None
     elif event == cv2.EVENT_MOUSEMOVE and mouse.click: ## Deplacement d'une carte
         if mouse.action in actions[1::]: mouse.pos, mouse.reload = pos, True
 
@@ -224,12 +222,11 @@ class sol:
             try: val = self.sel[-3::][i]
             except: continue
             self.dessin_carte(img, pos, val)
+        X, Y = (diff(pcs[0][0][0], pcs[0][1][0])-w)/2, diff(pcs[0][0][1], pcs[0][1][1])-h
         for x, column in enumerate(self.jeu): ## Dessin cartes jeu
             pc = pcs[x]
-            Y = diff(pc[0][1], pc[1][1])-h
-            if mouse.action == actions[2] and x == mouse.column: column = column[:-1:]
+            if mouse.action == actions[2] and x == mouse.column: column = column[:mouse.row:]
             for y, card in enumerate(column):
-                X = (diff(pc[0][0], pc[1][0])-w)/2
                 pt1, pt2 = [pc[0][0]+X, pc[0][1]+Y/12*y], [pc[1][0]-X, pc[0][1]+Y/12*y+h]
                 self.dessin_carte(img, [pt1, pt2], self.jeu[x][y])
         img.rectangle(p1, p4, col.noir, 2, 2) #Bord de la zone de jeu
@@ -246,11 +243,17 @@ class sol:
                 try: val = self.sel[-1]
                 except: ...
             elif mouse.action == actions[2]:
-                try: val = self.jeu[mouse.column][-1]
+                try:
+                    cards = [self.jeu[mouse.column][r] for r in range(mouse.row, len(self.jeu[mouse.column]))]
+                    for n, card in enumerate(cards):
+                        H = h*0.2
+                        pos = [[mouse.pos[0]-w/2, mouse.pos[1]-H+Y/12*n], [mouse.pos[0]+w/2, mouse.pos[1]-H+h+Y/12*n]]
+                        self.dessin_carte(img, pos, card)
                 except: ...
             if val:
-                try: self.dessin_carte(img, [[mouse.pos[i]-[w, h][i]/2 for i in [0, 1]], [mouse.pos[i]+[w, h][i]/2 for i in [0, 1]]], val)
-                except: ...
+                H = h*0.2
+                pos = [[mouse.pos[0]-w/2, mouse.pos[1]-H], [mouse.pos[0]+w/2, mouse.pos[1]-H+h]]
+                self.dessin_carte(img, pos, val)
         return img
     def game(self) -> bool:
         fs = False
