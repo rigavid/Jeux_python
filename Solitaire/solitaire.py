@@ -57,12 +57,12 @@ def get_mouse(event, x, y, flags, params) -> None:
             mouse.action, mouse.column = actions[3], int(diff(pcr[0][0], x)/diff(pcr[0][0], pcr[1][0])*4)
         if mouse.action != None: mouse.click = True
     elif event == cv2.EVENT_LBUTTONUP and mouse.click:
-        if clicked_in(pos, pcp) and mouse.action == actions[0]: sol.update_sel(1) # Nouvelle pioche
+        if clicked_in(pos, pcp) and mouse.action == actions[0]: sol.update_sel(sol.n_cartes_pioche) # Nouvelle pioche
         elif mouse.action == actions[1]: ## Carte venant de la pioche
             if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Cartes dans le jeu
                 for n, column in enumerate(pcs):
                     if clicked_in(pos, column):
-                        if (sol.jeu[n] == [] and sol.sel[0].lower()=="r") or legal(sol.sel[-1], None if len(sol.jeu[n]) == 0 else sol.jeu[n][-1]):
+                        if (sol.jeu[n] == [] and sol.sel[-1][0].lower()=="r") or legal(sol.sel[-1], None if len(sol.jeu[n]) == 0 else sol.jeu[n][-1]):
                             sol.jeu[n].append(sol.sel.pop(-1))
             elif clicked_in(pos, pcr): ## Cartes dans la résolution
                 x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
@@ -173,6 +173,7 @@ class sol:
             l = [self.cartes.pop(x) for x in range(i+1)]
             l[-1] = l[-1][1::]
             self.jeu.append(l)
+        self.n_cartes_pioche = 3
     def restart(self) -> None:
         self.cartes = get_cartes()
         self.jeu = []
@@ -292,6 +293,7 @@ class sol:
                 case 27: return
                 case 32 | 102: fs = not fs
                 case  8 | 114: res.update()
+                case 112: self.n_cartes_pioche = 1 if self.n_cartes_pioche == 3 else 3
                 case 65470 | 49: cv2.moveWindow(img.nom, 0, 0) ## F1 or 1
                 case 65471 | 50: cv2.moveWindow(img.nom, 1920, 0) ## F2 or 2
                 case 65472 | 51: ## F3 or 3
