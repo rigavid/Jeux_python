@@ -99,7 +99,7 @@ def get_mouse(event, x, y, flags, params) -> None:
             if clicked_in(pos, [pcs[0][0], pcs[-1][-1]]): ## Cartes dans le jeu
                 for n, column in enumerate(pcs):
                     if clicked_in(pos, column):
-                        if (sol.jeu[n] == [] and sol.end[mouse.column][0].lower()=="r") or legal(sol.end[mouse.column][-1], None if len(sol.jeu[n]) == 0 else sol.jeu[n][-1]):
+                        if (sol.jeu[n] == [] and sol.end[mouse.column][-1][0].lower()=="r") or legal(sol.end[mouse.column][-1], None if len(sol.jeu[n]) == 0 else sol.jeu[n][-1]):
                             sol.jeu[n].append(sol.end[mouse.column].pop(-1))
             elif clicked_in(pos, pcr): ## Cartes dans la résolution
                 x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
