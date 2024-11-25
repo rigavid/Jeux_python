@@ -26,8 +26,9 @@ class game:
     bg_color = COL.black
     max_n_l = 1
     ground = [(0, RES.resolution[1]*0.92), (RES.resolution[0], RES.resolution[1]*0.925)]
+    class bunker: ... ## TODO Build the bunkers
     class explosion:
-        def __init__(self, pos, size) -> None: ... ## TODO ##
+        def __init__(self, pos, size) -> None: ... ## TODO Make explosion when bombs hit anything
     class bomb:
         score = 1
         carres = [[0, y] for y in range(-1, 3)]+[[1,2],[-1,2]]
@@ -36,10 +37,11 @@ class game:
         def update(self, gam):
             self.pos = coosCircle(self.pos, self.vel, 90)
             if not clicked_in(self.pos, [[0, 0], RES.resolution]): gam.bombs.pop(gam.bombs.index(self))
-            if any(i in gam.player.get_tiles(gam) for i in self.get_tiles(gam)):
-                gam.player.pos[0] = RES.resolution[0]/2
-                gam.bombs.pop(gam.bombs.index(self))
-                gam.lives -= 1
+            if dist(gam.player.pos, self.pos)>30:
+                if any(i in gam.player.get_tiles(gam) for i in self.get_tiles(gam)):
+                    gam.player.pos[0] = RES.resolution[0]/2
+                    gam.bombs.pop(gam.bombs.index(self))
+                    gam.lives -= 1
         def tile(self, which, jeu): return jeu.tile_(*subL(jeu.get_tile(*self.pos), which))
         def draw(self, img:image, jeu) -> None:
             for c in [(self.tile(self.carres[0], jeu)[1], self.tile(self.carres[2], jeu)[0]), (self.tile(self.carres[-2],jeu)[0], self.tile(self.carres[-1],jeu)[1])]:
@@ -53,6 +55,8 @@ class game:
                 jeu.bombs.append(game.bomb(self.pos, game.bomb_speed))
                 jeu.last_bomb_t = time.time()
         def draw(self, img:image, jeu):
+            ## TODO Optimize it
+            ## TRY something
             for c in self.carres1 if int(jeu.frame)%2==0 else self.carres2:
                 img.rectangle(*jeu.tile_(*[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]]), self.color, 0)
         def get_tiles(self, jeu): return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
@@ -65,12 +69,12 @@ class game:
     class octopus(Invader):
         score, color, carres = 10, COL.yellow, [[x,4]for x in range(-1,3)]+[[x,3]for x in range(-4,6)]+[[x,y]for x in range(-5,7)for y in [2,1,0]if not(y==1 and x in[-2,-1,2,3])]+[[x,-1]for x in[-2,-1,2,3]]+[[0,-2],[1,-2],[-3,-2],[4,-2]]
         carres1, carres2 = carres + [[-3,-1],[4,-1],[-4,-2],[5,-2],[-3,-3],[-2,-3],[4,-3],[3,-3]], carres + [[-5,-3],[-4,-3],[6,-3],[5,-3],[-2,-2],[3,-2]]
-    class UFO(Invader):
+    class UFO(Invader): ## TODO appear sometimes randomly
         carres = [[x, 6] for x in range(-2, 4)]+[[x, 5] for x in range(-4, 6)]+[[x, 4] for x in range(-5, 7)]+[[x, 3] for x in range(-6, 8) if not x in (-4, -1, 2, 5)]+[[x, 2] for x in range(-7, 9)]+[[x, 1] for x in range(-5, 7) if not x in (-2, -1, 2, 3)]+[[-4, 0], [5, 0]]
         def __init__(self, *args, **kwargs) -> None:
             self.score = rd.choice((50, 100, 150, 200, 300))
             game.Invader.__init__(self, *args, **kwargs)
-        def draw(self, img:image, jeu):
+        def draw(self, img:image, jeu): ## TODO Optimize it
             for c in self.carres: img.rectangle(*jeu.tile_(*[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]]), COL.purple, 0)
     class laser:
         carres = [[0, y] for y in range(-3, 2)]
@@ -117,7 +121,7 @@ class game:
         self.invaders = squids+crabs+octopuses
     def __init__(self):
         self.player, self.score, self.frame, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])), 0, 0, [], [], 3
-        self.invaders = [self.UFO([RES.resolution[0]/2, 500])]
+        self.invaders = []
         self.last_bomb_t = time.time()
     def update(self):
         self.frame += 1/5
