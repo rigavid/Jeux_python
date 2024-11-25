@@ -167,11 +167,11 @@ def main_():
                 case 32:
                     change_res()
                     img = go_img(t)
-                case 65470: cv2.moveWindow(img.nom, 0, 0) ## F1
-                case 65471: cv2.moveWindow(img.nom, 1920, 0) ## F2
-                case 65472: break ## F3
-                case 65473: s.size = [max(i-1, 3) for i in s.size]; img = go_img(t) ## F4
-                case 65474: s.size = [min(i+1, 9) for i in s.size]; img = go_img(t) ## F5
+                case 65470 | 49: cv2.moveWindow(img.nom, 0, 0) ## F1
+                case 65471 | 50: cv2.moveWindow(img.nom, 1920, 0) ## F2
+                case 65472 | 51: break ## F3
+                case 65473 | 52: s.size = [max(i-1, 3) for i in s.size]; img = go_img(t) ## F4
+                case 65474 | 53: s.size = [min(i+1, 9) for i in s.size]; img = go_img(t) ## F5
     return img
 def main():
     img = main_()

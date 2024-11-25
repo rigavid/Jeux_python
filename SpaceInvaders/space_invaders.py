@@ -25,6 +25,7 @@ class game:
     cooldown = 0.5
     bg_color = COL.black
     max_n_l = 1
+    mult_vel = 3
     ground = [(0, RES.resolution[1]*0.92), (RES.resolution[0], RES.resolution[1]*0.925)]
     class bunker: ... ## TODO Build the bunkers
     class explosion:
@@ -37,7 +38,7 @@ class game:
         def update(self, gam):
             self.pos = coosCircle(self.pos, self.vel, 90)
             if not clicked_in(self.pos, [[0, 0], RES.resolution]): gam.bombs.pop(gam.bombs.index(self))
-            if dist(gam.player.pos, self.pos)>30:
+            if dist(gam.player.pos, self.pos)<30:
                 if any(i in gam.player.get_tiles(gam) for i in self.get_tiles(gam)):
                     gam.player.pos[0] = RES.resolution[0]/2
                     gam.bombs.pop(gam.bombs.index(self))
@@ -56,26 +57,37 @@ class game:
                 jeu.last_bomb_t = time.time()
         def draw(self, img:image, jeu):
             ## TODO Optimize it
-            ## TRY something
+            ## TRY relying on each type of invader instead of the centralised function
             for c in self.carres1 if int(jeu.frame)%2==0 else self.carres2:
                 img.rectangle(*jeu.tile_(*[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]]), self.color, 0)
         def get_tiles(self, jeu): return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
+        def tile(self, which, jeu): return jeu.tile_(*subL(jeu.get_tile(*self.pos), which))
+    ## DEBUG for i in [self.tile(t, jeu) for t in self.carres2]: print(i)
     class squid(Invader):
         score, color, carres = 30, COL.lime, [[x, y] for i, y in enumerate(range(0, 3)[::-1]) for x in range(0-i, i+2)]+[[x, y] for x in range(-3, 5) for y in [-1, -2] if y!=-1 or x not in [-1, 2]]
         carres1, carres2 = [[x, y+2] for x, y in carres + [[-1, -3], [2, -3]]+[[x, -4] for x in range(-2, 4) if not x in [-1, 2]]+[[x, -5] for x in [-3, -1, 2, 4]]], [[x, y+2] for x, y in carres + [[x, -3] for x in range(-2, 4) if not x in [-1, 2]]+[[-3, -4],[4, -4]]+[[-2, -5], [3, -5]]]
+        def draw(self, img:image, jeu):
+            for a,b in[(1,0),(5,2),(11,6),(24,23),(19,17),(14,13),(21, 16),(30,29)]+[(i,i)for i in range(26,36)if not i in(29,30)]if int(jeu.frame)%2==0 else[(1,27),(24,25),(11,29),(6,26),(12,13),(21,21),(16,16),(5,10),(2,7)]+[(i,i)for i in range(30,34)]:img.rectangle(*((self.tile(self.carres1[a],jeu)[0],self.tile(self.carres1[b],jeu)[-1])if int(jeu.frame)%2==0 else(self.tile(self.carres2[a],jeu)[0],self.tile(self.carres2[b],jeu)[-1])),self.color,0)
     class crab(Invader):
         score, color, carres = 20, COL.cyan, [[-3,4],[3,4],[-2,3],[2,3]]+[[x,2]for x in range(-4,5)]+[[x,1]for x in range(-5,6)if not x in[-2,2]]+[[x,0]for x in range(-6,7)]+[[x,-1]for x in range(-4,5)]
-        carres1, carres2 = carres + [[-6,-1],[6,-1],[-6,-2],[6,-2],[-4,-2],[4,-2]]+[[x,-3]for x in range(-3,4)if x!=0], carres + [[[-6,6][i],y]for y in[3,2,1]for i in[0,1]]+[[[-3,-4][i],y]for i,y in enumerate([-2,-3])]+[[[3,4][i],y]for i,y in enumerate([-2,-3])]
+        carres1, carres2 = carres + [[-6,-1],[6,-1],[-6,-2],[6,-2],[-4,-2],[4,-2]]+[[x,-3]for x in range(-3,4)if x!=0], carres + [[[-6,6][i],y]for y in[3,2,1]for i in[0,1]]+[[[-3,-4][i],y]for i,y in enumerate([-2,-3])]+[[[3,4][i],y]for i,y in enumerate([-2,-3])]+[[-5,-1],[5,-1]]
+        def draw(self, img:image, jeu):
+            game.Invader.draw(self, img, jeu)
+            for a, b in [(12, 4)]:
+                img.rectangle(self.tile(self.carres[a], jeu)[0], self.tile(self.carres[b], jeu)[-1], COL.purple, 0)
+
+            #input([self.tile(t, jeu) for t in self.carres2])
     class octopus(Invader):
         score, color, carres = 10, COL.yellow, [[x,4]for x in range(-1,3)]+[[x,3]for x in range(-4,6)]+[[x,y]for x in range(-5,7)for y in [2,1,0]if not(y==1 and x in[-2,-1,2,3])]+[[x,-1]for x in[-2,-1,2,3]]+[[0,-2],[1,-2],[-3,-2],[4,-2]]
         carres1, carres2 = carres + [[-3,-1],[4,-1],[-4,-2],[5,-2],[-3,-3],[-2,-3],[4,-3],[3,-3]], carres + [[-5,-3],[-4,-3],[6,-3],[5,-3],[-2,-2],[3,-2]]
     class UFO(Invader): ## TODO appear sometimes randomly
-        carres = [[x, 6] for x in range(-2, 4)]+[[x, 5] for x in range(-4, 6)]+[[x, 4] for x in range(-5, 7)]+[[x, 3] for x in range(-6, 8) if not x in (-4, -1, 2, 5)]+[[x, 2] for x in range(-7, 9)]+[[x, 1] for x in range(-5, 7) if not x in (-2, -1, 2, 3)]+[[-4, 0], [5, 0]]
+        color, carres = COL.purple, [[x, 6] for x in range(-2, 4)]+[[x, 5] for x in range(-4, 6)]+[[x, 4] for x in range(-5, 7)]+[[x, 3] for x in range(-6, 8) if not x in (-4, -1, 2, 5)]+[[x, 2] for x in range(-7, 9)]+[[x, 1] for x in range(-5, 7) if not x in (-2, -1, 2, 3)]+[[-4, 0], [5, 0]]
         def __init__(self, *args, **kwargs) -> None:
             self.score = rd.choice((50, 100, 150, 200, 300))
             game.Invader.__init__(self, *args, **kwargs)
         def draw(self, img:image, jeu): ## TODO Optimize it
-            for c in self.carres: img.rectangle(*jeu.tile_(*[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]]), COL.purple, 0)
+            for a, b in []:
+                img.rectangle(self.tile(self.carres[a], jeu)[0], self.tile(self.carres[b], jeu)[-1], self.color, 0)
     class laser:
         carres = [[0, y] for y in range(-3, 2)]
         def __init__(self, pos, vel): self.pos, self.vel = pos, vel
@@ -120,7 +132,7 @@ class game:
         octopuses = [self.octopus([offsetx+esp*x, offsety+3*esp+y]) for x in range(11) for y in [0, esp]]
         self.invaders = squids+crabs+octopuses
     def __init__(self):
-        self.player, self.score, self.frame, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])), 0, 0, [], [], 3
+        self.player, self.score, self.frame, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])*self.mult_vel), 0, 0, [], [], 3
         self.invaders = []
         self.last_bomb_t = time.time()
     def update(self):
@@ -165,6 +177,7 @@ class game:
 def main():
     jeu = game()
     img = new_img(name="Space Invaders").build()
+    jeu.max_n_l = 10
     while img.is_opened():
         jeu.titlescreen(img)
         jeu.play(img)
