@@ -28,7 +28,14 @@ class game:
     ground = [(0, RES.resolution[1]*0.92), (RES.resolution[0], RES.resolution[1]*0.925)]
     class bunker: ... ## TODO Build the bunkers
     class explosion:
-        def __init__(self, pos, size) -> None: ... ## TODO Make explosion when bombs hit anything
+        def __init__(self, pos) -> None:
+            self.frame, self.pos = 0, pos ## TODO Make explosion when bombs hit anything
+        def draw(self, img:image, gam) -> None:
+            for p in range(0, 360, 20):
+                img.line(coosCircle(self.pos, self.frame, p), coosCircle(self.pos, self.frame+4, p), COL.red, 2, 2)
+        def update(self, gam) -> None:
+            self.frame += 1
+            if self.frame >= 20: gam.explosions.pop(gam.explosions.index(self))
     class bomb:
         score = 1
         carres = [[0, y] for y in range(-1, 3)]+[[1,2],[-1,2]]
@@ -36,7 +43,8 @@ class game:
         def get_tiles(self, jeu): return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
         def update(self, gam):
             self.pos = coosCircle(self.pos, self.vel, 90)
-            if not clicked_in(self.pos, [[0, 0], RES.resolution]): gam.bombs.pop(gam.bombs.index(self))
+            if not clicked_in(self.pos, [[0, 0], [RES.resolution[0], gam.tile(*gam.ground[0])[0][1]]]):
+                gam.explosions.append(game.explosion(gam.bombs.pop(gam.bombs.index(self)).pos))
             if dist(gam.player.pos, self.pos)>30:
                 if any(i in gam.player.get_tiles(gam) for i in self.get_tiles(gam)):
                     gam.player.pos[0] = RES.resolution[0]/2
@@ -121,11 +129,10 @@ class game:
         self.invaders = squids+crabs+octopuses
     def __init__(self):
         self.player, self.score, self.frame, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])), 0, 0, [], [], 3
-        self.invaders = []
-        self.last_bomb_t = time.time()
+        self.invaders, self.explosions, self.last_bomb_t = [], [], time.time()
     def update(self):
         self.frame += 1/5
-        for i in self.bombs+self.lasers: i.update(self)
+        for i in self.bombs+self.lasers+self.explosions: i.update(self)
         if int(self.frame)%5==0:
             try:
                 inv = rd.choice(self.invaders)
@@ -135,7 +142,7 @@ class game:
     def image(self) -> image:
         img = new_img(background=self.bg_color)
         img.rectangle(*(self.tile(*self.ground[i])[i] for i in [0, -1]), COL.darkGreen, 0)
-        for i in self.bombs+self.lasers: i.draw(img, self)
+        for i in self.bombs+self.lasers+self.explosions: i.draw(img, self)
         for INV in self.invaders: INV.draw(img, self)
         self.player.draw(img, self)
         img.write(f"{self.score:0>6}", [10, 30], COL.white, 2, 2, FONT_HERSHEY_PLAIN)
