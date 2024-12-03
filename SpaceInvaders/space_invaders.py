@@ -60,7 +60,7 @@ class game:
         def __init__(self, pos): self.pos = pos
         def update(self, vel, ang): self.pos = coosCircle(self.pos, vel, ang)
         def bomb(self, jeu) -> None:
-            if diff(jeu.last_bomb_t, t:=time.time()) > jeu.cooldown*2:
+            if diff(jeu.last_bomb_t, t:=time.time()) > jeu.cooldown*2 and rd.randint(len(jeu.invaders), 11*5) == 11*5:
                 jeu.bombs.append(game.bomb(self.pos, game.bomb_speed))
                 jeu.last_bomb_t = t
         def draw(self, img:image, jeu):
@@ -70,7 +70,7 @@ class game:
                 img.rectangle(*jeu.tile_(*[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]]), self.color, 0)
         def get_tiles(self, jeu): return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
         def tile(self, which, jeu): return jeu.tile_(*subL(jeu.get_tile(*self.pos), which))
-    ## DEBUG for i in [self.tile(t, jeu) for t in self.carres2]: print(i)
+    # input([self.tile(t, jeu) for t in self.carres2])
     class squid(Invader):
         score, color, carres = 30, COL.lime, [[x, y] for i, y in enumerate(range(0, 3)[::-1]) for x in range(0-i, i+2)]+[[x, y] for x in range(-3, 5) for y in [-1, -2] if y!=-1 or x not in [-1, 2]]
         carres1, carres2 = [[x, y+2] for x, y in carres + [[-1, -3], [2, -3]]+[[x, -4] for x in range(-2, 4) if not x in [-1, 2]]+[[x, -5] for x in [-3, -1, 2, 4]]], [[x, y+2] for x, y in carres + [[x, -3] for x in range(-2, 4) if not x in [-1, 2]]+[[-3, -4],[4, -4]]+[[-2, -5], [3, -5]]]
@@ -87,22 +87,18 @@ class game:
         score, color, carres = 10, COL.yellow, [[x,4]for x in range(-1,3)]+[[x,3]for x in range(-4,6)]+[[x,y]for x in range(-5,7)for y in [2,1,0]if not(y==1 and x in[-2,-1,2,3])]+[[x,-1]for x in[-2,-1,2,3]]+[[0,-2],[1,-2],[-3,-2],[4,-2]]
         carres1, carres2 = carres + [[-3,-1],[4,-1],[-4,-2],[5,-2],[-3,-3],[-2,-3],[4,-3],[3,-3]], carres + [[-5,-3],[-4,-3],[6,-3],[5,-3],[-2,-2],[3,-2]]
         def draw(self, img:image, jeu):
-            game.Invader.draw(self, img, jeu)
-            input([self.tile(t, jeu) for t in self.carres2])
-            if int(jeu.frame)%2==0:
-                re = []
-            else:
-                re = []
-            for a, b in re:
+            for a, b in [(3, 0), (13, 4), (31, 29), (36, 48), (26, 46), (51, 50)]+([(43, 42), (17, 16), (35, 23), (37, 55), (20, 54), (57, 53), (52, 56), (60, 61), (59, 58)] if int(jeu.frame)%2==0 else [(43, 14), (44, 39), (21, 16), (58, 52), (53, 59), (56, 57), (55, 54)]):
                 img.rectangle(self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[a], jeu)[0], self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[b], jeu)[-1], self.color, 0)
     class UFO(Invader): ## TODO appear sometimes randomly
         color, carres = COL.purple, [[x, 6] for x in range(-2, 4)]+[[x, 5] for x in range(-4, 6)]+[[x, 4] for x in range(-5, 7)]+[[x, 3] for x in range(-6, 8) if not x in (-4, -1, 2, 5)]+[[x, 2] for x in range(-7, 9)]+[[x, 1] for x in range(-5, 7) if not x in (-2, -1, 2, 3)]+[[-4, 0], [5, 0]]
         def __init__(self, *args, **kwargs) -> None:
             self.score = rd.choice((50, 100, 150, 200, 300))
             game.Invader.__init__(self, *args, **kwargs)
+        def update(self, vel, _):
+            self.pos = coosCircle(self.pos, vel, 0)
         def draw(self, img:image, jeu): ## TODO Optimize it
-            for a, b in []:
-                img.rectangle(self.tile(self.carres[a], jeu)[0], self.tile(self.carres[b], jeu)[-1], self.color, 0)
+            for a, b in [(5, 23), (1, 19), (3, 57), (15, 14), (7, 6), (27, 25), (18, 16), (37, 36), (29, 28)]:
+                img.rectangle(self.tile(self.carres[a], jeu)[0], self.tile(self.carres[b], jeu)[-1], COL.purple, 0)
     class laser:
         carres = [[0, y] for y in range(-3, 2)]
         def __init__(self, pos, vel): self.pos, self.vel = pos, vel
@@ -145,25 +141,39 @@ class game:
         squids = [self.squid([offsetx+esp*x, offsety]) for x in range(11)]
         crabs = [self.crab([offsetx+esp*x, offsety+esp+y]) for x in range(11) for y in [0, esp]]
         octopuses = [self.octopus([offsetx+esp*x, offsety+3*esp+y]) for x in range(11) for y in [0, esp]]
-        self.invaders = squids+crabs+octopuses
+        self.invaders += squids+crabs+octopuses
+        self.vel = self.player.vel
+        self.ang = 0
     def __init__(self):
-        self.player, self.score, self.frame, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])*self.mult_vel), 0, 0, [], [], 3
+        self.player, self.score, self.frame, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])), 0, 0, [], [], 3
         self.invaders, self.explosions, self.last_bomb_t = [], [], time.time()
+        self.wave, self.UFOS = 1, 0
     def update(self):
         self.frame += 1/5
-        for i in self.bombs+self.lasers+self.explosions: i.update(self)
+        for i in self.bombs+self.lasers+self.explosions:
+            i.update(self)
+        for i in self.invaders:
+            i.update(self.vel, self.ang)
+        if any(not clicked_in(i.pos, [[0,0],RES.resolution]) for i in self.invaders if type(i) != game.UFO): ## Dépassent le bord de l'écran
+            self.ang += 180
+            for i in self.invaders:
+                i.update(self.vel, 90)
+                i.update(self.vel, self.ang)
         if int(self.frame)%5==0:
             try:
-                inv = rd.choice(self.invaders)
-                if type(inv) != game.UFO: inv.bomb(self)
+                if type(inv:=rd.choice(self.invaders)) != game.UFO:
+                    inv.bomb(self)
             except: ...
-        if len(self.invaders)==0: self.new_wave()
+        elif int(self.frame)%6 and self.UFOS<self.wave:
+            self.invaders.append(self.UFO([0, 100]))
+            self.UFOS += 1
+        if len(self.invaders)==0:
+            self.new_wave()
     def image(self) -> image:
         img = new_img(background=self.bg_color)
         img.rectangle(*(self.tile(*self.ground[i])[i] for i in [0, -1]), COL.darkGreen, 0)
-        for i in self.bombs+self.lasers+self.explosions: i.draw(img, self)
-        for INV in self.invaders: INV.draw(img, self)
-        self.player.draw(img, self)
+        for i in self.bombs+self.lasers+self.explosions+self.invaders+[self.player]:
+            i.draw(img, self)
         img.write(f"{self.score:0>6}", [10, 30], COL.white, 2, 2, FONT_HERSHEY_PLAIN)
         img.write(f"{self.lives}", [10, RES.resolution[1]-30], COL.white, 2, 2, FONT_HERSHEY_PLAIN)
         return img
@@ -172,8 +182,7 @@ class game:
     def play(self, img):
         tick, last_tick = 1/30, time.time()
         while img.is_opened() and self.lives>0:
-            wk = img.show(built_in_functs=False)
-            match wk:
+            match img.show(built_in_functs=False):
                 case 27: img.close()
                 case 8: img.fullscreen = not img.fullscreen
                 case 65363: self.player.move(0) ## Right arrow
@@ -191,7 +200,7 @@ class game:
 def main():
     jeu = game()
     img = new_img(name="Space Invaders").build()
-    jeu.max_n_l = 10
+    jeu.max_n_l = 10 ## TODO REMOVE IT
     while img.is_opened():
         jeu.titlescreen(img)
         jeu.play(img)
