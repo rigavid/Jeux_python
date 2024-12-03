@@ -60,9 +60,9 @@ class game:
         def __init__(self, pos): self.pos = pos
         def update(self, vel, ang): self.pos = coosCircle(self.pos, vel, ang)
         def bomb(self, jeu) -> None:
-            if diff(jeu.last_bomb_t, time.time()) > jeu.cooldown*2:
+            if diff(jeu.last_bomb_t, t:=time.time()) > jeu.cooldown*2:
                 jeu.bombs.append(game.bomb(self.pos, game.bomb_speed))
-                jeu.last_bomb_t = time.time()
+                jeu.last_bomb_t = t
         def draw(self, img:image, jeu):
             ## TODO Optimize it
             ## TRY relying on each type of invader instead of the centralised function
@@ -75,19 +75,26 @@ class game:
         score, color, carres = 30, COL.lime, [[x, y] for i, y in enumerate(range(0, 3)[::-1]) for x in range(0-i, i+2)]+[[x, y] for x in range(-3, 5) for y in [-1, -2] if y!=-1 or x not in [-1, 2]]
         carres1, carres2 = [[x, y+2] for x, y in carres + [[-1, -3], [2, -3]]+[[x, -4] for x in range(-2, 4) if not x in [-1, 2]]+[[x, -5] for x in [-3, -1, 2, 4]]], [[x, y+2] for x, y in carres + [[x, -3] for x in range(-2, 4) if not x in [-1, 2]]+[[-3, -4],[4, -4]]+[[-2, -5], [3, -5]]]
         def draw(self, img:image, jeu):
-            for a,b in[(1,0),(5,2),(11,6),(24,23),(19,17),(14,13),(21, 16),(30,29)]+[(i,i)for i in range(26,36)if not i in(29,30)]if int(jeu.frame)%2==0 else[(1,27),(24,25),(11,29),(6,26),(12,13),(21,21),(16,16),(5,10),(2,7)]+[(i,i)for i in range(30,34)]:img.rectangle(*((self.tile(self.carres1[a],jeu)[0],self.tile(self.carres1[b],jeu)[-1])if int(jeu.frame)%2==0 else(self.tile(self.carres2[a],jeu)[0],self.tile(self.carres2[b],jeu)[-1])),self.color,0)
+            for a,b in[(1,0),(5,2),(11,6),(24,23),(19,17),(14,13),(21, 16),(30,29)]+[(i,i)for i in range(26,36)if not i in(29,30)]if int(jeu.frame)%2==0 else[(1,27),(24,25),(11,29),(6,26),(12,13),(21,21),(16,16),(5,10),(2,7)]+[(i,i)for i in range(30,34)]:
+                img.rectangle(*((self.tile(self.carres1[a],jeu)[0],self.tile(self.carres1[b],jeu)[-1])if int(jeu.frame)%2==0 else(self.tile(self.carres2[a],jeu)[0],self.tile(self.carres2[b],jeu)[-1])),self.color,0)
     class crab(Invader):
         score, color, carres = 20, COL.cyan, [[-3,4],[3,4],[-2,3],[2,3]]+[[x,2]for x in range(-4,5)]+[[x,1]for x in range(-5,6)if not x in[-2,2]]+[[x,0]for x in range(-6,7)]+[[x,-1]for x in range(-4,5)]
         carres1, carres2 = carres + [[-6,-1],[6,-1],[-6,-2],[6,-2],[-4,-2],[4,-2]]+[[x,-3]for x in range(-3,4)if x!=0], carres + [[[-6,6][i],y]for y in[3,2,1]for i in[0,1]]+[[[-3,-4][i],y]for i,y in enumerate([-2,-3])]+[[[3,4][i],y]for i,y in enumerate([-2,-3])]+[[-5,-1],[5,-1]]
         def draw(self, img:image, jeu):
-            game.Invader.draw(self, img, jeu)
-            for a, b in [(12, 4)]:
-                img.rectangle(self.tile(self.carres[a], jeu)[0], self.tile(self.carres[b], jeu)[-1], COL.purple, 0)
-
-            #input([self.tile(t, jeu) for t in self.carres2])
+            for a, b in [(34, 47), (21, 33), (12, 49), (11, 42), (3, 10), (9, 16), (30, 37), (2, 6), (5, 36), (4, 48), (13, 23), (22, 46), (55, 53), (52, 50), (1, 1), (0, 0)] if int(jeu.frame)%2==0 else [(1, 1), (0, 0), (45, 34), (44, 22), (21, 55), (13, 54), (12, 43), (11, 52), (3, 10), (2, 6), (30, 41), (9, 38), (26, 37), (5, 50), (4, 35), (53, 53), (51, 51)]:
+                img.rectangle(self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[a], jeu)[0], self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[b], jeu)[-1], self.color, 0)
     class octopus(Invader):
         score, color, carres = 10, COL.yellow, [[x,4]for x in range(-1,3)]+[[x,3]for x in range(-4,6)]+[[x,y]for x in range(-5,7)for y in [2,1,0]if not(y==1 and x in[-2,-1,2,3])]+[[x,-1]for x in[-2,-1,2,3]]+[[0,-2],[1,-2],[-3,-2],[4,-2]]
         carres1, carres2 = carres + [[-3,-1],[4,-1],[-4,-2],[5,-2],[-3,-3],[-2,-3],[4,-3],[3,-3]], carres + [[-5,-3],[-4,-3],[6,-3],[5,-3],[-2,-2],[3,-2]]
+        def draw(self, img:image, jeu):
+            game.Invader.draw(self, img, jeu)
+            input([self.tile(t, jeu) for t in self.carres2])
+            if int(jeu.frame)%2==0:
+                re = []
+            else:
+                re = []
+            for a, b in re:
+                img.rectangle(self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[a], jeu)[0], self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[b], jeu)[-1], self.color, 0)
     class UFO(Invader): ## TODO appear sometimes randomly
         color, carres = COL.purple, [[x, 6] for x in range(-2, 4)]+[[x, 5] for x in range(-4, 6)]+[[x, 4] for x in range(-5, 7)]+[[x, 3] for x in range(-6, 8) if not x in (-4, -1, 2, 5)]+[[x, 2] for x in range(-7, 9)]+[[x, 1] for x in range(-5, 7) if not x in (-2, -1, 2, 3)]+[[-4, 0], [5, 0]]
         def __init__(self, *args, **kwargs) -> None:
@@ -129,8 +136,8 @@ class game:
             for a, b in ((0, 51), (52, 62), (63, -2), (-1, -1)):
                 img.rectangle(self.tile(self.carres[a], jeu)[-1], self.tile(self.carres[b], jeu)[0], COL.lime, 0)
         def shoot(self, jeu) -> None:
-            if diff(self.last_shoot_t, time.time()) > game.cooldown and len(jeu.lasers)<jeu.max_n_l:
-                self.last_shoot_t = time.time()
+            if diff(self.last_shoot_t, t:=time.time()) > game.cooldown and len(jeu.lasers)<jeu.max_n_l:
+                self.last_shoot_t = t
                 jeu.lasers.append(game.laser(self.pos, game.laser_speed))
     def new_wave(self) -> None:
         esp = 150/config.n
@@ -174,9 +181,9 @@ class game:
                 case 32: self.player.shoot(self) ## Space bar
                 case 65470: cv2.moveWindow(img.name, 0, 0) #f1
                 case 65471: cv2.moveWindow(img.name, 1920, 0) #f2
-            if diff(time.time(), last_tick) > tick:
+            if diff(t:=time.time(), last_tick) > tick:
                 self.update()
-                last_tick = time.time()
+                last_tick = t
             img.img = self.image().img
     def titlescreen(self, img) -> None: ...
     def save_highscore(self) -> None: ...
