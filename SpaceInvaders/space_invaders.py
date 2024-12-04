@@ -2,7 +2,12 @@ from operator import add, sub
 from pyimager import *
 import time
 
+## TODO ## Do a config interface to let change keys' config (let save it into a file)
 highscores_path = "/".join(__file__.split("/")[:-1:])+"/highscores.txt"
+
+## TODO ## Seulement les invaders en bas d'une file peuvent tirer
+## TODO ## Changer le mode de déplacement des invaders (voir jeu original)
+## TODO ## Animations de mort et laser hors-jeu
 
 class config:
     n = 2
@@ -21,6 +26,7 @@ class game:
     def get_tile(self, x, y): return [round(v) for v in [[x, y][i]/RES.resolution[i]*[config.t_x, config.t_y][i] for i in [0, 1]]]
     def tile(self, x, y): return self.tile_(*self.get_tile(x, y))
     laser_speed, bomb_speed, cooldown, bg_color, max_n_l, mult_vel, ground = 10, 8, 0.5, COL.black, 1, 3, [(0, RES.resolution[1]*0.92), (RES.resolution[0], RES.resolution[1]*0.925)]
+    sizeP = 1/1920*RES.resolution[0]
     class bunker: ... ## TODO Build the bunkers
     class explosion:
         def __init__(self, pos) -> None:
@@ -137,6 +143,8 @@ class game:
                 self.last_shoot_t = t
                 jeu.lasers.append(game.laser(self.pos, game.laser_speed))
     def new_wave(self) -> None:
+        ## TODO Laisser peu d'espace entre les invaders
+        ## TODO Placer les invaders près du bord et laisser de la place en 
         esp = 150/config.n
         offsetx, offsety = 100, 100
         squids = [self.squid([offsetx+esp*x, offsety]) for x in range(11)]
@@ -146,13 +154,11 @@ class game:
         self.vel = self.player.vel
         self.ang = 0
     def __init__(self):
-        self.player, self.score, self.frame, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])), 0, 0, [], [], 3
+        self.player, self.score, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])), 0, [], [], 3
         self.invaders, self.explosions, self.last_bomb_t = [], [], time.time()
-        self.wave, self.UFOS = 1, 0
-    def update(self):
-        self.frame += 1/5
-        for i in self.bombs+self.lasers+self.explosions:
-            i.update(self)
+        self.wave, self.UFOS, self.frame = 1, 0, 0.05
+        self.new_wave()
+    def update_invaders(self):
         for i in self.invaders:
             if type(i) != game.UFO:
                 i.update(self.vel, self.ang)
@@ -162,8 +168,14 @@ class game:
             self.ang += 180
             for i in self.invaders:
                 if type(i) != game.UFO:
-                    i.update(self.vel, 90)
+                    i.update(self.vel*3, 90)
                     i.update(self.vel, self.ang)
+    def update(self):
+        self.frame += 0.2
+        for i in self.bombs+self.lasers+self.explosions:
+            i.update(self)
+        if diff(int(self.frame), self.frame) < 0.1:
+            self.update_invaders()
         if int(self.frame)%5==0:
             try:
                 if type(inv:=rd.choice(self.invaders)) != game.UFO:
@@ -174,6 +186,7 @@ class game:
             self.UFOS += 1
         if len(self.invaders)==0:
             self.new_wave()
+            self.lives += 1
     def image(self) -> image:
         img = new_img(background=self.bg_color)
         img.rectangle(*(self.tile(*self.ground[i])[i] for i in [0, -1]), COL.darkGreen, 0)
@@ -186,29 +199,31 @@ class game:
         self.__init__()
     def close(self, img) -> bool:
         im = new_img(dimensions=img.size(), background=COL.black)
-        im.write_centered("Do you really want to quit?\n\n(y/N)", ct_sg((0, 0), RES.resolution), COL.red, 4, 3, FONT_HERSHEY_COMPLEX, 2)
+        im.write_centered("Do you really want to quit?\n\n(y/N)", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
         img.img = im.img
         return img.show_(0, built_in_functs=False) in [ord("y"), 27]
     def play(self, img) -> None:
         tick, last_tick = 1/30, time.time()
         while img.is_opened() and self.lives>0:
-            match img.show(built_in_functs=False):
+            wk = img.show(built_in_functs=False)
+            match wk:
                 case 27:
                     if self.close(img):
                         img.close()
                 case 8: img.fullscreen = not img.fullscreen
                 case 65363: self.player.move(0) ## Right arrow
                 case 65361: self.player.move(180) ## Left arrow
-                case 32: self.player.shoot(self) ## Space bar
+                case 32 | 65362: self.player.shoot(self) ## Space bar
                 case 65470: cv2.moveWindow(img.name, 0, 0) #f1
                 case 65471: cv2.moveWindow(img.name, 1920, 0) #f2
+                # case _: print(wk)
             if diff(t:=time.time(), last_tick) > tick:
                 self.update()
                 last_tick = t
             img.img = self.image().img
     def titlescreen(self, img) -> None:
         im = new_img(dimensions=img.size(), background=COL.black)
-        im.write_centered("TITLESCREEN!\n\n Spacebar to continue", ct_sg((0, 0), RES.resolution), COL.red, 4, 3, FONT_HERSHEY_COMPLEX, 2)
+        im.write_centered("TITLESCREEN!\n\n Spacebar to continue", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
         img.img = im.img
         while img.is_opened():
             match img.show_(0, built_in_functs=False):
@@ -222,9 +237,10 @@ class game:
 
 def main():
     jeu = game()
+    jeu.player.vel *= 3
     img = new_img(name="Space Invaders").build()
     img.fullscreen = True
-    jeu.max_n_l = 10 ## TODO REMOVE IT
+    # jeu.max_n_l = 10 ## TODO REMOVE IT
     while img.is_opened():
         jeu.titlescreen(img)
         jeu.play(img)
