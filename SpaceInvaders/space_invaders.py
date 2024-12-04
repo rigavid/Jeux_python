@@ -20,28 +20,23 @@ class game:
     def tile_(self, x, y): return [[RES.resolution[i]/[config.t_x, config.t_y][i]*([x, y][i]+[0, 1][j]) for i in [0, 1]] for j in [0, 1]]
     def get_tile(self, x, y): return [round(v) for v in [[x, y][i]/RES.resolution[i]*[config.t_x, config.t_y][i] for i in [0, 1]]]
     def tile(self, x, y): return self.tile_(*self.get_tile(x, y))
-    laser_speed = 10
-    bomb_speed = 8
-    cooldown = 0.5
-    bg_color = COL.black
-    max_n_l = 1
-    mult_vel = 3
-    ground = [(0, RES.resolution[1]*0.92), (RES.resolution[0], RES.resolution[1]*0.925)]
+    laser_speed, bomb_speed, cooldown, bg_color, max_n_l, mult_vel, ground = 10, 8, 0.5, COL.black, 1, 3, [(0, RES.resolution[1]*0.92), (RES.resolution[0], RES.resolution[1]*0.925)]
     class bunker: ... ## TODO Build the bunkers
     class explosion:
         def __init__(self, pos) -> None:
-            self.frame, self.pos = 0, pos ## TODO Make explosion when bombs hit anything
-        def draw(self, img:image, gam) -> None:
+            self.frame, self.pos = 0, pos
+        def draw(self, img:image, gam) -> None: ## TODO Make the explosion beautifull
             for p in range(0, 360, 20):
                 img.line(coosCircle(self.pos, self.frame, p), coosCircle(self.pos, self.frame+4, p), COL.red, 2, 2)
         def update(self, gam) -> None:
             self.frame += 1
             if self.frame >= 20: gam.explosions.pop(gam.explosions.index(self))
     class bomb:
-        score = 1
-        carres = [[0, y] for y in range(-1, 3)]+[[1,2],[-1,2]]
-        def __init__(self, pos, vel): self.pos, self.vel = pos, vel
-        def get_tiles(self, jeu): return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
+        score, carres = 1, [[0, y] for y in range(-1, 3)]+[[1,2],[-1,2]]
+        def __init__(self, pos, vel):
+            self.pos, self.vel = pos, vel
+        def get_tiles(self, jeu):
+            return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
         def update(self, gam):
             self.pos = coosCircle(self.pos, self.vel, 90)
             if not clicked_in(self.pos, [[0, 0], [RES.resolution[0], gam.tile(*gam.ground[0])[0][1]]]):
@@ -57,19 +52,21 @@ class game:
                 img.rectangle(*c, COL.blue, 0)
     class Invader:
         last_shoot_t = time.time()
-        def __init__(self, pos): self.pos = pos
-        def update(self, vel, ang): self.pos = coosCircle(self.pos, vel, ang)
+        def __init__(self, pos):
+            self.pos = pos
+        def update(self, vel, ang):
+            self.pos = coosCircle(self.pos, vel, ang)
         def bomb(self, jeu) -> None:
             if diff(jeu.last_bomb_t, t:=time.time()) > jeu.cooldown*2 and rd.randint(len(jeu.invaders), 11*5) == 11*5:
                 jeu.bombs.append(game.bomb(self.pos, game.bomb_speed))
                 jeu.last_bomb_t = t
-        def draw(self, img:image, jeu):
-            ## TODO Optimize it
-            ## TRY relying on each type of invader instead of the centralised function
+        def draw(self, img:image, jeu): ## REMEMBER ## This function shouldn't be used as it takes too much memory
             for c in self.carres1 if int(jeu.frame)%2==0 else self.carres2:
                 img.rectangle(*jeu.tile_(*[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]]), self.color, 0)
-        def get_tiles(self, jeu): return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
-        def tile(self, which, jeu): return jeu.tile_(*subL(jeu.get_tile(*self.pos), which))
+        def get_tiles(self, jeu):
+            return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in (self.carres1 if int(jeu.frame)%2==0 else self.carres2)]
+        def tile(self, which, jeu):
+            return jeu.tile_(*subL(jeu.get_tile(*self.pos), which))
     # input([self.tile(t, jeu) for t in self.carres2])
     class squid(Invader):
         score, color, carres = 30, COL.lime, [[x, y] for i, y in enumerate(range(0, 3)[::-1]) for x in range(0-i, i+2)]+[[x, y] for x in range(-3, 5) for y in [-1, -2] if y!=-1 or x not in [-1, 2]]
@@ -91,12 +88,16 @@ class game:
                 img.rectangle(self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[a], jeu)[0], self.tile((self.carres1 if int(jeu.frame)%2==0 else self.carres2)[b], jeu)[-1], self.color, 0)
     class UFO(Invader): ## TODO appear sometimes randomly
         color, carres = COL.purple, [[x, 6] for x in range(-2, 4)]+[[x, 5] for x in range(-4, 6)]+[[x, 4] for x in range(-5, 7)]+[[x, 3] for x in range(-6, 8) if not x in (-4, -1, 2, 5)]+[[x, 2] for x in range(-7, 9)]+[[x, 1] for x in range(-5, 7) if not x in (-2, -1, 2, 3)]+[[-4, 0], [5, 0]]
+        def get_tiles(self, jeu):
+            return [[jeu.get_tile(*self.pos)[i]-c[i]for i in[0,1]] for c in self.carres]
         def __init__(self, *args, **kwargs) -> None:
             self.score = rd.choice((50, 100, 150, 200, 300))
             game.Invader.__init__(self, *args, **kwargs)
-        def update(self, vel, _):
-            self.pos = coosCircle(self.pos, vel, 0)
-        def draw(self, img:image, jeu): ## TODO Optimize it
+        def update(self, jeu):
+            self.pos = coosCircle(self.pos, jeu.vel, 0)
+            if not clicked_in(self.pos, [(0, 0), RES.resolution]):
+                jeu.invaders.pop(jeu.invaders.index(self))
+        def draw(self, img:image, jeu): ## TODO Finish to draw it
             for a, b in [(5, 23), (1, 19), (3, 57), (15, 14), (7, 6), (27, 25), (18, 16), (37, 36), (29, 28)]:
                 img.rectangle(self.tile(self.carres[a], jeu)[0], self.tile(self.carres[b], jeu)[-1], COL.purple, 0)
     class laser:
@@ -153,12 +154,16 @@ class game:
         for i in self.bombs+self.lasers+self.explosions:
             i.update(self)
         for i in self.invaders:
-            i.update(self.vel, self.ang)
+            if type(i) != game.UFO:
+                i.update(self.vel, self.ang)
+            else:
+                i.update(self)
         if any(not clicked_in(i.pos, [[0,0],RES.resolution]) for i in self.invaders if type(i) != game.UFO): ## Dépassent le bord de l'écran
             self.ang += 180
             for i in self.invaders:
-                i.update(self.vel, 90)
-                i.update(self.vel, self.ang)
+                if type(i) != game.UFO:
+                    i.update(self.vel, 90)
+                    i.update(self.vel, self.ang)
         if int(self.frame)%5==0:
             try:
                 if type(inv:=rd.choice(self.invaders)) != game.UFO:
@@ -177,13 +182,20 @@ class game:
         img.write(f"{self.score:0>6}", [10, 30], COL.white, 2, 2, FONT_HERSHEY_PLAIN)
         img.write(f"{self.lives}", [10, RES.resolution[1]-30], COL.white, 2, 2, FONT_HERSHEY_PLAIN)
         return img
-    def reset(self):
+    def reset(self) -> None:
         self.__init__()
-    def play(self, img):
+    def close(self, img) -> bool:
+        im = new_img(dimensions=img.size(), background=COL.black)
+        im.write_centered("Do you really want to quit?\n\n(y/N)", ct_sg((0, 0), RES.resolution), COL.red, 4, 3, FONT_HERSHEY_COMPLEX, 2)
+        img.img = im.img
+        return img.show_(0, built_in_functs=False) in [ord("y"), 27]
+    def play(self, img) -> None:
         tick, last_tick = 1/30, time.time()
         while img.is_opened() and self.lives>0:
             match img.show(built_in_functs=False):
-                case 27: img.close()
+                case 27:
+                    if self.close(img):
+                        img.close()
                 case 8: img.fullscreen = not img.fullscreen
                 case 65363: self.player.move(0) ## Right arrow
                 case 65361: self.player.move(180) ## Left arrow
@@ -194,12 +206,24 @@ class game:
                 self.update()
                 last_tick = t
             img.img = self.image().img
-    def titlescreen(self, img) -> None: ...
+    def titlescreen(self, img) -> None:
+        im = new_img(dimensions=img.size(), background=COL.black)
+        im.write_centered("TITLESCREEN!\n\n Spacebar to continue", ct_sg((0, 0), RES.resolution), COL.red, 4, 3, FONT_HERSHEY_COMPLEX, 2)
+        img.img = im.img
+        while img.is_opened():
+            match img.show_(0, built_in_functs=False):
+                case 8: img.fullscreen = not img.fullscreen
+                case 27:
+                    if self.close(img):
+                        img.close()
+                    else: img.img = im.img
+                case 32: return
     def save_highscore(self) -> None: ...
 
 def main():
     jeu = game()
     img = new_img(name="Space Invaders").build()
+    img.fullscreen = True
     jeu.max_n_l = 10 ## TODO REMOVE IT
     while img.is_opened():
         jeu.titlescreen(img)
