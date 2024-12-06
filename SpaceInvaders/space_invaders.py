@@ -158,6 +158,9 @@ class game:
         self.invaders, self.explosions, self.last_bomb_t = [], [], time.time()
         self.wave, self.UFOS, self.frame = 1, 0, 0.05
         self.new_wave()
+        with open("/".join(__file__.split("/")[:-1:])+"/controls.txt", "r", encoding="utf8") as file:
+            self.controls = {l.split(":")[0]:eval(l.strip().split(":")[1]) for l in file.readlines()}
+        self.Right, self.Left, self.Fire = self.controls["Right"], self.controls["Left"], self.controls["Fire"]
     def update_invaders(self):
         for i in self.invaders:
             if type(i) != game.UFO:
@@ -199,28 +202,50 @@ class game:
         self.__init__()
     def close(self, img) -> bool:
         im = new_img(dimensions=img.size(), background=COL.black)
-        im.write_centered("Do you really want to quit?\n\n(y/N)", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
+        im.write_centered("\n\n\nDo you really want to quit?\n\n(y/N)\n\n'C' for configuration", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
         img.img = im.img
-        return img.show_(0, built_in_functs=False) in [ord("y"), 27]
+        wk = img.show_(0, built_in_functs=False)
+        self.to_config = wk == ord("c")
+        return wk in [ord("y"), 27]
     def play(self, img) -> None:
         tick, last_tick = 1/30, time.time()
         while img.is_opened() and self.lives>0:
-            wk = img.show(built_in_functs=False)
-            match wk:
-                case 27:
-                    if self.close(img):
-                        img.close()
-                case 8: img.fullscreen = not img.fullscreen
-                case 65363: self.player.move(0) ## Right arrow
-                case 65361: self.player.move(180) ## Left arrow
-                case 32 | 65362: self.player.shoot(self) ## Space bar
+            match img.show(built_in_functs=False):
+                case 27: ## Esc key
+                    if self.close(img): img.close()
+                    elif self.to_config: self.config(img) ## Key C
+                case 8: img.fullscreen = not img.fullscreen ## Backspace
+                case self.Right: self.player.move(0) ## Right arrow
+                case self.Left: self.player.move(180) ## Left arrow
+                case f if f in self.Fire: self.player.shoot(self) ## Space bar
                 case 65470: cv2.moveWindow(img.name, 0, 0) #f1
                 case 65471: cv2.moveWindow(img.name, 1920, 0) #f2
-                # case _: print(wk)
             if diff(t:=time.time(), last_tick) > tick:
                 self.update()
                 last_tick = t
             img.img = self.image().img
+    def config_img(self, img):
+        im = new_img(dimensions=img.size(), background=COL.black)
+        ln = 5
+        rk, lk, fk, sk = "r", "l", "f", "s"
+        im.write_centered("Configuration\n\n\n\n\n\n", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
+        s = f"Right: {self.Right:{ln}}{" "*16}\"{rk}\" to change\n Left: {self.Left:{ln}}{" "*16}\"{lk}\" to change\nFire1: {self.Fire[0]:{ln}}{" "*16}\"{fk}\" to change\nFire2: {self.Fire[1]:{ln}}{" "*16}\"{sk}\" to change"
+        im.write_centered(s, ct_sg((0, 0), RES.resolution), COL.red, 3*self.sizeP, 2*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
+        img.img = im.img
+        return rk, lk, fk, sk
+    def config(self, img):
+        rk, lk, fk, sk = self.config_img(img)
+        print(f"{rk=}")
+        special_keys = [27, 8]
+        while img.is_opened():
+            wk = img.show_(0, built_in_functs=False)
+            match wk:
+                case 8: self.fullscreen = not self.fullscreen
+                case 27: return
+                case a if a in [rk, lk, fk, sk]: ## TODO
+                    if key:=img.show_(0, built_in_functs=False) not in special_keys:
+                        ...
+        return
     def titlescreen(self, img) -> None:
         im = new_img(dimensions=img.size(), background=COL.black)
         im.write_centered("TITLESCREEN!\n\n Spacebar to continue", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
@@ -231,6 +256,9 @@ class game:
                 case 27:
                     if self.close(img):
                         img.close()
+                    elif self.to_config:
+                        self.config(img)
+                        img.img = im.img
                     else: img.img = im.img
                 case 32: return
     def save_highscore(self) -> None: ...
@@ -244,8 +272,8 @@ def main():
     while img.is_opened():
         jeu.titlescreen(img)
         jeu.play(img)
-        jeu.reset()
         jeu.save_highscore()
+        jeu.reset()
 
 if __name__ == "__main__":
     main()
