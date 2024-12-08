@@ -8,6 +8,7 @@ highscores_path = "/".join(__file__.split("/")[:-1:])+"/highscores.txt"
 ## TODO ## Seulement les invaders en bas d'une file peuvent tirer
 ## TODO ## Changer le mode de déplacement des invaders (voir jeu original)
 ## TODO ## Animations de mort et laser hors-jeu
+## TODO ## Changer la police d'écriture des scores et vies pour avoir un texte "pixelisé"
 
 class config:
     n = 2
