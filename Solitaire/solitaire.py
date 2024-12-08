@@ -1,15 +1,7 @@
-from tsanap import *
-
-class res:
-    resses, resind = [screen, [1680, 1050], [1366, 768]], 0
-    res = resses[resind]
-    def update():
-        res.resind = (res.resind+1)%len(res.resses)
-        res.res = res.resses[res.resind]
-        mouse.reload = True
+from pyimager import *
 
 cartes_types = "A 2 3 4 5 6 7 8 9 10 V D R".split()
-noirs, rouges = "♠♣", "♦♥"
+blacks, rouges = "♠♣", "♦♥"
 def get_cartes():
     cartes = [f"¬{n}{p}" for p in "♦♥♠♣" for n in cartes_types]
     np.random.shuffle(cartes)
@@ -30,7 +22,7 @@ def check_retourne_cartes(sol) -> None:
 
 def legal(a, b) -> bool:
     if b == None: return False
-    return ((a[-1] in rouges) == (b[-1] in noirs)) and (cartes_types.index(b[:-1:])-cartes_types.index(a[:-1:]) == 1)
+    return ((a[-1] in rouges) == (b[-1] in blacks)) and (cartes_types.index(b[:-1:])-cartes_types.index(a[:-1:]) == 1)
 
 def get_mouse(event, x, y, flags, params) -> None:
     pos, sol = (x, y), params
@@ -117,28 +109,28 @@ def get_mouse(event, x, y, flags, params) -> None:
         if mouse.action in actions[1::]: mouse.pos, mouse.reload = pos, True
 
 def carreau(img:image, ct, taille, an=0) -> None:
-    v = 1920/res.res[0]+2
+    v = 1920/RES.resolution[0]+2
     a, b = taille*5/v, taille*3/v
-    pts = [coosCercle(ct, [a, b][ind%2], [i+90 for i in range(0, 360, 90)][ind]+an) for ind in range(4)]
-    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.red[::-1], cv2.LINE_AA)
+    pts = [coosCircle(ct, [a, b][ind%2], [i+90 for i in range(0, 360, 90)][ind]+an) for ind in range(4)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], COL.red[::-1], cv2.LINE_AA)
 def coeur(img, ct, taille=1, an=0) -> None:
-    v = 1920/res.res[0]+2
+    v = 1920/RES.resolution[0]+2
     a, b = taille*3/v, taille*5/v
-    pts = [coosCercle(ct, [a, b][ind%2], [i for i in range(0, 270, 90)][ind]+an) for ind in range(3)] + [coosCercle(ct, a, 240+an), coosCercle(ct, a/2, 270+an), coosCercle(ct, a, 300+an)]
-    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.red[::-1], cv2.LINE_AA)
+    pts = [coosCircle(ct, [a, b][ind%2], [i for i in range(0, 270, 90)][ind]+an) for ind in range(3)] + [coosCircle(ct, a, 240+an), coosCircle(ct, a/2, 270+an), coosCircle(ct, a, 300+an)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], COL.red[::-1], cv2.LINE_AA)
 def pique(img, ct, taille=1, an=0) -> None:
-    v = 1920/res.res[0]+2
+    v = 1920/RES.resolution[0]+2
     a, b = taille*3/v, taille*5/v
-    pts = [coosCercle(ct, [a, b][ind%2], [i+180 for i in range(0, 270, 90)][ind]+an) for ind in range(3)] + [coosCercle(ct, a, 60+an), ct, coosCercle(ct, b, 85+an), coosCercle(ct, b, 95+an), ct, coosCercle(ct, a, 120+an)]
-    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.black[::-1], cv2.LINE_AA)
+    pts = [coosCircle(ct, [a, b][ind%2], [i+180 for i in range(0, 270, 90)][ind]+an) for ind in range(3)] + [coosCircle(ct, a, 60+an), ct, coosCircle(ct, b, 85+an), coosCircle(ct, b, 95+an), ct, coosCircle(ct, a, 120+an)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], COL.black[::-1], cv2.LINE_AA)
 def trefle(img:image, ct, taille=1, an=0) -> None:
-    v = 1920/res.res[0]+2
+    v = 1920/RES.resolution[0]+2
     a, b = taille*3/v, taille*5/v
-    pts = [ct, coosCercle(ct, b, 85+an), coosCercle(ct, b, 95+an)]
-    cv2.fillPoly(img.img, [np.array(pts, np.int32)], col.black[::-1], cv2.LINE_AA)
-    for c in [coosCercle(ct, a, 270+an)] + [coosCercle(ct, a, ang+an) for ang in [0, 180]]:
-        img.cercle(c, a/2, col.noir, 0, 2)
-        img.ligne(ct, c, col.noir, 6/v, 2)
+    pts = [ct, coosCircle(ct, b, 85+an), coosCircle(ct, b, 95+an)]
+    cv2.fillPoly(img.img, [np.array(pts, np.int32)], COL.black[::-1], cv2.LINE_AA)
+    for c in [coosCircle(ct, a, 270+an)] + [coosCircle(ct, a, ang+an) for ang in [0, 180]]:
+        img.circle(c, a/2, COL.black, 0, 2)
+        img.line(ct, c, COL.black, 6/v, 2)
 
 class sol:
     def positions_figures(self, p1, p4) -> list:
@@ -198,18 +190,18 @@ class sol:
         p1, p2 = pos
         offset = dist(p1, p2)/20
         p1, p2 = [i+offset for i in p1], [i-offset for i in p2]
-        if val == None or len(val) == 0: img.rectangle(p1, p2, col.black, 1)
+        if val == None or len(val) == 0: img.rectangle(p1, p2, COL.black, 1)
         else:
             if type(val) != str and len(val) > 0: val = val[-1]
             if val[0] == "¬":
-                img.rectangle(p1, p2, col.blue, 0)
-                img.rectangle(p1, p2, col.black, 2)
+                img.rectangle(p1, p2, COL.blue, 0)
+                img.rectangle(p1, p2, COL.black, 2)
                 ## TODO ## Faire une couverture jolie pour les cartes
-                img.ecris("?", ct_sg(p1, p2), col.black, 2, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
+                img.write_centered("?", ct_sg(p1, p2), COL.black, 2, 2, cv2.FONT_HERSHEY_SIMPLEX, 2)
             else:
-                img.rectangle(p1, p2, col.blanc, 0)
-                img.rectangle(p1, p2, col.black, 2)
-                color = col.noir if val[-1] in "♠♣" else col.red
+                img.rectangle(p1, p2, COL.white, 0)
+                img.rectangle(p1, p2, COL.black, 2)
+                color = COL.black if val[-1] in "♠♣" else COL.red
                 match val[-1]: # ♦♥♠♣
                     case "♦": forme = carreau
                     case "♥": forme = coeur
@@ -223,10 +215,10 @@ class sol:
                 for pt, a in [[pt_sg(p1, p2, 9), 0], [pt_sg([p2[0], p2[1]+diff(p1[1], p2[1])*0.055], p1, 9), 180]]:
                     v = diff(p1[1], p2[1])*0.2
                     forme(img, [pt[0], p1[1]+v if a==0 else p2[1]-v], 7)
-                    img.ecris(val[:-1:], pt, color, 2, 1, cv2.FONT_HERSHEY_COMPLEX, 2) # TODO ## Add rotated text (update tsanap)
+                    img.write_centered(val[:-1:], pt, color, 2, 1, cv2.FONT_HERSHEY_COMPLEX, 2) # TODO ## Add rotated text (update tsanap)
     def image(self, r=False) -> image:
-        x, y = diff(res.res[0], res.res[1])/4, res.res[1]/20
-        p1, p2, p3, p4 = [x, y], [res.res[0]-x, y], [x, res.res[1]-y], [res.res[0]-x, res.res[1]-y]
+        x, y = diff(RES.resolution[0], RES.resolution[1])/4, RES.resolution[1]/20
+        p1, p2, p3, p4 = [x, y], [RES.resolution[0]-x, y], [x, RES.resolution[1]-y], [RES.resolution[0]-x, RES.resolution[1]-y]
         x, y = dist(p1, p2), dist(p1, p3)
         pcr = [[p1[0]+x/2, p1[1]], [p2[0], p2[1]+y/4]] #Points cartes resolues # Haut droite
         pcc = [p1, [p1[0]+x/2, p2[1]+y/4]] #Points cartes cachées # Haut gauche
@@ -237,8 +229,8 @@ class sol:
         w, h = diff(pcp[0][0], pcp[1][0]), diff(pcr[0][1], pcr[1][1])
         self.w, self.h = w, w
         self.pcr, self.pcc, self.pcp, self.psp, self.pcs = pcr, pcc, pcp, psp, pcs
-        img = image(nom=self.name, img=image.new_img(dimensions=res.res, fond=col.green))
-        if r: img.ecris(f"{res.res[0]}x{res.res[1]}", [100, 25], col.black, 1, 1, cv2.FONT_HERSHEY_SIMPLEX, 2)
+        img = new_img(RES.resolution, COL.lime, self.name)
+        if r: img.write_centered(f"{RES.resolution[0]}x{RES.resolution[1]}", [100, 25], COL.black, 1, 1, cv2.FONT_HERSHEY_SIMPLEX, 2)
         self.dessin_carte(img, pcp, "" if self.cartes == [] else "¬")
         x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
         for c in range(4): ## Dessin cartes résolues
@@ -257,15 +249,15 @@ class sol:
             for y, card in enumerate(column):
                 pt1, pt2 = [pc[0][0]+X, pc[0][1]+Y/12*y], [pc[1][0]-X, pc[0][1]+Y/12*y+h]
                 self.dessin_carte(img, [pt1, pt2], self.jeu[x][y])
-        img.rectangle(p1, p4, col.noir, 2, 2) #Bord de la zone de jeu
-        img.ligne([pcc[0][0], pcr[1][1]], pcr[1], col.noir, 2, 2) #Bord2 de la zone de jeu
+        img.rectangle(p1, p4, COL.black, 2, 2) #Bord de la zone de jeu
+        img.line([pcc[0][0], pcr[1][1]], pcr[1], COL.black, 2, 2) #Bord2 de la zone de jeu
         if self.debug: ## TOREMOVE ## DEBUG ##
-            img.rectangle(pcr[0], pcr[1], col.magenta, 3, 2)
-            img.rectangle(psp[0], psp[1], col.blue, 2, 2)
-            img.rectangle(pcp[0], pcp[1], col.cyan, 1, 2)
-            for c in pcs: img.rectangle(c[0], c[-1], col.red, 2, 2)
+            img.rectangle(pcr[0], pcr[1], COL.magenta, 3, 2)
+            img.rectangle(psp[0], psp[1], COL.blue, 2, 2)
+            img.rectangle(pcp[0], pcp[1], COL.cyan, 1, 2)
+            for c in pcs: img.rectangle(c[0], c[-1], COL.red, 2, 2)
             x_ = lambda i: pcr[0][0]+(pcr[1][0]-pcr[0][0])/4*i
-            for a, b in [[[x_(i), pcr[0][1]], [x_(i+1), pcr[1][1]]] for i in range(4)]: img.rectangle(a, b, col. magenta, 2, 2)
+            for a, b in [[[x_(i), pcr[0][1]], [x_(i+1), pcr[1][1]]] for i in range(4)]: img.rectangle(a, b, COL.magenta, 2, 2)
             for x, pc in enumerate(pcs):
                 for y, card in [[a, b] for a, b in enumerate(self.jeu[x])][::-1]:
                     img.rectangle([pc[0][0]+X, pc[0][1]+Y/12*y], [pc[1][0]-X, pc[0][1]+Y/12*y+h], [255/12*y for _ in "123"], 2, 2)
@@ -281,32 +273,30 @@ class sol:
             except: ...
         return img
     def game(self) -> bool:
-        fs = False
         r = False # Afficher la resolution
-        img = self.image(r=r)
-        img.montre(1, fullscreen=fs)
-        cv2.setMouseCallback(img.nom, get_mouse, self)
+        img = self.image(r=r).build()
+        cv2.setMouseCallback(img.name, get_mouse, self)
         while True:
-            wk = img.montre(1, fullscreen=fs)
+            wk = img.show(1, built_in_functs=False)
             if img.is_closed(): return
             match wk:
                 case 27: return
-                case 32 | 102: fs = not fs
-                case  8 | 114: res.update()
+                case 32 | 102: img.fullscreen = not img.fullscreen
+                case  8 | 114: RES.update(); mouse.reload = True
                 case 112: self.n_cartes_pioche = 1 if self.n_cartes_pioche == 3 else 3
-                case 65470 | 49: cv2.moveWindow(img.nom, 0, 0) ## F1 or 1
-                case 65471 | 50: cv2.moveWindow(img.nom, 1920, 0) ## F2 or 2
+                case 65470 | 49: cv2.moveWindow(img.name, 0, 0) ## F1 or 1
+                case 65471 | 50: cv2.moveWindow(img.name, 1920, 0) ## F2 or 2
                 case 65472 | 51: ## F3 or 3
                     r = not r
-                    img = self.image(r=r)
+                    img.img = self.image(r=r).img
                 case 65473 | 52: ## F4 or 4
                     self.debug = not self.debug
-                    img=self.image(r=r)
+                    img.img = self.image(r=r).img
                 case 65474 | 53: ## F5 or 5
                     self.restart()
-                    img = self.image(r=r)
+                    img.img = self.image(r=r).img
             if mouse.reload:
-                img = self.image(r=r)
+                img.img = self.image(r=r).img
                 mouse.reload = False
 
 if __name__ == "__main__":

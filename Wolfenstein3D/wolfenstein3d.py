@@ -1,11 +1,4 @@
-from tsanap import *
-
-class res:
-    resses, resind = [screen, [1680, 1050], [1366, 768]], 0
-    res = resses[resind]
-    def update():
-        res.resind = (res.resind+1)%len(res.resses)
-        res.res = res.resses[res.resind]
+from pyimager import *
 
 _ = False
 matrix = [
@@ -23,15 +16,11 @@ class wst:
     def __init__(self) -> None:
         self.map = matrix
     def img(self) -> image:
-        img = image(img=image.new_img(dimensions=res.res))
+        img = new_img(RES.resolution, COL.black, "Wolfenstein 3D")
         return img
 
-a = wst()
-img = a.img()
-fs = False
-while True:
-    wk = img.montre(1, fullscreen=fs)
-    if img.is_closed(): break
-    match wk:
-        case 27: break
-        case 32: fs = not fs
+game = wst()
+img = game.img().build()
+
+while img.is_opened():
+    img.show(1)
