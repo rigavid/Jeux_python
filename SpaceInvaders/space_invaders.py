@@ -103,8 +103,8 @@ class game:
             self.pos = coosCircle(self.pos, jeu.vel, 0)
             if not clicked_in(self.pos, [(0, 0), RES.resolution]):
                 jeu.invaders.pop(jeu.invaders.index(self))
-        def draw(self, img:image, jeu): ## TODO Finish to draw it
-            for a, b in [(5, 23), (1, 19), (3, 57), (15, 14), (7, 6), (27, 25), (18, 16), (37, 36), (29, 28)]:
+        def draw(self, img:image, jeu):
+            for a, b in [(5, 23), (1, 19), (3, 57), (15, 14), (7, 6), (27, 25), (18, 16), (37, 36), (29, 28), (35, 34), (31, 30), (53, 47), (44, 38), (61, 59), (56, 54), (63, 63), (62, 62)]:
                 img.rectangle(self.tile(self.carres[a], jeu)[0], self.tile(self.carres[b], jeu)[-1], COL.purple, 0)
     class laser:
         carres = [[0, y] for y in range(-3, 2)]
@@ -145,14 +145,14 @@ class game:
     def new_wave(self) -> None:
         ## TODO Laisser peu d'espace entre les invaders
         ## TODO Placer les invaders près du bord et laisser de la place en 
-        esp = 150/config.n
-        offsetx, offsety = 100, 100
+        esp = self.player.vel/5*150/config.n
+        offsetx, offsety = 100, 150
+        self.vel = self.player.vel
+        self.ang = 0
         squids = [self.squid([offsetx+esp*x, offsety]) for x in range(11)]
         crabs = [self.crab([offsetx+esp*x, offsety+esp+y]) for x in range(11) for y in [0, esp]]
         octopuses = [self.octopus([offsetx+esp*x, offsety+3*esp+y]) for x in range(11) for y in [0, esp]]
         self.invaders += squids+crabs+octopuses
-        self.vel = self.player.vel
-        self.ang = 0
     def __init__(self):
         self.player, self.score, self.bombs, self.lasers, self.lives = self.canon(vel=dist(self.tile_(0, 0)[0], self.tile_(1, 0)[0])), 0, [], [], 3
         self.invaders, self.explosions, self.last_bomb_t = [], [], time.time()
@@ -161,25 +161,29 @@ class game:
         with open("/".join(__file__.split("/")[:-1:])+"/controls.txt", "r", encoding="utf8") as file:
             self.controls = {l.split(":")[0]:eval(l.strip().split(":")[1]) for l in file.readlines()}
         self.Right, self.Left, self.Fire = self.controls["Right"], self.controls["Left"], self.controls["Fire"]
+    def start(self):
+        self.img = new_img(name="Space Invaders").build()
     def update_invaders(self):
         for i in self.invaders:
             if type(i) != game.UFO:
                 i.update(self.vel, self.ang)
             else:
                 i.update(self)
-        if any(not clicked_in(i.pos, [[0,0],RES.resolution]) for i in self.invaders if type(i) != game.UFO): ## Dépassent le bord de l'écran
+        if any(not clicked_in(i.pos, [[50,0],[RES.resolution[0]-50, RES.resolution[1]]]) for i in self.invaders if type(i) != game.UFO): ## Dépassent le bord de l'écran
             self.ang += 180
             for i in self.invaders:
                 if type(i) != game.UFO:
-                    i.update(self.vel*3, 90)
+                    for _ in range(6):
+                        i.update(self.vel, 90)
                     i.update(self.vel, self.ang)
     def update(self):
         self.frame += 0.2
-        for i in self.bombs+self.lasers+self.explosions:
-            i.update(self)
-        if diff(int(self.frame), self.frame) < 0.1:
-            self.update_invaders()
-        if int(self.frame)%5==0:
+        for i in self.bombs+self.lasers+self.explosions: i.update(self)
+        if diff(int(self.frame), self.frame) < 0.1: self.update_invaders()
+        elif any(i<0.1 for i in (diff(int(self.frame)+d, self.frame) for d in (0.25, 0.5, 0.75))):
+            for inv in (inv for inv in self.invaders if type(inv) == game.UFO):
+                inv.update(self)
+        if int(self.frame)%6==0:
             try:
                 if type(inv:=rd.choice(self.invaders)) != game.UFO:
                     inv.bomb(self)
@@ -190,88 +194,98 @@ class game:
         if len(self.invaders)==0:
             self.new_wave()
             self.lives += 1
-    def image(self) -> image:
+    def image(self) -> None:
         img = new_img(background=self.bg_color)
         img.rectangle(*(self.tile(*self.ground[i])[i] for i in [0, -1]), COL.darkGreen, 0)
         for i in self.bombs+self.lasers+self.explosions+self.invaders+[self.player]:
             i.draw(img, self)
         img.write(f"{self.score:0>6}", [10, 30], COL.white, 2, 2, FONT_HERSHEY_PLAIN)
         img.write(f"{self.lives}", [10, RES.resolution[1]-30], COL.white, 2, 2, FONT_HERSHEY_PLAIN)
-        return img
+        self.img.img = img.img
     def reset(self) -> None:
         self.__init__()
-    def close(self, img) -> bool:
-        im = new_img(dimensions=img.size(), background=COL.black)
-        im.write_centered("\n\n\nDo you really want to quit?\n\n(y/N)\n\n'C' for configuration", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
-        img.img = im.img
-        wk = img.show_(0, built_in_functs=False)
+    def pause(self) -> bool:
+        im = new_img(dimensions=self.img.size(), background=COL.black)
+        im.write_centered("\n\n\nGame paused\n\n(y/N)\n\n'C' for configuration", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
+        self.img.img = im.img
+        wk = self.img.show_(0, built_in_functs=False)
         self.to_config = wk == ord("c")
+        if wk == ord("r"): self.reset()
         return wk in [ord("y"), 27]
-    def play(self, img) -> None:
+    def close(self) -> bool:
+        im = new_img(dimensions=self.img.size(), background=COL.black)
+        im.write_centered("Do you really want to quit?\n\n(y/N)", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
+        self.img.img = im.img
+        return self.img.show_(0, built_in_functs=False) in [ord("y"), 27]
+    def play(self) -> None:
         tick, last_tick = 1/30, time.time()
-        while img.is_opened() and self.lives>0:
-            match img.show(built_in_functs=False):
+        while self.img.is_opened() and self.lives>0:
+            match self.img.show(built_in_functs=False):
                 case 27: ## Esc key
-                    if self.close(img): img.close()
-                    elif self.to_config: self.config(img) ## Key C
-                case 8: img.fullscreen = not img.fullscreen ## Backspace
+                    while self.img.is_opened():
+                        if self.pause():
+                            self.img.close()
+                        elif self.to_config:
+                            self.config() ## Key C
+                        else: break
+                case 8: self.img.fullscreen = not self.img.fullscreen ## Backspace
                 case self.Right: self.player.move(0) ## Right arrow
                 case self.Left: self.player.move(180) ## Left arrow
                 case f if f in self.Fire: self.player.shoot(self) ## Space bar
-                case 65470: cv2.moveWindow(img.name, 0, 0) #f1
-                case 65471: cv2.moveWindow(img.name, 1920, 0) #f2
+                case 65470: cv2.moveWindow(self.img.name, 0, 0) #f1
+                case 65471: cv2.moveWindow(self.img.name, 1920, 0) #f2
             if diff(t:=time.time(), last_tick) > tick:
                 self.update()
                 last_tick = t
-            img.img = self.image().img
-    def config_img(self, img):
-        im = new_img(dimensions=img.size(), background=COL.black)
+            self.image()
+    def config_img(self):
+        im = new_img(dimensions=self.img.size(), background=COL.black)
         ln = 5
         rk, lk, fk, sk = "r", "l", "f", "s"
         im.write_centered("Configuration\n\n\n\n\n\n", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
         s = f"Right: {self.Right:{ln}}{" "*16}\"{rk}\" to change\n Left: {self.Left:{ln}}{" "*16}\"{lk}\" to change\nFire1: {self.Fire[0]:{ln}}{" "*16}\"{fk}\" to change\nFire2: {self.Fire[1]:{ln}}{" "*16}\"{sk}\" to change"
         im.write_centered(s, ct_sg((0, 0), RES.resolution), COL.red, 3*self.sizeP, 2*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
-        img.img = im.img
+        self.img.img = im.img
         return rk, lk, fk, sk
-    def config(self, img):
-        rk, lk, fk, sk = self.config_img(img)
-        print(f"{rk=}")
+    def config(self):
+        rk, lk, fk, sk = self.config_img()
         special_keys = [27, 8]
-        while img.is_opened():
-            wk = img.show_(0, built_in_functs=False)
+        while self.img.is_opened():
+            wk = self.img.show_(0, built_in_functs=False)
             match wk:
                 case 8: self.fullscreen = not self.fullscreen
                 case 27: return
                 case a if a in [rk, lk, fk, sk]: ## TODO
-                    if key:=img.show_(0, built_in_functs=False) not in special_keys:
+                    if key:=self.img.show_(0, built_in_functs=False) not in special_keys:
                         ...
+                    elif key == 8: self.img.fullscreen = not self.img.fullscreen
+                    elif key == 27: return
         return
-    def titlescreen(self, img) -> None:
-        im = new_img(dimensions=img.size(), background=COL.black)
-        im.write_centered("TITLESCREEN!\n\n Spacebar to continue", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
-        img.img = im.img
-        while img.is_opened():
-            match img.show_(0, built_in_functs=False):
-                case 8: img.fullscreen = not img.fullscreen
+    def titlescreen(self) -> None:
+        im = new_img(dimensions=self.img.size(), background=COL.black)
+        im.write_centered("\n\nTITLESCREEN!\n\n Spacebar to continue\n\n'C' for configuration", ct_sg((0, 0), RES.resolution), COL.red, 4*self.sizeP, 3*self.sizeP, FONT_HERSHEY_COMPLEX, 2)
+        self.img.img = im.img
+        while self.img.is_opened():
+            match self.img.show_(0, built_in_functs=False):
+                case 8: self.img.fullscreen = not self.img.fullscreen
                 case 27:
-                    if self.close(img):
-                        img.close()
-                    elif self.to_config:
-                        self.config(img)
-                        img.img = im.img
-                    else: img.img = im.img
+                    if self.close():
+                        self.img.close()
+                    else: self.img.img = im.img
+                case 99:
+                    self.config()
+                    self.img.img = im.img
                 case 32: return
     def save_highscore(self) -> None: ...
 
 def main():
     jeu = game()
-    jeu.player.vel *= 3
-    img = new_img(name="Space Invaders").build()
-    img.fullscreen = True
-    # jeu.max_n_l = 10 ## TODO REMOVE IT
-    while img.is_opened():
-        jeu.titlescreen(img)
-        jeu.play(img)
+    jeu.player.vel *= 5
+    jeu.start()
+    jeu.img.fullscreen = True
+    while jeu.img.is_opened():
+        jeu.titlescreen()
+        jeu.play()
         jeu.save_highscore()
         jeu.reset()
 
