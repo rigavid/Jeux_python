@@ -215,7 +215,7 @@ class sol:
                 for pt, a in [[pt_sg(p1, p2, 9), 0], [pt_sg([p2[0], p2[1]+diff(p1[1], p2[1])*0.055], p1, 9), 180]]:
                     v = diff(p1[1], p2[1])*0.2
                     forme(img, [pt[0], p1[1]+v if a==0 else p2[1]-v], 7)
-                    img.write_centered(val[:-1:], pt, color, 2, 1, cv2.FONT_HERSHEY_COMPLEX, 2) # TODO ## Add rotated text (update tsanap)
+                    img.write_centered(val[:-1:], pt, color, 2, 1, cv2.FONT_HERSHEY_COMPLEX, 2) # TODO ## Add rotated text (update pyimager)
     def image(self, r=False) -> image:
         x, y = diff(RES.resolution[0], RES.resolution[1])/4, RES.resolution[1]/20
         p1, p2, p3, p4 = [x, y], [RES.resolution[0]-x, y], [x, RES.resolution[1]-y], [RES.resolution[0]-x, RES.resolution[1]-y]
