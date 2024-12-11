@@ -1,0 +1,9 @@
+{
+	'title': 'Flags of the world',
+	'flags': {
+		
+	},
+	'buttons': [
+		
+	]
+}

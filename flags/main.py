@@ -3,11 +3,16 @@ from PIL import Image
 from cairosvg import svg2png
 from io import BytesIO
 
-def openflag(path):
-    img = new_img(name=path.split("/")[-1])
-    with open(path, "r") as file:
-        img.img = cv2.cvtColor(np.array(Image.open(BytesIO(svg2png(bytestring=file.read(), output_height=RES.resolution[1]*60//100))).convert('RGB')), cv2.COLOR_RGB2BGR)
-    return img
+def openflag(path, bg=COL.black):
+    try:
+        img = new_img(name=path.split("/")[-1])
+        with open(path, "r") as file:
+            im = np.array(Image.open(BytesIO(svg2png(bytestring=file.read(), output_height=RES.resolution[1]*60//100))).convert('RGBA'))
+        im[im[:,:,3] < 200] = [*bg, 255]
+        img.img = cv2.cvtColor(im, cv2.COLOR_RGBA2BGR)
+        return img
+    except KeyboardInterrupt as e:
+        raise print(path)
 
 COL.DarkModeBG = COL.new("#1e1e1e")
 COL.LightModeBG = COL.new("#eeeeee")
@@ -17,6 +22,10 @@ class game:
         with open("/".join(i for i in __file__.split("/")[:-1:])+f"/langues/{i}", "r", encoding="utf8") as file:
             _infos_ += f"'{i[:-4:]}':{file.read()},\n"
     flags = [f"{"/".join(i for i in __file__.split("/")[:-1:])+"/drapeaux"}/{i}" for i in os.listdir("/".join(i for i in __file__.split("/")[:-1:])+"/drapeaux/")]
+    try: flags += [f"{"/".join(i for i in __file__.split("/")[:-1:])+"/drapeauxUS"}/{i}" for i in os.listdir("/".join(i for i in __file__.split("/")[:-1:])+"/drapeauxUS/")]
+    except: ...
+    try: flags += [f"{"/".join(i for i in __file__.split("/")[:-1:])+"/drapeauxAutres"}/{i}" for i in os.listdir("/".join(i for i in __file__.split("/")[:-1:])+"/drapeauxAutres/")]
+    except: ...
     _infos_ = eval((_infos_ + "}").replace("\n", ""))
     def reload_infos(self) -> None:
         self.infos = self._infos_[self.lang]
@@ -29,15 +38,15 @@ class game:
         self.mode = True
         self.img = new_img(name=self.name)
         self.round = 0
-        self.random = False
-    def image(self, UI=True) -> None:
+        self.random = True
+    def image(self, UI=True) -> None: ## TODO ## Chronomètre
         img = new_img(RES.resolution, COL.DarkModeBG if self.mode else COL.lightGray)
         if UI: ## Draws UI
-            coosRound = RES.percentile(80, 10), RES.percentile(90, 15)
+            coosRound = RES.percentile(70, 10), RES.percentile(90, 15)
             img.rectangle(*coosRound, COL.red, 0)
-            img.write_centered(f"Round: {self.round+1}", ct_sg(*coosRound), COL.lime, 1, 1, FONTS[FONT_NAMES[0]])
+            img.write_centered(f"Round: {self.round+1}/{len(game.flags)}", ct_sg(*coosRound), COL.lime, 1, 1, FONTS[FONT_NAMES[0]])
         self.img.img = img.img
-    def guess_img(self, guess):
+    def guess_img(self, guess): ## TODO ## Prendre les variables de bouttons dans game._infos_ pour écrire pour avoir plusieurs langues
         self.image()
         pt_d = [(self.img.size()[0]-self.flag.size()[0])//2, (self.img.size()[1]-self.flag.size()[1])//2]
         pt_f = [pt_d[0]+self.flag.size()[0], pt_d[1]+self.flag.size()[1]]
@@ -45,15 +54,15 @@ class game:
         self.img.write_centered(guess, RES.percentile(50, 80), COL.lime, 5, 5, FONTS[FONT_NAMES[0]])
         if self.show_an:
             self.img.write_centered(self.show_an, RES.percentile(50, 15), COL.red, 4, 4, FONTS[FONT_NAMES[0]])
-    def guess_flag(self, flag):
+    def guess_flag(self, flag): ## TODO ## Boutton pause et boutton menu pour revenir à l'écran titre
         guess = ""
-        self.flag = openflag(flag)
+        self.flag = openflag(flag, COL.DarkModeBG if self.mode else COL.LightModeBG)
         self.show_an = None
         self.guess_img(guess)
         try: country_names = [i.replace(" ", "").replace("-", "").replace("\n", "").lower() for i in eval(self.infos["flags"][self.flag.name.split(".")[0]])]
         except KeyError: return print(f"{self.flag.name.split(".")[0]} has no names defined yet!")
         while self.img.is_opened():
-            wk = self.img.show()
+            wk = self.img.show(built_in_functs=False)
             match wk:
                 case 65473 | 269025139: #f4
                     self.mode = not self.mode
@@ -61,15 +70,17 @@ class game:
                 case 65474: #f5
                     self.show_an = None if self.show_an else eval(self.infos["flags"][self.flag.name.split(".")[0]])[0]
                     self.guess_img(guess)
-                case a if a in [ord(i) for i in "abcdefghijklmnopqrstuvwxyz"]:
+                case a if a in [ord(i) for i in " -abcdefghijklmnopqrstuvwxyz"]:
                     guess += chr(wk)
                     self.guess_img(guess)
                     if guess in country_names:
                         self.round += 1
                         return
-                case 65535: ## Suppr
-                    RES.update()
+                case 13:
+                    self.guess = ""
                     self.guess_img(guess)
+                case 65535: ## Suppr
+                    self.img.fullscreen = not self.img.fullscreen
                 case 8:
                     guess = guess[:-1:]
                     self.guess_img(guess)
@@ -111,6 +122,8 @@ class game:
                 case 13: return
                 case 27: self.img.close()
     def start(self):
+        ## TODO ## Option nº de questions / quantité de temps à disposition
+        ## TODO ## Changer de langue (pas possible pendant la partie)
         img = self.img.build()
         while img.is_opened():
             self.img.img = new_img(RES.resolution, COL.DarkModeBG if self.mode else COL.LightModeBG).img
@@ -118,10 +131,11 @@ class game:
             self.image()
             if self.random:
                 np.random.shuffle(game.flags)
-            for flag in game.flags:
+            for flag in game.flags[171::]:
                 if flag.split("/")[-1].split(".")[0] in self.flags_names.keys():
                     self.guess_flag(flag)
                     if img.is_closed(): break
+                else: print(f"{flag} is not defined for language: {self.lang}!")
             self.img.img = new_img(RES.resolution, COL.DarkModeBG if self.mode else COL.LightModeBG).img
             self.endScreen()
 
