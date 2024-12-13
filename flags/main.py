@@ -13,7 +13,7 @@ def openflag(path, bg=COL.black):
         img.img = cv2.cvtColor(im, cv2.COLOR_RGBA2BGR)
         return img
     except KeyboardInterrupt as e:
-        raise print(path)
+        raise ValueError(path)
     except Exception:
         raise ValueError(path)
 
@@ -26,10 +26,10 @@ class flags:
 
 def get_flags(path, v=False):
     for flag in os.listdir(path):
-        if os.path.isdir(f"{path}/{flag}"): get_flags(f"{path}/{flag}")
+        if os.path.isdir(f"{path}/{flag}"): get_flags(f"{path}/{flag}", v)
         else:
             flags.flags.append(f"{path}/{flag}")
-    if v: print(f"Succesfully loaded flags from {path}")
+    if v: print(f"Succesfully loaded flags from {path}", end="\r")
 class chronometre:
     def __init__(self):
         self.start_time = self.stop_time = None
@@ -168,7 +168,6 @@ class game:
                 case 13: return
                 case 27: self.img.close()
     def start_game(self, flgs):
-        print(flgs)
         if self.random: np.random.shuffle(flgs)
         self.chrono.start()
         self.image()
@@ -193,7 +192,8 @@ def main(v=False):
     jeu = game()
     jeu.img.fullscreen = True
     try: jeu.start()
-    except KeyboardInterrupt: print(end="\r"); return
+    except KeyboardInterrupt: v=True
+    if v: print(" "*120, end="\r")
 
 if __name__ == "__main__":
     main()
