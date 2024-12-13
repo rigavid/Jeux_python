@@ -41,7 +41,11 @@ class chronometre:
             self.stop_time = None
     def stop(self): self.stop_time = time.time()
     def reset(self): self.__init__()
-    def elapsed(self): return diff(self.start_time, time.time())
+    def elapsed(self):
+        t = time.time()
+        if self.start_time == None: return 0
+        elif self.stop_time == None: return diff(self.start_time, t)
+        else: return diff(self.start_time, t)-diff(self.stop_time, t)
 class game:
     _infos_ = "{"
     for i in os.listdir("/".join(i for i in __file__.split("/")[:-1:])+f"/langues/"):
@@ -62,25 +66,31 @@ class game:
         self.round = 0
         self.random = True
         self.chrono = chronometre()
-    def image(self, UI=True) -> None: ## TODO ## Format temps chronomètre
+    def image(self, UI=True) -> None:
         img = new_img(RES.resolution, COL.DarkModeBG if self.mode else COL.lightGray)
-        if UI: ## Draws UI
+        if UI: ## Draws UI ## TODO ## Prendre les variables de bouttons dans game._infos_ pour écrire pour avoir plusieurs langues
             coosRound = RES.percentile(70, 10), RES.percentile(90, 15)
             img.rectangle(*coosRound, COL.red, 0)
             img.write_centered(f"Round: {self.round+1}/{len(flags.flags)}", ct_sg(*coosRound), COL.lime, 1, 1, FONTS[FONT_NAMES[0]])
             coosTimer = RES.percentile(10, 10), RES.percentile(30, 15)
             img.rectangle(*coosTimer, COL.red, 0)
-            img.write_centered(f"Time: {self.chrono.elapsed()}", ct_sg(*coosTimer), COL.lime, 1, 1, FONTS[FONT_NAMES[0]])
+            t = round(self.chrono.elapsed())
+            img.write_centered(f"Time: {t//3600:0>2}:{t%3600//60:0>2}:{t%60:0>2}", ct_sg(*coosTimer), COL.lime, 1, 1, FONTS[FONT_NAMES[0]])
         self.img.img = img.img
-    def guess_img(self, guess): ## TODO ## Prendre les variables de bouttons dans game._infos_ pour écrire pour avoir plusieurs langues
+    def guess_img(self, guess):
         self.image()
         pt_d = [(self.img.size()[0]-self.flag.size()[0])//2, (self.img.size()[1]-self.flag.size()[1])//2]
         pt_f = [pt_d[0]+self.flag.size()[0], pt_d[1]+self.flag.size()[1]]
         self.img.img[pt_d[1]:pt_f[1], pt_d[0]:pt_f[0]] = self.flag.img
         self.img.write_centered(guess, RES.percentile(50, 80), COL.lime, 5, 5, FONTS[FONT_NAMES[0]])
-        if self.show_an:
-            self.img.write_centered(self.show_an, RES.percentile(50, 15), COL.red, 4, 4, FONTS[FONT_NAMES[0]])
-    def guess_flag(self, flag): ## TODO ## Boutton pause et boutton menu pour revenir à l'écran titre
+        if self.show_an: self.img.write_centered(self.show_an, RES.percentile(50, 15), COL.red, 4, 4, FONTS[FONT_NAMES[0]])
+    def pause(self) -> bool: ## TODO ## Boutton pour revenir à l'écran titre
+        self.image(False)
+        coosText1, coosText2 = RES.percentile(50, 50), RES.percentile(50, 70)
+        self.img.write_centered(f"Game paused", coosText1, COL.red, 5, 5, FONTS[FONT_NAMES[0]])
+        self.img.write_centered(f"Wanna exit [y/N]?", coosText2, COL.red, 3, 3, FONTS[FONT_NAMES[0]])
+        return self.img.show_(0, built_in_functs=False) in [27, ord("y")]
+    def guess_flag(self, flag):
         guess = ""
         self.flag = openflag(flag, COL.DarkModeBG if self.mode else COL.LightModeBG)
         self.show_an = None
@@ -103,25 +113,33 @@ class game:
                         self.round += 1
                         return
                 case 13:
-                    self.guess = ""
+                    guess = ""
                     self.guess_img(guess)
                 case 65535: ## Suppr
                     self.img.fullscreen = not self.img.fullscreen
                 case 8:
                     guess = guess[:-1:]
                     self.guess_img(guess)
-                case 27: return self.img.close()
+                case 27:
+                    self.chrono.stop()
+                    if self.pause():
+                        return self.img.close()
+                    self.guess_img(guess)
+                    self.chrono.start()
             if diff(self.chrono.elapsed()%1,0)<0.1: self.guess_img(guess)
-    def titleImg(self):
+    def titleImg(self): ## TODO Styliser cette image
         self.image(False)
         self.img.write_centered("Titlescreen", RES.percentile(50, 30), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
         self.img.write_centered("Press enter to start", RES.percentile(50, 50), COL.red, 5, 5, FONTS[FONT_NAMES[1]])
         self.img.write_centered(f"Mode: {"aleatoire" if self.random else "ordre"}\n'c' pour changer de mode", RES.percentile(50, 80), COL.red, 3, 3, FONTS[FONT_NAMES[1]])
-    def endImg(self):
+    def endImg(self): ## TODO Styliser cette image
         self.image(False)
-        self.img.write_centered("The end", RES.percentile(50, 50), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
+        self.img.write_centered("The end", RES.percentile(50, 20), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
+        t = self.chrono.elapsed()
+        self.img.write_centered(f"You made it in {t//3600:0>2}:{t%3600//60:0>2}:{t%60:0>2}", RES.percentile(50, 20), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
         self.img.write_centered("Press enter to restart", RES.percentile(50, 70), COL.red, 5, 5, FONTS[FONT_NAMES[1]])
     def titlescreen(self): ## TODO ## Option nº de questions / quantité de temps à disposition
+        ## TODO ## Changer de langue depuis le titlescreen (pas possible pendant la partie)
         self.titleImg()
         flgs = flags.flags
         while self.img.is_opened():
@@ -161,13 +179,10 @@ class game:
             else: print(f"{flag} is not defined for language: {self.lang}!")
         self.chrono.stop()
     def start(self):
-        ## TODO ## Changer de langue depuis le titlescreen (pas possible pendant la partie)
         img = self.img.build()
         while img.is_opened():
-            self.img.img = new_img(RES.resolution, COL.DarkModeBG if self.mode else COL.LightModeBG).img
             flgs = self.titlescreen()
             if img.is_opened(): self.start_game(flgs)
-            self.img.img = new_img(RES.resolution, COL.DarkModeBG if self.mode else COL.LightModeBG).img
             self.endScreen()
             self.chrono.reset()
 
@@ -175,7 +190,7 @@ def main(v=False):
     get_flags("/".join(i for i in __file__.split("/")[:-1:])+"/drapeaux", v)
     try: get_flags("/".join(i for i in __file__.split("/")[:-1:])+"/drapeauxAutres", v)
     except: ...
-    jeu = game("en")
+    jeu = game()
     jeu.img.fullscreen = True
     try: jeu.start()
     except KeyboardInterrupt: print(end="\r"); return
