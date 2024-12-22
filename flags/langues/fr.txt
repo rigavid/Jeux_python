@@ -144,6 +144,7 @@
 		'VIL-Moscow': "['Moscou']",
 		'VIL-New_York_City': "['New York', 'nyc']",
 		'VIL-Osaka': "['Osaka']",
+		'VIL-Paris': "['Paris']",
 		'VIL-Saint_Petersburg': "['Saint Petersbourg', 'sntpet', 'petersbourg']",
 		'VIL-Sevastopol': "['Sebastopol']",
 		'ad': "['Andorre', 'andorra']",

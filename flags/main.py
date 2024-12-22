@@ -24,18 +24,22 @@ class flags:
     flags = []
     count = 0
 
-def get_flags(path, v=False):
-    for flag in os.listdir(path):
-        if os.path.isdir(f"{path}/{flag}"): get_flags(f"{path}/{flag}", v)
-        else:
-            flags.flags.append(f"{path}/{flag}")
-    if v: print(f"Succesfully loaded flags from {path}", end="\r")
+    def get_flags(path):
+        try:
+            for flag in os.listdir(path):
+                if os.path.isdir(f"{path}/{flag}"): flags.get_flags(f"{path}/{flag}")
+                else:
+                    flags.flags.append(f"{path}/{flag}")
+        except Exception as e:
+            print(f"Couldn't load {path} because of {e} at {e.__traceback__.tb_lineno}")
+    def reset_flags():
+        flags.flags = []
+        flags.count = 0
+
 class chronometre:
-    def __init__(self):
-        self.start_time = self.stop_time = None
+    def __init__(self): self.start_time = self.stop_time = None
     def start(self):
-        if self.stop_time == None:
-            self.start_time = time.time()
+        if self.stop_time == None: self.start_time = time.time()
         else:
             self.start_time += diff(self.stop_time, time.time())
             self.stop_time = None
@@ -66,6 +70,7 @@ class game:
         self.round = 0
         self.random = True
         self.chrono = chronometre()
+        self.flgs = False
     def image(self, UI=True) -> None:
         img = new_img(RES.resolution, COL.DarkModeBG if self.mode else COL.lightGray)
         if UI: ## Draws UI ## TODO ## Prendre les variables de bouttons dans game._infos_ pour écrire pour avoir plusieurs langues
@@ -111,7 +116,7 @@ class game:
                     self.guess_img(guess)
                     if guess.replace(" ", "") in country_names:
                         self.round += 1
-                        return
+                        return True
                 case 13:
                     guess = ""
                     self.guess_img(guess)
@@ -123,36 +128,43 @@ class game:
                 case 27:
                     self.chrono.stop()
                     if self.pause():
-                        return self.img.close()
+                        return False
                     self.guess_img(guess)
                     self.chrono.start()
             if diff(self.chrono.elapsed()%1,0)<0.1: self.guess_img(guess)
     def titleImg(self): ## TODO Styliser cette image
         self.image(False)
-        self.img.write_centered("Titlescreen", RES.percentile(50, 30), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
-        self.img.write_centered("Press enter to start", RES.percentile(50, 50), COL.red, 5, 5, FONTS[FONT_NAMES[1]])
+        self.img.write_centered("Titlescreen", RES.percentile(50, 20), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
+        self.img.write_centered("Press enter to start", RES.percentile(50, 40), COL.red, 5, 5, FONTS[FONT_NAMES[1]])
+        self.img.write_centered(f"Drapeaux: {"tous" if self.flgs else "pays et territoires"}\n'd' pour modifier", RES.percentile(50, 60), COL.red, 3, 3, FONTS[FONT_NAMES[1]])
         self.img.write_centered(f"Mode: {"aleatoire" if self.random else "ordre"}\n'c' pour changer de mode", RES.percentile(50, 80), COL.red, 3, 3, FONTS[FONT_NAMES[1]])
     def endImg(self): ## TODO Styliser cette image
         self.image(False)
         self.img.write_centered("The end", RES.percentile(50, 20), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
         t = self.chrono.elapsed()
-        self.img.write_centered(f"You made it in {t//3600:0>2}:{t%3600//60:0>2}:{t%60:0>2}", RES.percentile(50, 20), COL.red, 10, 10, FONTS[FONT_NAMES[1]])
+        self.img.write_centered(f"You made it in\n{int(t//3600):0>2}:{int(t%3600//60):0>2}:{int(t%60):0>2}", RES.percentile(50, 45), COL.red, 6, 6, FONTS[FONT_NAMES[1]])
         self.img.write_centered("Press enter to restart", RES.percentile(50, 70), COL.red, 5, 5, FONTS[FONT_NAMES[1]])
     def titlescreen(self): ## TODO ## Option nº de questions / quantité de temps à disposition
         ## TODO ## Changer de langue depuis le titlescreen (pas possible pendant la partie)
         self.titleImg()
-        flgs = flags.flags
         while self.img.is_opened():
             wk = self.img.show_(0, built_in_functs=False)
             match wk:
                 case 65473 | 269025139: #f4
                     self.mode = not self.mode
                     self.titleImg()
-                case 99:
+                case 99: ## "c"
                     self.random = not self.random
                     self.titleImg()
+                case 100: ## "d"
+                    self.flgs = not self.flgs
+                    self.titleImg()
                 case 32: self.img.fullscreen = not self.img.fullscreen
-                case 13: return flgs
+                case 13:
+                    flags.reset_flags()
+                    flags.get_flags("/".join(i for i in __file__.split("/")[:-1:])+"/drapeaux")
+                    if self.flgs: flags.get_flags("/".join(i for i in __file__.split("/")[:-1:])+"/drapeauxAutres")
+                    return flags.flags
                 case 27: self.img.close()
                 case -1: ...
                 case _: print(f"{wk=}")
@@ -167,33 +179,30 @@ class game:
                 case 32: self.img.fullscreen = not self.img.fullscreen
                 case 13: return
                 case 27: self.img.close()
-    def start_game(self, flgs):
+    def start_game(self, flgs) -> bool:
         if self.random: np.random.shuffle(flgs)
         self.chrono.start()
         self.image()
         for flag in flgs:
             if flag.split("/")[-1].split(".")[0] in self.flags_names.keys():
-                self.guess_flag(flag)
-                if self.img.is_closed(): break
+                if not self.guess_flag(flag): return False
             else: print(f"{flag} is not defined for language: {self.lang}!")
         self.chrono.stop()
+        return True
     def start(self):
         img = self.img.build()
         while img.is_opened():
             flgs = self.titlescreen()
-            if img.is_opened(): self.start_game(flgs)
-            self.endScreen()
+            if img.is_opened():
+                if self.start_game(flgs):
+                    self.endScreen()
             self.chrono.reset()
 
-def main(v=False):
-    get_flags("/".join(i for i in __file__.split("/")[:-1:])+"/drapeaux", v)
-    try: get_flags("/".join(i for i in __file__.split("/")[:-1:])+"/drapeauxAutres", v)
-    except: ...
+def main():
     jeu = game()
     jeu.img.fullscreen = True
     try: jeu.start()
-    except KeyboardInterrupt: v=True
-    if v: print(" "*120, end="\r")
+    except KeyboardInterrupt: ...
 
 if __name__ == "__main__":
     main()

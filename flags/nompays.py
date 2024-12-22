@@ -1,7 +1,7 @@
 import os, pycountry as pc
 import time
 
-langue = "en"
+langue = "fr"
 
 ## TODO ## Fais prendre aussi en compte les keywords à afficher à l'écran
 
