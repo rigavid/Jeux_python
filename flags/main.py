@@ -4,6 +4,8 @@ from cairosvg import svg2png
 from io import BytesIO
 import time
 
+## TODO ## Display the real number of total flags
+
 def openflag(path, bg=COL.black):
     try:
         img = new_img(name=path.split("/")[-1])
@@ -23,7 +25,6 @@ COL.LightModeBG = COL.new("#eeeeee")
 class flags:
     flags = []
     count = 0
-
     def get_flags(path):
         try:
             for flag in os.listdir(path):
@@ -114,6 +115,7 @@ class game:
                 case a if a in [ord(i) for i in " -abcdefghijklmnopqrstuvwxyz"]:
                     guess += chr(wk)
                     self.guess_img(guess)
+                    self.img.show_(built_in_functs=False)
                     if guess.replace(" ", "") in country_names:
                         self.round += 1
                         return True
