@@ -76,7 +76,7 @@ def dist(p1, p2):
     dist = math.sqrt((diffX * diffX) + (diffY * diffY))
     dist = float(decoupe(dist))
     return dist
-def angleEntrePoints(p1, p2):
+def angleInterPoints(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
     diffX = x1 - x2

@@ -81,7 +81,7 @@ class ovni:
     class tir:
         def __init__(self, secoupe, navette) -> None:
             self.pos = secoupe.pos
-            self.ori = angleEntrePoints(secoupe.pos, navette.pos)+rd.randint(0, 25)-12.5
+            self.ori = angleInterPoints(secoupe.pos, navette.pos)+rd.randint(0, 25)-12.5
             self.col = vert
             self.vel = rd.randint(10, 15)/10
             self.live = 100
@@ -124,7 +124,7 @@ class ovni:
                 rock.type = 0
                 self.remove = True
         if rd.randint(0, 10)==0:
-            a = angleEntrePoints(self.pos, navette.pos)
+            a = angleInterPoints(self.pos, navette.pos)
             self.pos = coosCercle(self.pos, self.vel, a)
     def dessine(self, img):
         cercle(img, self.pos, 15, rouge, 0)

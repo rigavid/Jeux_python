@@ -402,7 +402,7 @@ if oui: ## Tout ##
             f1 = (x + racine_carree(pow(b, 2) - pow(a, 2)), y) if b > a else (x, y + racine_carree(pow(a, 2) - pow(b, 2)))
             f2 = (x - racine_carree(pow(b, 2) - pow(a, 2)), y) if b > a else (x, y - racine_carree(pow(a, 2) - pow(b, 2)))
             p = ellipsed(pt, rayons, an)
-            angl = angleEntrePoints(pt, p)
+            angl = angleInterPoints(pt, p)
             p = coosCercle(pt, dist(p, pt), angl + angleEllipse)
             return(p)
         def diff(a, b):
@@ -525,7 +525,7 @@ if oui: ## Tout ##
             dist = math.sqrt((diffX * diffX) + (diffY * diffY))
             dist = float(decoupe(dist))
             return(dist)
-        def angleEntrePoints(p1, p2):
+        def angleInterPoints(p1, p2):
             x1, y1 = p1
             x2, y2 = p2
             diffX = x1 - x2
@@ -945,7 +945,7 @@ if oui: ## Tout ##
             Soit: ``rectangle(···)``
             '''
             rayon, epaisseur = int(rayon), int(epaisseur)
-            rotation = angleEntrePoints(p1, p2)
+            rotation = angleInterPoints(p1, p2)
             if rayon < 0:
                 rayon = abs(rayon)
             elif rayon == 0:
@@ -1078,7 +1078,7 @@ if oui: ## Tout ##
             sagitta, epaisseur = round(sagitta), round(epaisseur)
             if epaisseur == 0:
                 epaisseur = -1
-            rotation = angleEntrePoints(p1, p2)
+            rotation = angleInterPoints(p1, p2)
             if sagitta < 0:
                 sagitta = abs(sagitta)
             elif sagitta == 0:

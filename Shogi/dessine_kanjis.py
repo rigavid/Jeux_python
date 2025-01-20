@@ -96,7 +96,7 @@ def dessine_kanji_promu(img:image, p1, p2, p3, p4, c=COL.black, ep=1, ori=0, l_t
     d = dist(p1, p2)/4
     img.ellipse(pt, (dist(pt, ctg), dist(pt, p3)), c, ep, l_t, 0, 90, ori)
     img.ellipse(ptt, (dist(ptt, ct)*0.75, dist(ptt, p4)), c, ep, l_t, 90, 225, ori-20)
-    peg = coosEllipse(pt, (dist(pt, ctg), dist(pt, p3)), 20+ori)
+    peg = coosEllipse(pt, (dist(pt, ctg), dist(pt, p3)), 20, ori)
     pfeg = coosCircle(peg, d, ori)
     img.ellipse(peg, (dist(peg, pfeg), dist(peg, p3)*0.85), c, ep, l_t, 0, 100, ori)
     img.ellipse(ct, (dist(ct, cd)*0.7, dist(ct, cb)), c, ep, l_t, 30, 110, -20+ori)
@@ -108,15 +108,15 @@ def dessine_kanji_diagonale(img:image, p1, p2, p3, p4, c=COL.black, ep=1, ori=0,
     ct = ct_cr(p1, p2, p3, p4)
     img.ellipse(p1, (dist(p1, ch)*0.8, dist(p1, ct_sg(ct_sg(p1, ch), cg))/2), c, ep, l_t, 0, 110, ori-20)
     img.ellipse(ct_sg(p1, cg), (dist(p1, ch)/4, dist(ct_sg(p1, cg), p3)), c, ep, l_t, 0, 90, ori)
-    p = coosEllipse(p1, (dist(p1, ch)*0.8, dist(p1, ct_sg(ct_sg(p1, ch), cg))/2), 45-180+ori)
+    p = coosEllipse(p1, (dist(p1, ch)*0.8, dist(p1, ct_sg(ct_sg(p1, ch), cg))/2), 45-180, ori)
     d = dist(p1, p)
-    a = angleEntrePoints(p1, p)
+    a = angleInterPoints(p1, p)
     pt = coosCircle(p1, d, a-20)
     LINES = [[ct_sg(ct_sg(p1, ch), cg), ct_sg(p2, cd)], [ct_sg(p2, cd), p4], [p4, ct_sg(p4, cb)],
     [pt, pt_sg(ch, p2, 2)], [pt_sg(ch, p2, 2), ct_sg(ct_sg(ct_sg(p1, ch), cg), ct_sg(p2, cd))],
     [ct_sg(ct_sg(ct_sg(p1, ch), cg), ct_sg(p2, cd)), cb],
-    [coosEllipse(ct_sg(p1, cg), (dist(p1, ch)/4, dist(ct_sg(p1, cg), p3)), 17+ori), pt_sg(ct_sg(p2, cd), p4, 3)],
-    [coosEllipse(ct_sg(p1, cg), (dist(p1, ch)/4, dist(ct_sg(p1, cg), p3)), 35+ori), pt_sg(ct_sg(p2, cd), p4, 4, 5)]]
+    [coosEllipse(ct_sg(p1, cg), (dist(p1, ch)/4, dist(ct_sg(p1, cg), p3)), 17, ori), pt_sg(ct_sg(p2, cd), p4, 3)],
+    [coosEllipse(ct_sg(p1, cg), (dist(p1, ch)/4, dist(ct_sg(p1, cg), p3)), 35, ori), pt_sg(ct_sg(p2, cd), p4, 4, 5)]]
     for a, b in LINES: img.line(a, b, c, ep, l_t)
 def dessine_kanji_volant(img:image, p1, p2, p3, p4, c=COL.black, ep=1, ori=0, l_t=2): ## DONE ##
     ch, cb, cg, cd = ct_sg(p1, p2), ct_sg(p3, p4), ct_sg(p1, p3), ct_sg(p2, p4)
@@ -127,10 +127,10 @@ def dessine_kanji_volant(img:image, p1, p2, p3, p4, c=COL.black, ep=1, ori=0, l_
     d = dist(p1, p2)/6
     LINES = [[p1, pt_sg(p2, ch, a, b)], [cg, pt_sg(cd, ct, a, b)], [ct_sg(ch, ct), cb], [pt, ct_sg(p3, cb)],
     [coosCircle(pt, d, an+ori), coosCircle(pt, d, an+180+ori)],
-    [coosEllipse(p2, (dist(pt_sg(p2, ch, a, b), p2), dist(p2, cd)), 135+ori), p2],
-    [ct_sg(coosEllipse(p2, (dist(pt_sg(p2, ch, a, b), p2), dist(p2, cd)), 135+ori), p2), ct_sg(p2, cd)],
-    [coosEllipse(cd, (dist(pt_sg(cd, ct, a, b), cd), dist(cd, p4)), 135+ori), cd],
-    [ct_sg(coosEllipse(cd, (dist(pt_sg(cd, ct, a, b), cd), dist(cd, p4)), 135+ori), cd), ct_sg(cd, p4)],]
+    [coosEllipse(p2, (dist(pt_sg(p2, ch, a, b), p2), dist(p2, cd)), 135, ori), p2],
+    [ct_sg(coosEllipse(p2, (dist(pt_sg(p2, ch, a, b), p2), dist(p2, cd)), 135, ori), p2), ct_sg(p2, cd)],
+    [coosEllipse(cd, (dist(pt_sg(cd, ct, a, b), cd), dist(cd, p4)), 135, ori), cd],
+    [ct_sg(coosEllipse(cd, (dist(pt_sg(cd, ct, a, b), cd), dist(cd, p4)), 135, ori), cd), ct_sg(cd, p4)],]
     img.ellipse(p2, (dist(pt_sg(p2, ch, a, b), p2), dist(p2, cd)), c, ep, l_t, 90, 180, ori)
     img.ellipse(cd, (dist(pt_sg(cd, ct, a, b), cd), dist(cd, p4)), c, ep, l_t, 90, 180, ori)
     for a, b in LINES: img.line(a, b, c, ep, l_t)
@@ -207,7 +207,7 @@ def dessine_kanji_charriot(img:image, p1, p2, p3, p4, c=COL.black, ep=1, ori=0, 
             case b if b in [i for i in range(2, 5)]:
                 pt1, pt2 = [pt_sg(p1, ch, 5, 3)[0], y], [pt_sg(p2, ch, 5, 3)[0], y]
                 LINES.append([pt1, pt2])
-                ts.append([pt1, pt2])
+                pts.append([pt1, pt2])
             case a if a in [i for i in range(1, 6)]: img.line([p1[0], y], [p2[0], y], c, ep, l_t)
     LINES += [[pts[0][0], pts[-1][0]], [pts[0][1], pts[-1][1]], [ch, cb]]
     for a, b in LINES: img.line(a, b, c, ep, l_t)
