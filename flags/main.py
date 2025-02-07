@@ -4,8 +4,6 @@ from cairosvg import svg2png
 from io import BytesIO
 import time
 
-## TODO ## Display the real number of total flags
-
 def openflag(path, bg=COL.black):
     try:
         img = new_img(name=path.split("/")[-1])
@@ -77,7 +75,7 @@ class game:
         if UI: ## Draws UI ## TODO ## Prendre les variables de bouttons dans game._infos_ pour écrire pour avoir plusieurs langues
             coosRound = RES.percentile(70, 10), RES.percentile(90, 15)
             img.rectangle(*coosRound, COL.red, 0)
-            img.write_centered(f"Round: {self.round+1}/{len(flags.flags)}", ct_sg(*coosRound), COL.lime, 1, 1, FONTS[FONT_NAMES[0]])
+            img.write_centered(f"Round: {self.round+1}/{self.nflags}", ct_sg(*coosRound), COL.lime, 1, 1, FONTS[FONT_NAMES[0]])
             coosTimer = RES.percentile(10, 10), RES.percentile(30, 15)
             img.rectangle(*coosTimer, COL.red, 0)
             t = round(self.chrono.elapsed())
@@ -182,6 +180,7 @@ class game:
                 case 13: return
                 case 27: self.img.close()
     def start_game(self, flgs) -> bool:
+        self.nflags = len(flgs)
         if self.random: np.random.shuffle(flgs)
         self.chrono.start()
         self.image()
