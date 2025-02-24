@@ -2,8 +2,16 @@ from operator import add, sub
 from pyimager import *
 import time
 
+
 ## TODO ## Do a config interface to let change keys' config (let save it into a file)
-highscores_path = "/".join(__file__.split("/")[:-1:])+"/highscores.txt"
+match os.name:
+    case "posix":
+        highscores_path = "/".join(__file__.split("/")[:-1:])+"/highscores.txt"
+        controls_path = "/".join(__file__.split("/")[:-1:])+"/controls.txt"
+    case "nt":
+        highscores_path = "\\".join(__file__.split("\\")[:-1:])+"\\highscores.txt"
+        controls_path = "\\".join(__file__.split("\\")[:-1:])+"\\controls.txt"
+    case _: raise OSError("Unknown OS!")
 
 ## TODO ## Seulement les invaders en bas d'une file peuvent tirer
 ## TODO ## Changer le mode de déplacement des invaders (voir jeu original)
@@ -159,7 +167,7 @@ class game:
         self.invaders, self.explosions, self.last_bomb_t = [], [], time.time()
         self.wave, self.UFOS, self.frame = 1, 0, 0.05
         self.new_wave()
-        with open("/".join(__file__.split("/")[:-1:])+"/controls.txt", "r", encoding="utf8") as file:
+        with open(controls_path, "r", encoding="utf8") as file:
             self.controls = {l.split(":")[0]:eval(l.strip().split(":")[1]) for l in file.readlines()}
         self.Right, self.Left, self.Fire = self.controls["Right"], self.controls["Left"], self.controls["Fire"]
     def start(self):
@@ -230,8 +238,8 @@ class game:
                             self.config() ## Key C
                         else: break
                 case 8: self.img.fullscreen = not self.img.fullscreen ## Backspace
-                case self.Right: self.player.move(0) ## Right arrow
-                case self.Left: self.player.move(180) ## Left arrow
+                case f if f in self.Right: self.player.move(0) ## Right arrow
+                case f if f in self.Left: self.player.move(180) ## Left arrow
                 case f if f in self.Fire: self.player.shoot(self) ## Space bar
                 case 65470: cv2.moveWindow(self.img.name, 0, 0) #f1
                 case 65471: cv2.moveWindow(self.img.name, 1920, 0) #f2
