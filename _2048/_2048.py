@@ -44,7 +44,9 @@ def add_new(t) -> bool:
 cols = {'2':'ede5da', '4':'ebe1c8', '8':'f2b177', '16':'eb8e53', '32':'f57c5f', '64':'e95937', '128':'f3d96b', '256':'f1d04b', '512':'e4c02a', '1024':'f7d639', '2048':'ecc400', '4096':'f0a0a0'}
 for c in cols: cols[c] = COL.new(cols[c])
 class kys: k1, k2, k3, k4 = 65363, 65361, 65362, 65364
+class kys2: k1, k2, k3, k4 = 2555904, 2424832, 2490368, 2621440
 keys = [kys.k1, kys.k2, kys.k3, kys.k4]
+keys2 = [kys2.k1, kys2.k2, kys2.k3, kys2.k4]
 
 def img2048(t) -> image:
     img = new_img(RES.resolution, COL.cyan)
@@ -120,7 +122,7 @@ def main():
             img.img = img2048(t).img
             while img.is_opened(): ## Get a key with WaitKey (wk)
                 wk = img.show(3, built_in_functs=False)
-                if wk in keys: break
+                if wk in keys+keys2: break
                 if r and wk not in [27, 114, 8, 32, 102, 65470, 65471]:
                     wk = 116
                 match wk:
@@ -131,11 +133,12 @@ def main():
                         img.img = img2048(t).img
                     case 114: r = not r
                     case 101: breyk = True; break ## <e>
-                    case 65470: cv2.moveWindow(img.name, 0, 0) ## F1
-                    case 65471: cv2.moveWindow(img.name, 1920, 0) ## F2
+                    case 65470 | 7340032: cv2.moveWindow(img.name, 0, 0) ## F1
+                    case 65471 | 7405568: cv2.moveWindow(img.name, 1920, 0) ## F2
                     case 116: wk = rd.choice(keys); break
             if breyk: break
-            sens = [3, 1, 2, 0][keys.index(wk)]
+            try: sens = [3, 1, 2, 0][keys.index(wk)]
+            except: sens = [3, 1, 2, 0][keys2.index(wk)]
             moved = False
             comp = copy.deepcopy(t)
             t, moved = move(t, sens)
@@ -152,11 +155,11 @@ def main():
                 case 32:
                     RES.update()
                     img.img = go_img(t).img
-                case 65470 | 49: cv2.moveWindow(img.name, 0, 0) ## F1
-                case 65471 | 50: cv2.moveWindow(img.name, 1920, 0) ## F2
-                case 65472 | 51: break ## F3
-                case 65473 | 52: s.size = [max(i-1, 3) for i in s.size]; img.img = go_img(t).img ## F4
-                case 65474 | 53: s.size = [min(i+1, 9) for i in s.size]; img.img = go_img(t).img ## F5
+                case q if q in [7340032, 65470, 49]: cv2.moveWindow(img.name, 0, 0) ## F1
+                case q if q in [7405568, 65471, 50]: cv2.moveWindow(img.name, 1920, 0) ## F2
+                case q if q in [7471104, 65472, 51]: break ## F3
+                case q if q in [7536640, 65473, 52]: s.size = [max(i-1, 3) for i in s.size]; img.img = go_img(t).img ## F4
+                case q if q in [7602176, 65474, 53]: s.size = [min(i+1, 9) for i in s.size]; img.img = go_img(t).img ## F5
 
 if __name__ == "__main__":
     main()
