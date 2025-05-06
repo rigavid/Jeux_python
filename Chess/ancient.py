@@ -1352,7 +1352,7 @@ class echecs: ########################### Terminé ##
                 if oui: ## Vars ##
                     p1, p2, p3, p4 = self.p1, self.p2, self.p3, self.p4
                     cg, cd, ch, cb = ct_sg(p1, p3), ct_sg(p2, p4), ct_sg(p1, p2), ct_sg(p3, p4)
-                    ct = ct_sg(ct_sg(p1, p4), ct_sg(p2, p3))
+                    ct = ct_cr(p1, p2, p3, p4)
                     cth, ctb, ctg, ctd = ct_sg(ct, ch), ct_sg(ct, cb), ct_sg(ct, cg), ct_sg(ct, cd)
                     a, b = 1, 2
                     cth1, cth2, cth3, cth4 = pt_sg(cth, p1, a, b), pt_sg(cth, p2, a, b), pt_sg(cth, cg, a, b), pt_sg(cth, cd, a, b)
@@ -1363,7 +1363,7 @@ class echecs: ########################### Terminé ##
                         self.table_joueur(img, '1' if self.trait else '2', ctb1, ctb2, ctb3, ctb4)
                     else:
                         self.table_joueur(img, '2', cth1, cth2, cth3, cth4)
-                        self.table_joueur(img, '1', ctb1, ctb2, ctb3, ctb4)    
+                        self.table_joueur(img, '1', ctb1, ctb2, ctb3, ctb4)
                 if self.dev:
                     for i in [cg, cd, ch, cb]:
                         point(img, i)
