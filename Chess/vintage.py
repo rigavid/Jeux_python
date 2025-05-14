@@ -240,9 +240,22 @@ class chess:
         return self.leg_f(x, y, p1, p2) or self.leg_t(x, y, p1, p2)
     def leg_r(self, x, y, p1, p2, dry) -> bool:
         if abs(x)<=1 and abs(y)<=1: return True
-        ## TODO Roque
+        elif self.m[*p1][-1]=="." and abs(x)==2 and y==0 and not self.est_echec(self.trait):
+            if self.m[*[int(i) for i in ct_sg(p1, p2)]] == " ":
+                self.m[*p1], self.m[*[int(i) for i in ct_sg(p1, p2)]] = " ", self.m[*p1]
+                if not self.est_echec(self.trait):
+                    self.m[*p1], self.m[*[int(i) for i in ct_sg(p1, p2)]] = self.m[*[int(i) for i in ct_sg(p1, p2)]], " "
+                    if p2[1] > 4:
+                        if self.m[p1[0], -1][-1]==".":
+                            self.m[p1[0], 5], self.m[p1[0], -1] = self.m[p1[0], -1][0], " "
+                            return True
+                    else:
+                        if self.m[p1[0], 0][-1]=="." and self.m[p1[0], 1]==" ":
+                            self.m[p1[0], 3], self.m[p1[0], 0] = self.m[p1[0], 0][0], " "
+                            return True
         return False
     def legal_(self, p1, p2, dry=False) -> bool:
+        if None in (p1, p2): return False
         c = self.m[*p1]
         if c[0].isupper(): t, y, x = True, p2[0]-p1[0], p2[1]-p1[1]
         else: t, y, x = False, p1[0]-p2[0], p1[1]-p2[1]
@@ -269,7 +282,9 @@ class chess:
     def get_case_click(self, p1=False) -> tuple:
         m, p = self.img.mouse, None
         while self.img.is_opened():
-            self.img.show()
+            wk = self.img.show()
+            if wk == -1: pass
+            elif chr(wk) == "h": print(self.matrix)
             if m.new and m.event == cv2.EVENT_LBUTTONDOWN:
                 m.new = False
                 if clicked_in(m.pos, (self.echq)):
@@ -289,6 +304,7 @@ class chess:
     def get_move(self) -> tuple:
         p1 = self.get_case_click(True)
         while self.img.is_opened():
+            self.img.show()
             self.img.rectangle(*self.cases[*p1], COL.green, self.epaisseur)
             for x in range(8):
                 for y in range(8):
