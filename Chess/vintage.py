@@ -1,20 +1,16 @@
 from pyimager import *
 
-COL.marron = [157, 113, 83]
-COL.gris = [30, 30, 30]
-COL.marron_clair = [181, 113, 77]
-COL.marron_fonce = [101, 53, 37]
-COL.blanc = [215, 215, 215]
-COL.noir = [40, 40, 40]
-COL.noir2 = [15, 15, 15]
-
 def cadre(img, p1, p2, c1, c2, ep, lt=0) -> None:
     img.rectangle(p1, p2, c1, 0)
     img.rectangle(p1, p2, c2, ep, lt)
 
 class StopGame(Exception): pass
-
 class chess:
+    ## Vars ##
+    gris = [30, 30, 30]
+    marron = [181, 113, 77]
+    blanc = [215, 215, 215]
+    noir = [40, 40, 40]
     x, y = [i/2 for i in RES.resolution]
     PT1, PT2 = [x*0.5, y*0.8], [x*1.5, y*1.2]
     def new_matrix(self) -> np.array:
@@ -30,7 +26,7 @@ class chess:
         self.captures = [[], []]
     def __str__(self) -> str:
         return "\n".join("".join(self.m[7-y, x][0] for x in range(8)) for y in range(8))+f"\n{self.trait}"
-    ### Infos
+    ### Infos ###
     def points(self, p) -> int:
         match p:
             case 'p': return 1
@@ -69,7 +65,7 @@ class chess:
                 c = self.m[x, y]
                 if c in " .·": continue
                 if c.isupper() == t: continue  # Skip friendly pieces
-                if self.legal_((x, y), king_pos):
+                if self.legal_((x, y), king_pos, True):
                     return True
         return False
     ### Imagerie ###
@@ -96,14 +92,16 @@ class chess:
     def image(self) -> None:
         self.img.img = copy.deepcopy(self.img_)
         if self.est_echec(self.trait):
-            cadre(self.img, *self.cases[*self.where_is_king(self.trait)], COL.red, COL.gris, self.epaisseur*min(self.img.size())/1080, self.lt)
+            self.img.rectangle(*self.cases[*self.where_is_king(self.trait)], COL.red, 0)
+        self.img.rectangle(self.cases[-1,0][0], self.cases[0,-1][-1], self.gris, self.epaisseur*min(self.img.size())/1080, self.lt)
         for x in range(8):
             for y in range(8):
                 self.draw_piece(self.matrix[x, y][0], *self.cases[x, y])
         pj1, pj2 = self.get_points()
         for jr, tb in (((pj1, self.n_j1), self.tj1), ((pj2, self.n_j2), self.tj2)):
             for i in (0, 1):
-                self.img.text(jr[i], ct_sg(*tb[i]), COL.gris, self.epaisseur*0.7, self.size*1.25, 0, self.lt)
+                t = jr[i] if i == 1 else f"{jr[i]:+}"
+                self.img.text(t, ct_sg(*tb[i]), self.gris, self.epaisseur*0.7, self.size*1.25, 0, self.lt)
         if self.last_move != None:
             for i in self.last_move:
                 self.img.rectangle(*self.cases[*i], COL.cyan, self.epaisseur)
@@ -111,7 +109,7 @@ class chess:
             for n, c in enumerate(cs):
                 self.draw_piece(c, *t[n])
     def draw_player_table(self, img, p1, p4) -> None:
-        ep, c1, c2 = self.epaisseur, COL.marron_clair, COL.marron_fonce
+        ep, c1, c2 = self.epaisseur, self.marron, [101, 53, 37]
         p2, p3 = (p4[0], p1[1]), (p1[0], p4[1])
         cadre(img, p1, p4, c1, c2, ep, self.lt)
         pg, pd = (pt_sg(*pts, 3) for pts in ((p1, p3), (p2, p4)))
@@ -133,12 +131,12 @@ class chess:
     def new_img_(self) -> image:
         img = new_img(background=COL.black, name=self.name)
         M = min(img.size())
-        sz, lt, ft, col, ep = self.size*M/1080, lineTypes[2], cv2.FONT_HERSHEY_TRIPLEX, COL.gris, self.epaisseur*M/1080
+        sz, lt, ft, col, ep = self.size*M/1080, lineTypes[2], cv2.FONT_HERSHEY_TRIPLEX, self.gris, self.epaisseur*M/1080
         ptt1 = [0, 0]
         ptt4 = [i+M for i in ptt1]
         ptt2, ptt3 = (ptt4[0], ptt1[1]), (ptt1[0], ptt4[1])
         d = dist(ptt2, ptt1) / 9
-        img.rectangle(ptt1, ptt4, COL.marron, 0)
+        img.rectangle(ptt1, ptt4, [157, 113, 83], 0)
         for n in range(8):
             for p in [(d*(n+1), d/4), (d*(n+1), M - d/4)]:
                 for args in (("ABCDEFGH"[n], p), ("87654321"[n], p[::-1])):
@@ -152,8 +150,7 @@ class chess:
             img.line((round(ptt1[0]+d*(i+0.5)),ptt1[1]), (round(ptt1[0]+d*(i+0.5)),ptt3[1]), col, ep, self.lt)
             img.line((ptt1[0],round(ptt1[1]+d*(i+0.5))), (ptt2[0],round(ptt1[1]+d*(i+0.5))), col, ep, self.lt)
         for x in range(8):
-            for y in range(8): img.rectangle(*self.cases[x, y], COL.marron_clair if x%2==y%2 else COL.noir, 0)
-        img.rectangle(self.cases[-1,0][0], self.cases[0,-1][-1], col, ep, self.lt)
+            for y in range(8): img.rectangle(*self.cases[x, y], self.marron if x%2==y%2 else self.noir, 0)
         img.rectangle(ptt1, ptt4, col, ep)
         self.echq = self.cases[-1,0,0], self.cases[0,-1,-1]
         self.sz_echq = diff(self.echq[0][0], self.echq[1][0]), diff(self.echq[0][1], self.echq[1][1])
@@ -168,7 +165,7 @@ class chess:
         p1, p2 = pt_sg(a, b, c), pt_sg(b, a, c)
         p3, p4 = [p2[0], p1[1]], [p1[0], p2[1]]
         ct = ct_cr(p1, p2, p3, p4)
-        c1, c2 = COL.blanc, COL.noir2
+        c1, c2 = self.blanc, [15, 15, 15]
         if p.islower(): c1, c2 = c2, c1
         p = p.lower()
         if not p in ' .·':
@@ -198,7 +195,7 @@ class chess:
             a[1] += y
             b[1] += y
             pieces.append([a, b])
-            cadre(self.img, a, b, COL.blanc, COL.noir, self.epaisseur*2*min(self.img.size())/1080)
+            cadre(self.img, a, b, self.blanc, self.noir, self.epaisseur*2*min(self.img.size())/1080)
             self.draw_piece(i if self.trait else i.lower(), a, b)
             x += 1
         while self.img.is_opened():
@@ -322,6 +319,13 @@ class chess:
         if leg:
             if not self.m[*p2] in " .·":
                 self.captures[0 if self.trait else 1].append(self.m[*p2][0])
+                for i in range(2):
+                    for m, p in ((1, "d"), (2, "tfc")):
+                        for c in p:
+                            if self.captures[i].count(c) > m:
+                                self.captures[i].remove(c)
+                                self.captures[i].append("p" if i == 0 else "P")
+                    self.captures[i].sort(key=lambda x: "pcftdPCFTD".index(x))
             self.m[*p2], self.m[*p1] = self.m[*p1][0], " "
             self.m[self.m=="."] = " "
             self.m[self.m=="·"] = "."
