@@ -138,24 +138,22 @@ class chess:
         ptt4 = [i+M for i in ptt1]
         ptt2, ptt3 = (ptt4[0], ptt1[1]), (ptt1[0], ptt4[1])
         d = dist(ptt2, ptt1) / 9
-        img.rectangle(ptt1, ptt4, [157, 113, 83], 0)
+        img.rectangle(ptt1, ptt4, COL.marron, 0)
         for n in range(8):
             for p in [(d*(n+1), d/4), (d*(n+1), M - d/4)]:
                 for args in (("ABCDEFGH"[n], p), ("87654321"[n], p[::-1])):
-                    img.text(*args, col, ep*0.6, sz, 0, self.lt)
+                    img.text(*args, COL.black, ep*0.6, sz, 0, self.lt)
         # Remplissage des coins de l'échequier.
         for n, p in enumerate([ptt1, ptt2, ptt4, ptt3]):
             img.rectangle(p, coosCircle(p, square_root(((d/2)**2)*2), 90*n+45), COL.new("3d3d3d"), 0)
         # Délimitations des lignes sur les bords de l'échequier.
         self.cases = np.array([[[(d*(x+0.5), d*(7.5-y)), (d*(x+1.5), d*(8.5-y))] for x in range(8)] for y in range(8)])
-        for x in range(8):
-            for y in range(8):
-                C = COL.marron_clair if x%2==y%2 else COL.noir
-                img.rectangle(*self.cases[x, y], C, 0)
         for i in range(9):
-            i += 0.5
-            img.line((round(ptt1[0]+d*i),ptt1[1]), (round(ptt1[0]+d*i),ptt3[1]), col, ep)
-            img.line((ptt1[0],round(ptt1[1]+d*i)), (ptt2[0],round(ptt1[1]+d*i)), col, ep)
+            img.line((round(ptt1[0]+d*(i+0.5)),ptt1[1]), (round(ptt1[0]+d*(i+0.5)),ptt3[1]), col, ep, self.lt)
+            img.line((ptt1[0],round(ptt1[1]+d*(i+0.5))), (ptt2[0],round(ptt1[1]+d*(i+0.5))), col, ep, self.lt)
+        for x in range(8):
+            for y in range(8): img.rectangle(*self.cases[x, y], COL.marron_clair if x%2==y%2 else COL.noir, 0)
+        img.rectangle(self.cases[-1,0][0], self.cases[0,-1][-1], col, ep, self.lt)
         img.rectangle(ptt1, ptt4, col, ep)
         self.echq = self.cases[-1,0,0], self.cases[0,-1,-1]
         self.sz_echq = diff(self.echq[0][0], self.echq[1][0]), diff(self.echq[0][1], self.echq[1][1])
