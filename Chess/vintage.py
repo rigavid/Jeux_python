@@ -310,7 +310,7 @@ class chess:
                 for y in range(8):
                     self.m = copy.deepcopy(self.matrix)
                     if self.legal(p1, (x, y), True):
-                        self.img.circle(ct_sg(*self.cases[x, y]), self.epaisseur*5, COL.purple, 0)
+                        self.img.circle(ct_sg(*self.cases[x, y]), self.epaisseur*3, COL.purple, 0, self.lt)
             p2 = self.get_case_click()
             if not self.matrix[*p2] in " .·" and self.matrix[*p2].isupper() == self.trait:
                 self.image()
