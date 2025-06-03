@@ -28,6 +28,7 @@ class chess:
         self.captures = [[], []]
         self.moves_s_p_s_c = 0
         self.cause_fin = None
+        self.positions = []
     def __str__(self) -> str:
         return "\n".join("".join(self.m[7-y, x][0] for x in range(8)) for y in range(8))+f"\n{self.trait}"
     def restart(self) -> None:
@@ -38,6 +39,7 @@ class chess:
         self.captures = [[], []]
         self.moves_s_p_s_c = 0
         self.cause_fin = None
+        self.positions = []
     ### Infos ###
     def points(self, p) -> int:
         match p:
@@ -96,8 +98,11 @@ class chess:
     def nulle_50_moves(self) -> bool:
         self.cause_fin = "50moves"
         return self.moves_s_p_s_c >= 50
+    def nulle_repetition(self) -> bool:
+        self.cause_fin = "repetition"
+        return self.positions.count(str(self)) >= 2
     def est_nulle(self) -> bool:
-        return self.est_pat() or self.nulle_50_moves()
+        return self.est_pat() or self.nulle_50_moves() or self.nulle_repetition()
     def partie_finie(self) -> bool:
         return not (self.est_mat() or self.est_nulle())
     ### Imagerie ###
@@ -229,7 +234,7 @@ class chess:
             a[1] += y
             b[1] += y
             pieces.append([a, b])
-            cadre(self.img, a, b, self.blanc, self.noir, self.ep*2*min(self.img.size())/1080)
+            cadre(self.img, a, b, self.marron, self.marron_f, self.ep*2*min(self.img.size())/1080)
             self.draw_piece(i if self.trait else i.lower(), a, b)
             x += 1
         while self.img.is_opened():
@@ -358,6 +363,7 @@ class chess:
         return False
     def move(self, p1, p2) -> None:
         if self.can_move(p1, p2):
+            self.positions.append(str(self))
             if not self.m[*p2] in " .·":
                 self.captures[0 if self.trait else 1].append(self.m[*p2][0])
                 self.moves_s_p_s_c = 0
@@ -419,7 +425,7 @@ class chess:
         if "mate" in r and len(r) == 5: text = f"{self.n_j1 if r[-1] == "0" else self.n_j2} won\nby checkmate"
         elif "resign" in r: text = f"{self.n_j1 if r[-1] == "0" else self.n_j2} won\nby resignation"
         else: text = f"Draw\nby {r.replace("_", " ")}"
-        self.img.text(text, ct_sg(ct_sg(r1, r2), ct_sg(r1, r4)), COL.black, self.ep, self.size, 0, self.lt)
+        self.img.text(text, ct_sg(ct_sg(r1, r2), ct_sg(r1, r4)), COL.black, self.ep, self.size*1.5, 0, self.lt)
         self.img.text("Replay", ct_sg(*rematch_coos), COL.black, self.ep, self.size, 0, self.lt)
         self.img.text("Menu", ct_sg(*menu_coos), COL.black, self.ep, self.size, 0, self.lt)
         m = self.img.mouse
