@@ -1,4 +1,5 @@
 from pyimager import *
+import time
 
 def cadre(img, p1, p2, c1, c2, ep, lt=0) -> None:
     img.rectangle(p1, p2, c1, 0)
@@ -11,21 +12,32 @@ class chess:
     marron = [181, 113, 77]
     blanc = [215, 215, 215]
     noir = [40, 40, 40]
+    marron_f = [101, 53, 37]
     x, y = [i/2 for i in RES.resolution]
     PT1, PT2 = [x*0.5, y*0.8], [x*1.5, y*1.2]
     def new_matrix(self) -> np.array:
         pcs = [i+"." if i in "TR" else i for i in "TCFDRFCT"]
         return np.array([[p for p in pcs], ["P."]*8, *[[" "]*8]*4, ["p."]*8, [p.lower() for p in pcs]])
     def __init__(self, name="PyChess", j1="J1", j2="J2") -> None:
-        self.epaisseur, self.size, self.lt = 5, 7, 2
+        self.ep, self.size, self.lt = 5, 7, 2
         self.name, self.n_j1, self.n_j2 = name, j1, j2
         self.matrix, self.trait = self.new_matrix(), True
         self.img:image = self.new_img_()
         self.last_move = None
         self.m = copy.deepcopy(self.matrix)
         self.captures = [[], []]
+        self.moves_s_p_s_c = 0
+        self.cause_fin = None
     def __str__(self) -> str:
         return "\n".join("".join(self.m[7-y, x][0] for x in range(8)) for y in range(8))+f"\n{self.trait}"
+    def restart(self) -> None:
+        self.n_j1, self.n_j2 = self.n_j2, self.n_j1
+        self.matrix, self.trait = self.new_matrix(), True
+        self.last_move = None
+        self.m = copy.deepcopy(self.matrix)
+        self.captures = [[], []]
+        self.moves_s_p_s_c = 0
+        self.cause_fin = None
     ### Infos ###
     def points(self, p) -> int:
         match p:
@@ -68,6 +80,26 @@ class chess:
                 if self.legal_((x, y), king_pos, True):
                     return True
         return False
+    def peut_jouer(self) -> bool:
+        for p in [[x, y] for x in range(8) for y in range(8) if not self.m[x,y][0] in " .·" and self.m[x,y][0].isupper() == self.trait]:
+            for x in range(8):
+                for y in range(8):
+                    if self.can_move(p, [x, y], dry=True):
+                        return True
+        return False
+    def est_mat(self) -> bool:
+        self.cause_fin = f"mate{int(self.trait)}"
+        return not self.peut_jouer() and self.est_echec(self.trait)
+    def est_pat(self) -> bool:
+        self.cause_fin = "stalemate"
+        return not self.peut_jouer() and not self.est_echec(self.trait)
+    def nulle_50_moves(self) -> bool:
+        self.cause_fin = "50moves"
+        return self.moves_s_p_s_c >= 50
+    def est_nulle(self) -> bool:
+        return self.est_pat() or self.nulle_50_moves()
+    def partie_finie(self) -> bool:
+        return not (self.est_mat() or self.est_nulle())
     ### Imagerie ###
     def input(self, p="") -> str:
         im = copy.deepcopy(self.img.img)
@@ -75,8 +107,8 @@ class chess:
         majus = False
         while self.img.is_opened():
             self.img.img = copy.deepcopy(im)
-            cadre(self.img, self.PT1, self.PT2, COL.red, COL.blue, self.epaisseur, self.lt)
-            self.img.text(p+s, ct_sg(self.PT1, self.PT2), COL.green, self.epaisseur*0.7, self.size*2, 0, self.lt)
+            cadre(self.img, self.PT1, self.PT2, COL.red, COL.blue, self.ep, self.lt)
+            self.img.text(p+s, ct_sg(self.PT1, self.PT2), COL.green, self.ep*0.7, self.size*2, 0, self.lt)
             wk = self.img.show(built_in_functs=False)
             if wk == -1: pass
             elif wk == 13:
@@ -87,13 +119,15 @@ class chess:
                 return None
             elif wk in [65509, 65505]: majus = not majus
             elif wk == 8: s = s[:-1:]
-            elif majus: s += chr(wk).upper()
-            else: s += chr(wk)
+            else:
+                try: s += chr(wk).upper() if majus else chr(wk)
+                except: pass
+        raise StopGame
     def image(self) -> None:
         self.img.img = copy.deepcopy(self.img_)
         if self.est_echec(self.trait):
             self.img.rectangle(*self.cases[*self.where_is_king(self.trait)], COL.red, 0)
-        self.img.rectangle(self.cases[-1,0][0], self.cases[0,-1][-1], self.gris, self.epaisseur*min(self.img.size())/1080, self.lt)
+        self.img.rectangle(self.cases[-1,0][0], self.cases[0,-1][-1], self.gris, self.ep*min(self.img.size())/1080, self.lt)
         for x in range(8):
             for y in range(8):
                 self.draw_piece(self.matrix[x, y][0], *self.cases[x, y])
@@ -101,15 +135,15 @@ class chess:
         for jr, tb in (((pj1, self.n_j1), self.tj1), ((pj2, self.n_j2), self.tj2)):
             for i in (0, 1):
                 t = jr[i] if i == 1 else f"{jr[i]:+}"
-                self.img.text(t, ct_sg(*tb[i]), self.gris, self.epaisseur*0.7, self.size*1.25, 0, self.lt)
+                self.img.text(t, ct_sg(*tb[i]), self.gris, self.ep*0.7, self.size*1.25, 0, self.lt)
         if self.last_move != None:
             for i in self.last_move:
-                self.img.rectangle(*self.cases[*i], COL.cyan, self.epaisseur)
+                self.img.rectangle(*self.cases[*i], COL.cyan, self.ep)
         for t, cs in ((self.tj1[2], self.captures[0]), (self.tj2[2], self.captures[1])):
             for n, c in enumerate(cs):
                 self.draw_piece(c, *t[n])
     def draw_player_table(self, img, p1, p4) -> None:
-        ep, c1, c2 = self.epaisseur, self.marron, [101, 53, 37]
+        ep, c1, c2 = self.ep, self.marron, self.marron_f
         p2, p3 = (p4[0], p1[1]), (p1[0], p4[1])
         cadre(img, p1, p4, c1, c2, ep, self.lt)
         pg, pd = (pt_sg(*pts, 3) for pts in ((p1, p3), (p2, p4)))
@@ -131,7 +165,7 @@ class chess:
     def new_img_(self) -> image:
         img = new_img(background=COL.black, name=self.name)
         M = min(img.size())
-        sz, lt, ft, col, ep = self.size*M/1080, lineTypes[2], cv2.FONT_HERSHEY_TRIPLEX, self.gris, self.epaisseur*M/1080
+        sz, lt, ft, col, ep = self.size*M/1080, lineTypes[2], cv2.FONT_HERSHEY_TRIPLEX, self.gris, self.ep*M/1080
         ptt1 = [0, 0]
         ptt4 = [i+M for i in ptt1]
         ptt2, ptt3 = (ptt4[0], ptt1[1]), (ptt1[0], ptt4[1])
@@ -195,7 +229,7 @@ class chess:
             a[1] += y
             b[1] += y
             pieces.append([a, b])
-            cadre(self.img, a, b, self.blanc, self.noir, self.epaisseur*2*min(self.img.size())/1080)
+            cadre(self.img, a, b, self.blanc, self.noir, self.ep*2*min(self.img.size())/1080)
             self.draw_piece(i if self.trait else i.lower(), a, b)
             x += 1
         while self.img.is_opened():
@@ -207,6 +241,7 @@ class chess:
                             self.m[*p1] = p[i] if self.trait else p[i].lower()
                             return True
                     return False
+        raise StopGame
     def promotion(self, p1, p2, dry) -> bool:
         if p2[0] in (0, 7) and not dry: return self.promote(p1)
         return True
@@ -264,8 +299,8 @@ class chess:
             case 'r': legalite = self.leg_r(x, y, p1, p2, dry)
             case _: return False
         return legalite
-    def legal(self, p1, p2, *args) -> bool:
-        if self.legal_(p1, p2, *args):
+    def legal(self, p1, p2, *args, **kwargs) -> bool:
+        if self.legal_(p1, p2, *args, **kwargs):
             n = copy.deepcopy(self.m)
             self.m[*p2], self.m[*p1] = self.m[*p1][0], " "
             self.m[self.m=="."] = " "
@@ -296,29 +331,36 @@ class chess:
                         self.n_j2 = nj2
                         self.image()
         raise StopGame
-    def get_move(self) -> tuple:
+    def get_move(self) -> tuple: ## TODO Move holding click on piece
         p1 = self.get_case_click(True)
         while self.img.is_opened():
             self.img.show()
-            self.img.rectangle(*self.cases[*p1], COL.green, self.epaisseur)
+            self.img.rectangle(*self.cases[*p1], COL.green, self.ep)
             for x in range(8):
                 for y in range(8):
                     self.m = copy.deepcopy(self.matrix)
                     if self.legal(p1, (x, y), True):
-                        self.img.circle(ct_sg(*self.cases[x, y]), self.epaisseur*3, COL.purple, 0, self.lt)
+                        self.img.circle(ct_sg(*self.cases[x, y]), self.ep*3, COL.purple, 0, self.lt)
             p2 = self.get_case_click()
             if not self.matrix[*p2] in " .·" and self.matrix[*p2].isupper() == self.trait:
                 self.image()
                 if p2 == p1: return self.get_move()
                 p1 = p2
             else: return p1, p2
-    def move(self, p1, p2) -> None:
+        raise StopGame
+    def can_move(self, p1, p2, *args, **kwargs) -> bool:
         self.m = copy.deepcopy(self.matrix)
         cap = copy.deepcopy(self.captures)
-        leg = self.legal(p1, p2)
-        if leg:
+        if self.legal(p1, p2, *args, **kwargs): return True
+        else:
+            self.m = copy.deepcopy(self.matrix)
+            self.captures = cap
+        return False
+    def move(self, p1, p2) -> None:
+        if self.can_move(p1, p2):
             if not self.m[*p2] in " .·":
                 self.captures[0 if self.trait else 1].append(self.m[*p2][0])
+                self.moves_s_p_s_c = 0
                 for i in range(2):
                     for m, p in ((1, "d"), (2, "tfc")):
                         for c in p:
@@ -326,27 +368,80 @@ class chess:
                                 self.captures[i].remove(c)
                                 self.captures[i].append("p" if i == 0 else "P")
                     self.captures[i].sort(key=lambda x: "pcftdPCFTD".index(x))
+            elif self.m[*p1][0].lower() != "p": self.moves_s_p_s_c += 1
             self.m[*p2], self.m[*p1] = self.m[*p1][0], " "
             self.m[self.m=="."] = " "
             self.m[self.m=="·"] = "."
             self.last_move = p1, p2
             self.trait = not self.trait
             self.matrix = self.m
-        else:
-            self.m = copy.deepcopy(self.matrix)
-            self.captures = cap
         self.image()
-    def start_(self) -> None:
+    def start_(self) -> str:
         self.image()
         m = self.img.mouse
+        while self.img.is_opened():
+            if not self.partie_finie():
+                return self.cause_fin
+            self.img.show()
+            self.move(*self.get_move())
+        raise StopGame
+    def menu(self) -> None:
+        self.image()
+        m = self.img.mouse
+        try: m.r
+        except: m.r = None
         self.img.setMouseCallback(m.get)
+        p1, p4 = self.cases[-1,0][0], self.cases[0,-1][-1]
+        p2, p3 = [p4[0], p1[1]], [p1[0], p4[1]]
+        button_play_coos = [pt_sg(ct_sg(p1, p3), ct_sg(p1, p2), 2), pt_sg(ct_sg(p2, p4), ct_sg(p3, p4), 2)]
+        cadre(self.img, *button_play_coos, self.marron, self.marron_f, self.ep, self.lt)
+        self.img.text("Play!", ct_sg(*button_play_coos), COL.black, self.ep*2, self.size*3, 0, self.lt)
         self.img.build()
         while self.img.is_opened():
             self.img.show()
-            self.move(*self.get_move())
+            if m.new:
+                m.new = False
+                if m.flags == cv2.EVENT_LBUTTONDOWN and m.r==None:
+                    if clicked_in(m.pos, button_play_coos): return True
+                elif m.r!=None:
+                    time.sleep(1)
+                    m.r = None
+        raise StopGame
+    def ended_game(self, r) -> None:
+        p1, p4 = self.cases[-1,0][0], self.cases[0,-1][-1]
+        p2, p3 = [p4[0], p1[1]], [p1[0], p4[1]]
+        results_table = [pt_sg(ct_sg(p1, p3), ct_sg(p1, p2)), pt_sg(ct_sg(p2, p4), ct_sg(p3, p4))]
+        r1, r4 = results_table
+        r2, r3 = [r4[0], r1[1]], [r1[0], r4[1]]
+        rematch_coos = [pt_sg(ct_sg(r1, r3), ct_sg(r3, r4), 5), pt_sg(ct_sg(r3, r4), ct_sg(r1, r3), 5)]
+        menu_coos = [pt_sg(ct_sg(r1, r4), r4, 5), pt_sg(r4, ct_sg(r1, r4), 5)]
+        for coos in [results_table, rematch_coos, menu_coos]: cadre(self.img, *coos, self.marron, self.marron_f, self.ep, self.lt)
+        if "mate" in r and len(r) == 5: text = f"{self.n_j1 if r[-1] == "0" else self.n_j2} won\nby checkmate"
+        elif "resign" in r: text = f"{self.n_j1 if r[-1] == "0" else self.n_j2} won\nby resignation"
+        else: text = f"Draw\nby {r.replace("_", " ")}"
+        self.img.text(text, ct_sg(ct_sg(r1, r2), ct_sg(r1, r4)), COL.black, self.ep, self.size, 0, self.lt)
+        self.img.text("Replay", ct_sg(*rematch_coos), COL.black, self.ep, self.size, 0, self.lt)
+        self.img.text("Menu", ct_sg(*menu_coos), COL.black, self.ep, self.size, 0, self.lt)
+        m = self.img.mouse
+        while self.img.is_opened():
+            self.img.show()
+            if m.new:
+                m.new = False
+                if m.flags == cv2.EVENT_LBUTTONDOWN:
+                    if clicked_in(m.pos, rematch_coos): return False
+                    elif clicked_in(m.pos, menu_coos):
+                        m.r = "Wait"
+                        return True
     def start(self) -> None:
-        try: self.start_()
-        except StopGame: pass
+        ask = True
+        while True:
+            try:
+                if ask:
+                    if not self.menu(): raise StopGame
+                ask = self.ended_game(self.start_())
+                self.restart()
+                time.sleep(1)
+            except StopGame: return
 
 if __name__ == "__main__":
     a = chess()
