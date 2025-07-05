@@ -220,8 +220,8 @@ class Shogi:
         img.line([xa,y],[xb,y],COL.li,ep_li,l_t)
     for x in range2(xa,xb+1,dx):
         img.line([x,ya],[x,yb],COL.li,ep_li,l_t)
-    for y in range2(ya+diff(ya,yb)/3,yb,diff(ya,yb)/3):
-        for x in range2(xa+diff(xa,xb)/3,xb,diff(xa,xb)/3):
+    for y in range2(ya+diff(ya,yb)/3,yb-1,diff(ya,yb)/3):
+        for x in range2(xa+diff(xa,xb)/3,xb-1,diff(xa,xb)/3):
             img.circle([x,y],ep_c,COL.li,0,l_t)
     def reset(self):
         return Shogi(name=self.name,j1=self.j1,j2=self.j2)
