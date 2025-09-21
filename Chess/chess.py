@@ -307,7 +307,7 @@ class chess:
         x = 2
         p = "CFTD"
         pieces = []
-        for i in p: ## TODO Couleurs STP !
+        for i in p:
             a, b = copy.deepcopy(self.cases[4,x][0]), copy.deepcopy(self.cases[3,x+1][0])
             y = diff(a[1], b[1])/2
             a[1] += y
